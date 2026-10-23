@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.suppliers}, ~{::content})}">
+<head><title>Suppliers - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Purchasing</div>
+            <h1>Suppliers</h1>
+            <div class="subtitle">Vendors, contacts and money owed.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('SUPPLIER_MANAGE')" href="/suppliers/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New supplier
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="section">
+        <form method="get" action="/suppliers" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Name, phone, email or TIN…">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a href="/suppliers" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Supplier</th><th>Contact</th><th>Email</th><th>Status</th><th class="text-right"></th></tr></thead>
+                <tbody>
+                <tr th:each="supplier : ${suppliers.content}">
+                    <td>
+                        <a class="table-link" th:href="@{/suppliers/{id}(id=${supplier.id})}" th:text="${supplier.name}">Supplier</a>
+                        <div class="hint mono" th:if="${supplier.tin != null}" th:text="'TIN ' + ${supplier.tin}">TIN</div>
+                    </td>
+                    <td th:text="${supplier.phone ?: '—'}">—</td>
+                    <td th:text="${supplier.email ?: '—'}">—</td>
+                    <td><span class="badge" th:classappend="${supplier.active} ? 'badge-success' : 'badge-secondary'" th:text="${supplier.active ? 'Active' : 'Inactive'}">Active</span></td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" th:href="@{/suppliers/{id}(id=${supplier.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${suppliers.totalElements == 0}"><td colspan="5"><div class="empty-state"><h3>No suppliers found</h3><p>Add the vendors you purchase from.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" th:if="${suppliers.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${suppliers.number + 1}">1</strong> of <strong th:text="${suppliers.totalPages}">1</strong></span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${suppliers.first} ? 'disabled'" th:href="@{/suppliers(page=${suppliers.number - 1}, size=${suppliers.size}, q=${q})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${suppliers.last} ? 'disabled'" th:href="@{/suppliers(page=${suppliers.number + 1}, size=${suppliers.size}, q=${q})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

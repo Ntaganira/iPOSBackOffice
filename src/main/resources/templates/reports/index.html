@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Reports - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Analytics</div>
+            <h1>Reports</h1>
+            <div class="subtitle">This month at a glance, with CSV exports for accounting.</div>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(sales.netSales)}">RWF 0</div><div class="label">Net sales</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(sales.grossProfit)}">RWF 0</div><div class="label">Gross profit</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(profit.expenses)}">RWF 0</div><div class="label">Expenses</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(profit.netProfit)}">RWF 0</div><div class="label">Net profit</div></div>
+    </div>
+
+    <div class="report-links">
+        <a class="report-card" th:href="@{/reports/sales(from=${from},to=${to})}">
+            <h3>Sales report</h3>
+            <p>Daily sales, refunds, tax, payment mix, cashiers and top products.</p>
+            <span>Open report →</span>
+        </a>
+        <a class="report-card" th:href="@{/reports/profit(from=${from},to=${to})}">
+            <h3>Profit &amp; loss</h3>
+            <p>Gross profit less approved expenses for the period.</p>
+            <span>Open report →</span>
+        </a>
+        <a class="report-card" th:href="@{/reports/stock(from=${from},to=${to})}">
+            <h3>Stock report</h3>
+            <p>Valuation, low stock and movement totals by type.</p>
+            <span>Open report →</span>
+        </a>
+        <a class="report-card" th:href="@{/reports/purchases(from=${from},to=${to})}">
+            <h3>Purchases</h3>
+            <p>Orders placed with suppliers and amounts committed.</p>
+            <span>Open report →</span>
+        </a>
+        <a class="report-card" th:href="@{/reports/expenses(from=${from},to=${to})}">
+            <h3>Expenses</h3>
+            <p>Costs recorded in the period by category and payee.</p>
+            <span>Open report →</span>
+        </a>
+        <a class="report-card" th:href="@{/reports/cash(date=${to})}">
+            <h3>Daily cash drawer</h3>
+            <p>Opening cash, cash sales, refunds and cash expenses reconciled for the day.</p>
+            <span>Open report &rarr;</span>
+        </a>
+        <a class="report-card" th:href="@{/reports/tax.csv(from=${from},to=${to})}">
+            <h3>Tax export</h3>
+            <p>Download taxable amounts and VAT by tax category.</p>
+            <span>Download CSV →</span>
+        </a>
+    </div>
+</div>
+</body>
+</html>

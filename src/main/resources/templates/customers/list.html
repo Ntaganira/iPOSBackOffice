@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.customers}, ~{::content})}">
+<head><title>Customers - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Relationships</div>
+            <h1>Customers</h1>
+            <div class="subtitle">Walk-in buyers, credit accounts and contact details.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('CUSTOMER_CREATE')" href="/customers/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New customer
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="value" th:text="${customers.totalElements}">0</div>
+            <div class="label">Customers</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" th:text="${@fmt.money(totalOutstanding)}">RWF 0</div>
+            <div class="label">Outstanding credit</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/customers" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Name, phone, email or TIN…">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a href="/customers" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Customer</th><th>Phone</th><th>Email</th><th>Type</th><th class="text-right">Balance</th><th class="text-right">Credit limit</th><th>Status</th><th class="text-right"></th></tr></thead>
+                <tbody>
+                <tr th:each="customer : ${customers.content}">
+                    <td>
+                        <a class="table-link" th:href="@{/customers/{id}(id=${customer.id})}" th:text="${customer.name}">Customer</a>
+                        <div class="hint mono" th:if="${customer.tin != null}" th:text="'TIN ' + ${customer.tin}">TIN</div>
+                    </td>
+                    <td th:text="${customer.phone ?: '—'}">—</td>
+                    <td th:text="${customer.email ?: '—'}">—</td>
+                    <td><span class="badge badge-secondary" th:text="${customer.customerType}">INDIVIDUAL</span></td>
+                    <td class="text-right"><strong th:classappend="${customer.balance.signum() > 0} ? 'text-danger' : ''" th:text="${@fmt.money(customer.balance)}">RWF 0</strong></td>
+                    <td class="text-right" th:text="${@fmt.money(customer.creditLimit)}">RWF 0</td>
+                    <td><span class="badge" th:classappend="${customer.active} ? 'badge-success' : 'badge-secondary'" th:text="${customer.active ? 'Active' : 'Inactive'}">Active</span></td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" th:href="@{/customers/{id}(id=${customer.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${customers.totalElements == 0}">
+                    <td colspan="8"><div class="empty-state"><h3>No customers found</h3><p>Create the first customer to track credit and contacts.</p></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar" th:if="${customers.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${customers.number + 1}">1</strong> of <strong th:text="${customers.totalPages}">1</strong></span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${customers.first} ? 'disabled'" th:href="@{/customers(page=${customers.number - 1}, size=${customers.size}, q=${q})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${customers.last} ? 'disabled'" th:href="@{/customers(page=${customers.number + 1}, size=${customers.size}, q=${q})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

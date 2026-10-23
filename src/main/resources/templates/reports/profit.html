@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Profit report - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/reports" class="subtle-link">Reports</a> / Profit</div>
+            <h1>Profit &amp; loss</h1>
+            <div class="subtitle" th:text="${@fmt.date(from)} + ' → ' + ${@fmt.date(to)}">Period</div>
+        </div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/reports/expenses.csv(from=${from},to=${to})}">Expenses CSV</a></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/reports/profit" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="/reports/profit" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.sales.netSales)}">RWF 0</div><div class="label">Net sales</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.sales.cogs)}">RWF 0</div><div class="label">Cost of goods sold</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.sales.grossProfit)}">RWF 0</div><div class="label">Gross profit</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.expenses)}">RWF 0</div><div class="label">Approved expenses</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.netProfit)}">RWF 0</div><div class="label">Net profit</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>How it is calculated</h2></div>
+        <div class="detail-list">
+            <div><span>Gross sales</span><strong th:text="${@fmt.money(report.sales.grossSales)}">RWF 0</strong></div>
+            <div><span>Refunds</span><strong th:text="${@fmt.money(report.sales.refunds)}">RWF 0</strong></div>
+            <div><span>Tax collected (VAT)</span><strong th:text="${@fmt.money(report.sales.tax)}">RWF 0</strong></div>
+            <div><span>Revenue excluding tax</span><strong th:text="${@fmt.money(report.sales.netSales.subtract(report.sales.tax))}">RWF 0</strong></div>
+            <div><span>Cost of goods sold</span><strong th:text="${@fmt.money(report.sales.cogs)}">RWF 0</strong></div>
+            <div><span>Approved expenses</span><strong th:text="${@fmt.money(report.expenses)}">RWF 0</strong></div>
+            <div><span>Net profit</span><strong th:text="${@fmt.money(report.netProfit)}">RWF 0</strong></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Expenses report - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/reports" class="subtle-link">Reports</a> / Expenses</div>
+            <h1>Expenses report</h1>
+            <div class="subtitle" th:text="${@fmt.date(from)} + ' → ' + ${@fmt.date(to)}">Period</div>
+        </div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/reports/expenses.csv(from=${from},to=${to})}">Export CSV</a></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/reports/expenses" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="/reports/expenses" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(total)}">RWF 0</div><div class="label">Total expenses</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(expenses)}">0</div><div class="label">Records</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Expenses</h2></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
+                <tbody>
+                <tr th:each="expense : ${expenses}">
+                    <td th:text="${@fmt.date(expense.expenseDate)}">Date</td>
+                    <td><a class="table-link" th:href="@{/expenses/{id}(id=${expense.id})}" th:text="${expense.description}">Description</a></td>
+                    <td th:text="${expense.category == null ? '—' : expense.category.name}">Category</td>
+                    <td th:text="${expense.payee ?: '—'}">—</td>
+                    <td><span class="badge badge-secondary" th:text="${expense.status}">PAID</span></td>
+                    <td class="text-right" th:text="${@fmt.money(expense.amount)}">RWF 0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(expenses)}"><td colspan="6"><div class="empty-state slim"><p>No expenses in this period.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

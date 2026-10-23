@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.audit}, ~{::content})}">
+<head><title>Audit log - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Administration</div>
+            <h1>Audit log</h1>
+            <div class="subtitle">Every sensitive action, with before and after values.</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/audit" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <input type="search" name="q" th:value="${q}" placeholder="Search label, id or user">
+            <select name="action">
+                <option value="">All actions</option>
+                <option th:each="option : ${actions}" th:value="${option}" th:text="${option}" th:selected="${action == option}"></option>
+            </select>
+            <select name="entityType">
+                <option value="">All entities</option>
+                <option th:each="option : ${entityTypes}" th:value="${option}" th:text="${option}" th:selected="${entityType == option}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/audit" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead><tr><th>When</th><th>User</th><th>Action</th><th>Entity</th><th>Changes</th><th>IP</th></tr></thead>
+                <tbody>
+                <tr th:each="log : ${logs.content}">
+                    <td class="nowrap" th:text="${@fmt.dateTime(log.occurredAt)}">When</td>
+                    <td><strong th:text="${log.username}">user</strong><div class="muted" th:text="${log.role}">ADMIN</div></td>
+                    <td><span class="badge badge-secondary" th:text="${log.action}">SALE_CREATE</span></td>
+                    <td><div th:text="${log.entityType}">Sale</div><div class="muted" th:text="${log.entityLabel}">NS-0001</div></td>
+                    <td>
+                        <details th:if="${log.changesJson != null}">
+                            <summary>View</summary>
+                            <pre class="audit-json" th:text="${log.changesJson}">{}</pre>
+                        </details>
+                        <span th:if="${log.changesJson == null}" class="muted">—</span>
+                    </td>
+                    <td class="mono muted" th:text="${log.ipAddress}">127.0.0.1</td>
+                </tr>
+                <tr th:if="${logs.empty}"><td colspan="6"><div class="empty-state"><h3>No audit entries</h3><p>Adjust the date range or filters.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar" th:if="${logs.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${logs.number + 1}">1</strong> of <strong th:text="${logs.totalPages}">1</strong> · <span th:text="${logs.totalElements}">0</span> entries</span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${logs.first} ? 'disabled'" th:href="@{/audit(page=${logs.number - 1}, size=${logs.size}, from=${from}, to=${to}, q=${q}, action=${action}, entityType=${entityType})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${logs.last} ? 'disabled'" th:href="@{/audit(page=${logs.number + 1}, size=${logs.size}, from=${from}, to=${to}, q=${q}, action=${action}, entityType=${entityType})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

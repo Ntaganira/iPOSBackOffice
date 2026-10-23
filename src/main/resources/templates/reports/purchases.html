@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Purchases report - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/reports" class="subtle-link">Reports</a> / Purchases</div>
+            <h1>Purchases report</h1>
+            <div class="subtitle" th:text="${@fmt.date(from)} + ' → ' + ${@fmt.date(to)}">Period</div>
+        </div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/reports/purchases.csv(from=${from},to=${to})}">Export CSV</a></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/reports/purchases" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="/reports/purchases" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(total)}">RWF 0</div><div class="label">Total ordered</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(purchases)}">0</div><div class="label">Purchase orders</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Orders</h2></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Number</th><th>Supplier</th><th>Date</th><th>Status</th><th>Payment</th><th class="text-right">Total</th></tr></thead>
+                <tbody>
+                <tr th:each="purchase : ${purchases}">
+                    <td><a class="table-link mono" th:href="@{/purchases/{id}(id=${purchase.id})}" th:text="${purchase.purchaseNumber}">PO-0001</a></td>
+                    <td th:text="${purchase.supplier == null ? '—' : purchase.supplier.name}">Supplier</td>
+                    <td th:text="${@fmt.date(purchase.purchaseDate)}">Date</td>
+                    <td><span class="badge badge-secondary" th:text="${purchase.status}">ORDERED</span></td>
+                    <td><span class="badge badge-secondary" th:text="${purchase.paymentStatus}">UNPAID</span></td>
+                    <td class="text-right" th:text="${@fmt.money(purchase.total)}">RWF 0</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(purchases)}"><td colspan="6"><div class="empty-state slim"><p>No purchases in this period.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

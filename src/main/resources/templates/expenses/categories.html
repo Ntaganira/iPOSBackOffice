@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.expenses}, ~{::content})}">
+<head><title>Expense categories - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/expenses" class="subtle-link">Expenses</a> / Categories</div>
+            <h1>Expense categories</h1>
+            <div class="subtitle">Rent, utilities, transport, salaries and more.</div>
+        </div>
+        <div class="page-actions"><a href="/expenses" class="btn btn-outline">Back to expenses</a></div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="section">
+        <div class="section-header"><h2>Add category</h2></div>
+        <form th:action="@{/expenses/categories}" method="post" class="filter-bar">
+            <input type="hidden" name="id">
+            <input name="name" required maxlength="120" placeholder="Category name" style="flex:1 1 260px">
+            <label class="checkbox-row"><input type="checkbox" name="active" value="true" checked> Active</label>
+            <button type="submit" class="btn btn-primary btn-sm">Add</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>All categories</h2><span class="section-count" th:text="${#lists.size(categories)}">0</span></div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Name</th><th>Status</th><th class="text-right">Save</th></tr></thead>
+                <tbody>
+                <tr th:each="category : ${categories}">
+                    <td>
+                        <form th:action="@{/expenses/categories}" method="post" class="inline-form" th:id="'expense-category-' + ${category.id}">
+                            <input type="hidden" name="id" th:value="${category.id}">
+                            <input name="name" th:value="${category.name}" required maxlength="120">
+                            <input type="checkbox" name="active" value="true" th:checked="${category.active}" aria-label="Active">
+                        </form>
+                    </td>
+                    <td><span class="badge" th:classappend="${category.active} ? 'badge-success' : 'badge-secondary'" th:text="${category.active ? 'Active' : 'Inactive'}">Active</span></td>
+                    <td class="text-right"><button type="submit" class="btn btn-outline btn-sm" th:form="'expense-category-' + ${category.id}">Save</button></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(categories)}"><td colspan="3"><div class="empty-state"><h3>No categories yet</h3></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

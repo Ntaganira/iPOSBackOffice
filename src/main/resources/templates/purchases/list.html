@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.purchases}, ~{::content})}">
+<head><title>Purchases - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Purchasing</div>
+            <h1>Purchase orders</h1>
+            <div class="subtitle">Order stock from suppliers, receive it and keep costs accurate.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('PURCHASE_MANAGE')" href="/purchases/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New purchase
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${purchases.totalElements}">0</div><div class="label">Matching orders</div></div>
+        <div class="summary-card"><div class="value" th:text="${pendingCount}">0</div><div class="label">Awaiting delivery</div></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/purchases" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Purchase number or supplier…">
+            </div>
+            <select name="supplierId">
+                <option value="">All suppliers</option>
+                <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}" th:selected="${supplierId != null and supplierId == supplier.id}"></option>
+            </select>
+            <select name="status">
+                <option value="">All statuses</option>
+                <option th:each="option : ${statuses}" th:value="${option}" th:text="${option}" th:selected="${status != null and status == option}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/purchases" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Number</th><th>Supplier</th><th>Date</th><th>Status</th><th>Payment</th><th class="text-right">Total</th><th class="text-right"></th></tr></thead>
+                <tbody>
+                <tr th:each="purchase : ${purchases.content}">
+                    <td><a class="table-link mono" th:href="@{/purchases/{id}(id=${purchase.id})}" th:text="${purchase.purchaseNumber}">PO-0001</a></td>
+                    <td th:text="${purchase.supplier == null ? '—' : purchase.supplier.name}">Supplier</td>
+                    <td th:text="${@fmt.date(purchase.purchaseDate)}">Date</td>
+                    <td><span class="badge badge-secondary" th:text="${purchase.status}">ORDERED</span></td>
+                    <td><span class="badge" th:classappend="${purchase.paymentStatus.name() == 'PAID'} ? 'badge-success' : 'badge-warning'" th:text="${purchase.paymentStatus}">UNPAID</span></td>
+                    <td class="text-right"><strong th:text="${@fmt.money(purchase.total)}">RWF 0</strong></td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" th:href="@{/purchases/{id}(id=${purchase.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${purchases.totalElements == 0}"><td colspan="7"><div class="empty-state"><h3>No purchase orders</h3><p>Create an order when stock needs replenishing.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" th:if="${purchases.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${purchases.number + 1}">1</strong> of <strong th:text="${purchases.totalPages}">1</strong></span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${purchases.first} ? 'disabled'" th:href="@{/purchases(page=${purchases.number - 1}, size=${purchases.size}, q=${q}, supplierId=${supplierId}, status=${status})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${purchases.last} ? 'disabled'" th:href="@{/purchases(page=${purchases.number + 1}, size=${purchases.size}, q=${q}, supplierId=${supplierId}, status=${status})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

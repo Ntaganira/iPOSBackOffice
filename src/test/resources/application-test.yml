@@ -1,0 +1,33 @@
+spring:
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  thymeleaf:
+    cache: false
+
+app:
+  zone: Africa/Kigali
+  demo:
+    enabled: true
+  storage:
+    uploads: ${java.io.tmpdir}/ipos-test-uploads
+  admin:
+    username: admin
+    password: admin123
+    full-name: Administrator
+    email: admin@example.com
+  encryption:
+    key: test-encryption-key-long-enough
+  security:
+    remember-me-key: test-remember-me-key
+  sync:
+    token: test-sync-token
+
+logging:
+  level:
+    org.flywaydb: WARN
+    org.hibernate.SQL: WARN

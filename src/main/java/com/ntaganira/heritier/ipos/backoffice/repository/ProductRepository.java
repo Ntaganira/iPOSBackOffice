@@ -1,0 +1,63 @@
+package com.ntaganira.heritier.ipos.backoffice.repository;
+
+import com.ntaganira.heritier.ipos.backoffice.entity.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    Optional<Product> findByCodeIgnoreCase(String code);
+
+    Optional<Product> findByBarcode(String barcode);
+
+    boolean existsByCodeIgnoreCase(String code);
+
+    boolean existsByBarcode(String barcode);
+
+    boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
+
+    boolean existsByBarcodeAndIdNot(String barcode, Long id);
+
+    @Query("""
+            select p from Product p
+            left join p.category c
+            where (:q = '' or lower(p.name) like :q or lower(p.code) like :q
+                   or lower(coalesce(p.barcode, '')) like :q)
+              and (:categoryId is null or c.id = :categoryId)
+              and (:active is null or p.active = :active)
+            order by p.name asc
+            """)
+    Page<Product> search(@Param("q") String q, @Param("categoryId") Long categoryId,
+                         @Param("active") Boolean active, Pageable pageable);
+
+    @Query("""
+            select p from Product p
+            where p.active = true
+              and (:q = '' or lower(p.name) like :q or lower(p.code) like :q
+                   or lower(coalesce(p.barcode, '')) like :q)
+            order by p.name asc
+            """)
+    List<Product> searchForPos(@Param("q") String q, Pageable pageable);
+
+    @Query("select p from Product p where p.active = true and p.stockQuantity <= p.reorderLevel order by p.stockQuantity asc")
+    List<Product> findLowStock();
+
+    long countByActiveTrueAndStockQuantityLessThanEqual(BigDecimal level);
+
+    @Query("select coalesce(sum(p.stockQuantity), 0) from Product p where p.active = true")
+    BigDecimal sumStockQuantity();
+
+    @Query("select coalesce(sum(p.stockQuantity * p.buyingPrice), 0) from Product p where p.active = true")
+    BigDecimal sumStockValue();
+
+    List<Product> findByActiveTrueOrderByNameAsc();
+
+    long countByActiveTrue();
+}

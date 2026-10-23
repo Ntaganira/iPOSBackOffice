@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.emailLogs}, ~{::content})}">
+<head><title>Email log - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Administration</div>
+            <h1>Email log</h1>
+            <div class="subtitle">Receipts and invoices sent to customers.</div>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="section">
+        <form method="get" action="/email-logs" class="filter-bar">
+            <input type="search" name="q" th:value="${q}" placeholder="Recipient, subject or document" style="flex:1 1 260px">
+            <select name="status">
+                <option value="">All statuses</option>
+                <option th:each="option : ${statuses}" th:value="${option}" th:text="${option}" th:selected="${status != null and status == option}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/email-logs" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Sent</th><th>Recipient</th><th>Subject</th><th>Document</th><th>Status</th><th class="text-right">Actions</th></tr></thead>
+                <tbody>
+                <tr th:each="log : ${logs.content}">
+                    <td class="nowrap" th:text="${log.createdAt == null ? '—' : @fmt.dateTime(log.createdAt)}">When</td>
+                    <td><a class="table-link" th:href="@{/email-logs/{id}(id=${log.id})}" th:text="${log.recipient}">email</a></td>
+                    <td th:text="${log.subject}">Subject</td>
+                    <td><span class="muted" th:text="${log.documentType}">SALE</span> <span class="mono" th:text="${log.documentNumber}">NS-0001</span></td>
+                    <td>
+                        <span class="badge" th:classappend="${log.status.name() == 'SENT'} ? 'badge-success' : (${log.status.name() == 'FAILED'} ? 'badge-danger' : 'badge-warning')" th:text="${log.status}">SENT</span>
+                        <div class="muted small" th:if="${log.errorMessage != null}" th:text="${log.errorMessage}">error</div>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            <a class="btn btn-outline btn-sm" th:href="@{/email-logs/{id}(id=${log.id})}">View</a>
+                            <form sec:authorize="hasAuthority('EMAIL_SEND')" th:if="${log.status.name() == 'FAILED'}" th:action="@{/email-logs/{id}/resend(id=${log.id})}" method="post">
+                                <button type="submit" class="btn btn-outline btn-sm">Resend</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${logs.empty}"><td colspan="6"><div class="empty-state"><h3>No emails yet</h3><p>Send a receipt from a sale to see it here.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar" th:if="${logs.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${logs.number + 1}">1</strong> of <strong th:text="${logs.totalPages}">1</strong> · <span th:text="${logs.totalElements}">0</span> emails · <span th:text="${failedCount}">0</span> failed</span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${logs.first} ? 'disabled'" th:href="@{/email-logs(page=${logs.number - 1}, size=${logs.size}, q=${q}, status=${status})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${logs.last} ? 'disabled'" th:href="@{/email-logs(page=${logs.number + 1}, size=${logs.size}, q=${q}, status=${status})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

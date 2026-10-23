@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.stock}, ~{::content})}">
+<head><title>Stock - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Inventory</div>
+            <h1>Stock overview</h1>
+            <div class="subtitle">On-hand quantities, valuation and replenishment signals.</div>
+        </div>
+        <div class="page-actions">
+            <a href="/stock/movements" class="btn btn-outline">Movements</a>
+            <a href="/stock/periods" class="btn btn-outline">Stock periods</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(stockValue)}">RWF 0</div><div class="label">Stock value at cost</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.qty(stockQuantity)}">0</div><div class="label">Total units</div></div>
+        <div class="summary-card"><div class="value" th:classappend="${!#lists.isEmpty(lowStock)} ? 'text-danger' : ''" th:text="${#lists.size(lowStock)}">0</div><div class="label">Low-stock products</div></div>
+    </div>
+
+    <div class="section" sec:authorize="hasAnyAuthority('STOCK_ADJUST','STOCK_RECEPTION')">
+        <div class="section-header"><h2>Quick stock actions</h2></div>
+        <div class="split-panels">
+            <form sec:authorize="hasAuthority('STOCK_ADJUST')" th:action="@{/stock/adjust}" method="post" class="stack-form panel-form">
+                <h3>Adjustment</h3>
+                <div class="form-group">
+                    <label for="adjust-product">Product</label>
+                    <select id="adjust-product" name="productId" required>
+                        <option value="">Choose a product</option>
+                        <option th:each="product : ${products.content}" th:value="${product.id}" th:text="${product.name + ' (' + product.code + ')'}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="delta">Quantity change</label>
+                    <input id="delta" name="quantityDelta" type="number" step="0.001" required placeholder="-3 or 10">
+                    <div class="hint">Use a negative number to remove stock.</div>
+                </div>
+                <div class="form-group"><label for="adjust-note">Reason</label><input id="adjust-note" name="note" maxlength="255"></div>
+                <button type="submit" class="btn btn-primary btn-sm">Apply adjustment</button>
+            </form>
+            <form sec:authorize="hasAuthority('STOCK_RECEPTION')" th:action="@{/stock/receive}" method="post" class="stack-form panel-form">
+                <h3>Reception without purchase</h3>
+                <div class="form-group">
+                    <label for="receive-product">Product</label>
+                    <select id="receive-product" name="productId" required>
+                        <option value="">Choose a product</option>
+                        <option th:each="product : ${products.content}" th:value="${product.id}" th:text="${product.name + ' (' + product.code + ')'}"></option>
+                    </select>
+                </div>
+                <div class="form-group"><label for="receive-qty">Quantity</label><input id="receive-qty" name="quantity" type="number" min="0.001" step="0.001" required></div>
+                <div class="form-group"><label for="receive-cost">Unit cost</label><input id="receive-cost" name="unitCost" type="number" min="0" step="0.01"></div>
+                <div class="form-group"><label for="receive-note">Note</label><input id="receive-note" name="note" maxlength="255"></div>
+                <button type="submit" class="btn btn-primary btn-sm">Receive stock</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header">
+                <h2>Products</h2>
+                <form method="get" action="/stock" class="toolbar-search" style="max-width:280px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="search" name="q" th:value="${q}" placeholder="Search product…">
+                </form>
+            </div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead><tr><th>Product</th><th>Category</th><th class="text-right">On hand</th><th class="text-right">Reorder at</th><th class="text-right">Value</th></tr></thead>
+                    <tbody>
+                    <tr th:each="product : ${products.content}">
+                        <td>
+                            <a class="table-link" th:href="@{/products/{id}/edit(id=${product.id})}" th:text="${product.name}">Product</a>
+                            <div class="hint mono" th:text="${product.code}">CODE</div>
+                        </td>
+                        <td th:text="${product.category == null ? '—' : product.category.name}">Category</td>
+                        <td class="text-right">
+                            <strong th:classappend="${product.lowStock} ? 'text-danger' : ''" th:text="${@fmt.qty(product.stockQuantity)}">0</strong>
+                            <span class="badge badge-danger" th:if="${product.lowStock}" style="margin-left:5px">LOW</span>
+                        </td>
+                        <td class="text-right" th:text="${@fmt.qty(product.reorderLevel)}">0</td>
+                        <td class="text-right" th:text="${@fmt.money(product.stockQuantity * product.buyingPrice)}">RWF 0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-bar" th:if="${products.totalPages > 1}">
+                <span class="hint">Page <strong th:text="${products.number + 1}">1</strong> of <strong th:text="${products.totalPages}">1</strong></span>
+                <div class="btn-group">
+                    <a class="btn btn-outline btn-sm" th:classappend="${products.first} ? 'disabled'" th:href="@{/stock(page=${products.number - 1}, size=${products.size}, q=${q})}">Previous</a>
+                    <a class="btn btn-outline btn-sm" th:classappend="${products.last} ? 'disabled'" th:href="@{/stock(page=${products.number + 1}, size=${products.size}, q=${q})}">Next</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Low stock</h2><span class="section-count" th:text="${#lists.size(lowStock)}">0</span></div>
+                <div class="alert-list">
+                    <div class="alert-row" th:each="product : ${lowStock}">
+                        <span class="alert-dot red"></span>
+                        <div class="alert-main">
+                            <div class="alert-title" th:text="${product.name}">Product</div>
+                            <div class="alert-sub" th:text="'Reorder at ' + ${@fmt.qty(product.reorderLevel)}">Reorder</div>
+                        </div>
+                        <div class="alert-qty" th:text="${@fmt.qty(product.stockQuantity)}">0</div>
+                    </div>
+                    <div class="empty-state slim" th:if="${#lists.isEmpty(lowStock)}"><p>Everything is above its reorder level.</p></div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header"><h2>Latest movements</h2><a href="/stock/movements" class="btn btn-outline btn-sm">All</a></div>
+                <div class="detail-list">
+                    <div th:each="row : ${recentMovements}">
+                        <span th:text="${row.productName}">Product</span>
+                        <strong th:classappend="${row.quantityDelta.signum() < 0} ? 'text-danger' : 'text-success'"
+                                th:text="(${row.quantityDelta.signum() > 0} ? '+' : '') + ${@fmt.qty(row.quantityDelta)}">0</strong>
+                    </div>
+                    <div th:if="${#lists.isEmpty(recentMovements)}"><span>No movements yet</span><strong>—</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

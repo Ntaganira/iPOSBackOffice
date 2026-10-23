@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.products}, ~{::content})}">
+<head><title>Products - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Inventory</div>
+            <h1>Products</h1>
+            <div class="subtitle">Catalogue, pricing and stock levels.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('CATEGORY_MANAGE')" href="/products/categories" class="btn btn-outline">Categories</a>
+            <a sec:authorize="hasAuthority('UNIT_MANAGE')" href="/products/units" class="btn btn-outline">Units</a>
+            <a href="/products/export" class="btn btn-outline">Export CSV</a>
+            <a sec:authorize="hasAuthority('PRODUCT_CREATE')" href="/products/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New product
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="section">
+        <form method="get" action="/products" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Name, code or barcode…">
+            </div>
+            <select name="categoryId">
+                <option value="">All categories</option>
+                <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"
+                        th:selected="${categoryId != null and categoryId == category.id}"></option>
+            </select>
+            <select name="active">
+                <option value="">All statuses</option>
+                <option value="true" th:selected="${active != null and active}">Active</option>
+                <option value="false" th:selected="${active != null and !active}">Inactive</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/products" class="btn btn-outline btn-sm">Reset</a>
+            <label sec:authorize="hasAuthority('PRODUCT_CREATE')" class="btn btn-outline btn-sm" style="cursor:pointer">
+                Import CSV
+                <input type="file" form="import-form" name="file" accept=".csv" style="display:none" onchange="this.form.submit()">
+            </label>
+        </form>
+        <form id="import-form" th:action="@{/products/import}" method="post" enctype="multipart/form-data" style="display:none"></form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Unit</th>
+                    <th class="text-right">Stock</th>
+                    <th class="text-right">Buying</th>
+                    <th class="text-right">Selling</th>
+                    <th>Tax</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${products.content}">
+                    <td>
+                        <div class="product-cell">
+                            <img th:if="${product.imagePath != null}" th:src="@{/files/{path}(path=${product.imagePath})}" alt="">
+                            <span th:unless="${product.imagePath != null}" class="product-placeholder" th:text="${#strings.substring(product.name,0,1)}">P</span>
+                            <div>
+                                <div class="table-primary" th:text="${product.name}">Product</div>
+                                <div class="hint mono" th:text="${product.code}">CODE</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:text="${product.category == null ? '—' : product.category.name}">Category</td>
+                    <td th:text="${product.unit == null ? '—' : product.unit.code}">PCS</td>
+                    <td class="text-right">
+                        <strong th:classappend="${product.lowStock} ? 'text-danger' : ''"
+                                th:text="${@fmt.qty(product.stockQuantity)}">0</strong>
+                        <div class="hint" th:if="${product.lowStock}">low</div>
+                    </td>
+                    <td class="text-right" th:text="${@fmt.money(product.buyingPrice)}">RWF 0</td>
+                    <td class="text-right" th:text="${@fmt.money(product.sellingPrice)}">RWF 0</td>
+                    <td th:text="${product.taxCategory == null ? '—' : product.taxCategory.label()}">A</td>
+                    <td>
+                        <span class="badge" th:classappend="${product.active} ? 'badge-success' : 'badge-secondary'"
+                              th:text="${product.active ? 'Active' : 'Inactive'}">Active</span>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group" style="justify-content:flex-end">
+                            <a sec:authorize="hasAuthority('PRODUCT_EDIT')" class="btn btn-outline btn-sm"
+                               th:href="@{/products/{id}/edit(id=${product.id})}">Edit</a>
+                            <form sec:authorize="hasAuthority('PRODUCT_DELETE')" th:action="@{/products/{id}/toggle(id=${product.id})}"
+                                  method="post" style="display:inline">
+                                <button type="submit" class="btn btn-outline btn-sm" th:text="${product.active ? 'Deactivate' : 'Activate'}">Deactivate</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${products.totalElements == 0}">
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <h3>No products found</h3>
+                            <p>Create a product or adjust the filters.</p>
+                            <a sec:authorize="hasAuthority('PRODUCT_CREATE')" href="/products/new" class="btn btn-primary btn-sm">New product</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar" th:if="${products.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${products.number + 1}">1</strong> of <strong th:text="${products.totalPages}">1</strong> · <span th:text="${products.totalElements}">0</span> products</span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${products.first} ? 'disabled'"
+                   th:href="@{/products(page=${products.number - 1}, size=${products.size}, q=${q}, categoryId=${categoryId}, active=${active})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${products.last} ? 'disabled'"
+                   th:href="@{/products(page=${products.number + 1}, size=${products.size}, q=${q}, categoryId=${categoryId}, active=${active})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.movements}, ~{::content})}">
+<head><title>Stock movements - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/stock" class="subtle-link">Stock</a> / Ledger</div>
+            <h1>Stock movements</h1>
+            <div class="subtitle">Every quantity in and out, with its source document.</div>
+        </div>
+        <div class="page-actions"><a href="/stock" class="btn btn-outline">Stock overview</a></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/stock/movements" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Product, code or note…">
+            </div>
+            <select name="productId">
+                <option value="">All products</option>
+                <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.name}" th:selected="${productId != null and productId == product.id}"></option>
+            </select>
+            <select name="type">
+                <option value="">All types</option>
+                <option th:each="option : ${types}" th:value="${option}" th:text="${option}" th:selected="${type != null and type == option}"></option>
+            </select>
+            <select name="direction">
+                <option value="">In and out</option>
+                <option value="IN" th:selected="${direction == 'IN'}">Stock in</option>
+                <option value="OUT" th:selected="${direction == 'OUT'}">Stock out</option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/stock/movements" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Date</th><th>Product</th><th>Type</th><th class="text-right">Change</th><th class="text-right">Unit cost</th><th>Reference</th><th>Note</th><th>User</th></tr></thead>
+                <tbody>
+                <tr th:each="row : ${movements.content}">
+                    <td class="nowrap" th:text="${@fmt.dateTime(row.occurredAt)}">Date</td>
+                    <td><div class="table-primary" th:text="${row.productName}">Product</div><div class="hint mono" th:text="${row.productCode}">CODE</div></td>
+                    <td><span class="badge badge-secondary" th:text="${row.type}">SALE</span></td>
+                    <td class="text-right">
+                        <strong th:classappend="${row.quantityDelta.signum() < 0} ? 'text-danger' : 'text-success'"
+                                th:text="(${row.quantityDelta.signum() > 0} ? '+' : '') + ${@fmt.qty(row.quantityDelta)}">0</strong>
+                    </td>
+                    <td class="text-right" th:text="${row.unitCost == null ? '—' : @fmt.money(row.unitCost)}">—</td>
+                    <td>
+                        <span th:if="${row.referenceType != null}" th:text="${row.referenceType + (row.referenceId != null ? ' #' + row.referenceId : '')}">SALE</span>
+                        <span th:unless="${row.referenceType != null}">—</span>
+                    </td>
+                    <td th:text="${row.note ?: '—'}">—</td>
+                    <td th:text="${row.createdBy ?: '—'}">—</td>
+                </tr>
+                <tr th:if="${movements.totalElements == 0}"><td colspan="8"><div class="empty-state"><h3>No movements found</h3></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" th:if="${movements.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${movements.number + 1}">1</strong> of <strong th:text="${movements.totalPages}">1</strong></span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${movements.first} ? 'disabled'" th:href="@{/stock/movements(page=${movements.number - 1}, size=${movements.size}, q=${q}, productId=${productId}, type=${type}, direction=${direction})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${movements.last} ? 'disabled'" th:href="@{/stock/movements(page=${movements.number + 1}, size=${movements.size}, q=${q}, productId=${productId}, type=${type}, direction=${direction})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.imports}, ~{::content})}">
+<head><title>Import - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/imports" class="subtle-link">Imports</a> / Batch</div>
+            <h1 th:text="${importBatch.referenceNo}">IMP-0001</h1>
+            <div class="subtitle">
+                <span th:text="${@fmt.date(importBatch.importDate)}">Date</span>
+                <span class="dot-separator"></span>
+                <a class="subtle-link" th:if="${importBatch.supplier != null}"
+                   th:href="@{/suppliers/{id}(id=${importBatch.supplier.id})}" th:text="${importBatch.supplier.name}">Supplier</a>
+                <span th:if="${importBatch.originCountry != null}" class="dot-separator"></span>
+                <span th:if="${importBatch.originCountry != null}" th:text="${'From ' + importBatch.originCountry}">From China</span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a th:if="${importBatch.status.name() == 'DRAFT'}" sec:authorize="hasAuthority('IMPORT_MANAGE')"
+               th:href="@{/imports/{id}/edit(id=${importBatch.id})}" class="btn btn-outline">Edit</a>
+            <form th:if="${importBatch.status.name() == 'DRAFT'}" sec:authorize="hasAuthority('IMPORT_RECEIVE')"
+                  th:action="@{/imports/{id}/receive(id=${importBatch.id})}" method="post" style="display:inline"
+                  onsubmit="return confirm('Receive this import and add all quantities to stock?')">
+                <button type="submit" class="btn btn-primary">Receive stock</button>
+            </form>
+            <form th:if="${importBatch.status.name() == 'DRAFT'}" sec:authorize="hasAuthority('IMPORT_MANAGE')"
+                  th:action="@{/imports/{id}/cancel(id=${importBatch.id})}" method="post" style="display:inline"
+                  onsubmit="return confirm('Cancel this import batch?')">
+                <button type="submit" class="btn btn-outline">Cancel import</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(importBatch.totalLanded)}">RWF 0</div><div class="label">Total landed cost</div></div>
+        <div class="summary-card"><div class="value" th:text="${importBatch.status}">DRAFT</div><div class="label">Status</div></div>
+        <div class="summary-card"><div class="value"><span th:text="${importBatch.currency}">USD</span> <span th:text="${@fmt.money(importBatch.exchangeRate)}">1</span></div><div class="label">Exchange rate to RWF</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(importBatch.items)}">0</div><div class="label">Products</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Imported goods</h2><span class="section-count" th:text="${#lists.size(importBatch.items)}">0</span></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Product</th><th class="text-right">Quantity</th><th class="text-right">Unit cost (<span th:text="${importBatch.currency}">USD</span>)</th><th class="text-right">Foreign line total</th><th class="text-right">Landed unit cost</th><th class="text-right">Landed line total</th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${importBatch.items}">
+                    <td>
+                        <div class="table-primary" th:text="${item.product.name}">Product</div>
+                        <div class="hint mono" th:text="${item.product.code}">CODE</div>
+                    </td>
+                    <td class="text-right" th:text="${@fmt.qty(item.quantity)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(item.unitCostForeign)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(item.foreignLineValue())}">0</td>
+                    <td class="text-right"><strong th:text="${@fmt.money(item.landedUnitCost)}">RWF 0</strong></td>
+                    <td class="text-right"><strong th:text="${@fmt.money(item.lineTotal)}">RWF 0</strong></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="totals-box">
+            <div><span>Customs duty</span><strong th:text="${@fmt.money(importBatch.customsDuty)}">RWF 0</strong></div>
+            <div><span>Import taxes</span><strong th:text="${@fmt.money(importBatch.taxes)}">RWF 0</strong></div>
+            <div><span>Freight</span><strong th:text="${@fmt.money(importBatch.freight)}">RWF 0</strong></div>
+            <div><span>Other costs</span><strong th:text="${@fmt.money(importBatch.otherCosts)}">RWF 0</strong></div>
+            <div class="grand"><span>Total landed</span><strong th:text="${@fmt.money(importBatch.totalLanded)}">RWF 0</strong></div>
+        </div>
+    </div>
+
+    <div class="section" th:if="${importBatch.notes != null}">
+        <div class="section-header"><h2>Notes</h2></div>
+        <p class="text-muted" th:text="${importBatch.notes}">Notes</p>
+    </div>
+
+    <div class="section" th:if="${importBatch.receivedAt != null}">
+        <p class="hint" th:text="${'Received ' + @fmt.dateTime(importBatch.receivedAt)}">Received</p>
+    </div>
+</div>
+</body>
+</html>

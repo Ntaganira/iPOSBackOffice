@@ -1,0 +1,98 @@
+server:
+  port: ${IPOS_SERVER_PORT:8081}
+  compression:
+    enabled: true
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        same-site: lax
+        http-only: true
+  error:
+    include-message: never
+    include-stacktrace: never
+
+spring:
+  application:
+    name: ipos
+  profiles:
+    active: ${IPOS_PROFILE:dev}
+  datasource:
+    url: ${IPOS_DB_URL:jdbc:postgresql://${IPOS_DB_HOST:localhost}:${IPOS_DB_PORT:5437}/${IPOS_DB_NAME:ipos}}
+    username: ${IPOS_DB_USER:postgres}
+    password: ${IPOS_DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: ${IPOS_DB_POOL_SIZE:10}
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+  thymeleaf:
+    cache: ${IPOS_THYMELEAF_CACHE:false}
+    prefix: classpath:/templates/
+    suffix: .html
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 12MB
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+  task:
+    execution:
+      pool:
+        core-size: 2
+        max-size: 6
+        queue-capacity: 100
+
+management:
+  health:
+    mail:
+      enabled: ${IPOS_MAIL_HEALTH_ENABLED:false}
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+app:
+  zone: ${IPOS_ZONE:Africa/Kigali}
+  storage:
+    uploads: ${IPOS_UPLOAD_DIR:${java.io.tmpdir}/ipos-uploads}
+  encryption:
+    key: ${IPOS_ENCRYPTION_KEY:ipos-local-development-encryption-key-change-me}
+  security:
+    remember-me-key: ${IPOS_REMEMBER_ME_KEY:ipos-dev-remember-me-key-change-me}
+  admin:
+    username: ${IPOS_ADMIN_USERNAME:admin}
+    password: ${IPOS_ADMIN_PASSWORD:admin123}
+    full-name: ${IPOS_ADMIN_FULL_NAME:Administrator}
+    email: ${IPOS_ADMIN_EMAIL:admin@example.com}
+  sync:
+    token: ${IPOS_SYNC_TOKEN:ipos-dev-sync-token-change-me}
+  email:
+    from-default: ${IPOS_EMAIL_FROM:iPOS Shop <no-reply@ipos.local>}
+
+logging:
+  level:
+    root: INFO
+    com.ntaganira.heritier.ipos.backoffice: INFO

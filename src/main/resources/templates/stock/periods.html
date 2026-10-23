@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.periods}, ~{::content})}">
+<head><title>Stock periods - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/stock" class="subtle-link">Stock</a> / Periods</div>
+            <h1>Stock periods</h1>
+            <div class="subtitle">Freeze opening and closing stock for stocktaking and reconciliation.</div>
+        </div>
+        <div class="page-actions"><a href="/stock/movements" class="btn btn-outline">Movements</a></div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="section" sec:authorize="hasAuthority('STOCK_PERIOD_MANAGE')">
+        <div class="section-header"><h2>Open a period</h2></div>
+        <form th:action="@{/stock/periods}" method="post" class="filter-bar">
+            <input type="date" name="start" required aria-label="Start date">
+            <input type="date" name="end" required aria-label="End date">
+            <input name="notes" maxlength="255" placeholder="Notes (optional)" style="flex:1 1 260px">
+            <button type="submit" class="btn btn-primary btn-sm">Open period</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Period history</h2><span class="section-count" th:text="${#lists.size(periods)}">0</span></div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Period</th><th>Status</th><th>Opened</th><th>Closed</th><th>Notes</th><th class="text-right"></th></tr></thead>
+                <tbody>
+                <tr th:each="period : ${periods}">
+                    <td><a class="table-link" th:href="@{/stock/periods/{id}(id=${period.id})}" th:text="${@fmt.date(period.periodStart)} + ' → ' + ${@fmt.date(period.periodEnd)}">Period</a></td>
+                    <td><span class="badge" th:classappend="${period.open} ? 'badge-warning' : 'badge-success'" th:text="${period.status}">OPEN</span></td>
+                    <td th:text="${period.openedBy ?: '—'} + ' · ' + ${@fmt.dateTime(period.openedAt)}">Opened</td>
+                    <td th:text="${period.closedBy == null ? '—' : period.closedBy + ' · ' + @fmt.dateTime(period.closedAt)}">—</td>
+                    <td th:text="${period.notes ?: '—'}">—</td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" th:href="@{/stock/periods/{id}(id=${period.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(periods)}"><td colspan="6"><div class="empty-state"><h3>No stock periods yet</h3><p>Open a period before stocktaking.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

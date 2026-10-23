@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.customers}, ~{::content})}">
+<head><title>Customer - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/customers" class="subtle-link">Customers</a> / Profile</div>
+            <h1 th:text="${customer.name}">Customer</h1>
+            <div class="subtitle">
+                <span th:text="${customer.phone ?: 'No phone'}">No phone</span>
+                <span class="dot-separator"></span>
+                <span th:text="${customer.email ?: 'No email'}">No email</span>
+                <span class="badge badge-secondary" style="margin-left:8px" th:text="${customer.customerType}">INDIVIDUAL</span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('CUSTOMER_EDIT')" class="btn btn-outline" th:href="@{/customers/{id}/edit(id=${customer.id})}">Edit</a>
+            <form sec:authorize="hasAuthority('CUSTOMER_EDIT')" th:action="@{/customers/{id}/toggle(id=${customer.id})}" method="post" style="display:inline">
+                <button class="btn btn-outline" type="submit" th:text="${customer.active ? 'Deactivate' : 'Activate'}">Deactivate</button>
+            </form>
+            <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary">New sale</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="value" th:classappend="${outstanding.signum() > 0} ? 'text-danger' : ''" th:text="${@fmt.money(outstanding)}">RWF 0</div>
+            <div class="label">Outstanding balance</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" th:text="${@fmt.money(customer.creditLimit)}">RWF 0</div>
+            <div class="label">Credit limit</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" th:text="${@fmt.money(customer.balance)}">RWF 0</div>
+            <div class="label">Account balance</div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Credit sales</h2><span class="section-count" th:text="${#lists.size(creditSales)}">0</span></div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead><tr><th>Receipt</th><th>Date</th><th class="text-right">Total</th><th class="text-right">Balance</th><th>Payment</th></tr></thead>
+                    <tbody>
+                    <tr th:each="sale : ${creditSales}">
+                        <td><a class="table-link mono" th:href="@{/sales/{id}(id=${sale.id})}" th:text="${sale.receiptNumber}">NS-000001</a></td>
+                        <td th:text="${@fmt.dateTime(sale.saleDate)}">Date</td>
+                        <td class="text-right" th:text="${@fmt.money(sale.total)}">RWF 0</td>
+                        <td class="text-right" th:text="${@fmt.money(sale.balanceDue)}">RWF 0</td>
+                        <td><span class="badge" th:classappend="${sale.paymentStatus.name() == 'PAID'} ? 'badge-success' : 'badge-warning'" th:text="${sale.paymentStatus}">UNPAID</span></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(creditSales)}"><td colspan="5"><div class="empty-state slim"><p>No credit sales.</p></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Contact details</h2></div>
+                <div class="detail-list">
+                    <div><span>Phone</span><strong th:text="${customer.phone ?: '—'}">—</strong></div>
+                    <div><span>Email</span><strong th:text="${customer.email ?: '—'}">—</strong></div>
+                    <div><span>TIN</span><strong th:text="${customer.tin ?: '—'}">—</strong></div>
+                    <div><span>Address</span><strong th:text="${customer.address ?: '—'}">—</strong></div>
+                    <div><span>Status</span><strong th:text="${customer.active ? 'Active' : 'Inactive'}">Active</strong></div>
+                </div>
+            </div>
+
+            <div class="section" sec:authorize="hasAuthority('CUSTOMER_EDIT')">
+                <div class="section-header"><h2>Record payment</h2></div>
+                <form th:action="@{/customers/{id}/payments(id=${customer.id})}" method="post" class="stack-form">
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input id="amount" name="amount" type="number" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="method">Method</label>
+                        <select id="method" name="method" required>
+                            <option th:each="method : ${paymentMethods}" th:value="${method}" th:text="${method}">CASH</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="reference">Reference</label>
+                        <input id="reference" name="reference" maxlength="80" placeholder="Optional">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Record payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Payment history</h2><span class="section-count" th:text="${#lists.size(payments)}">0</span></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Date</th><th>Method</th><th>Reference</th><th>Received by</th><th class="text-right">Amount</th></tr></thead>
+                <tbody>
+                <tr th:each="payment : ${payments}">
+                    <td th:text="${@fmt.dateTime(payment.paidAt)}">Date</td>
+                    <td th:text="${payment.paymentMethod}">CASH</td>
+                    <td th:text="${payment.reference ?: '—'}">—</td>
+                    <td th:text="${payment.createdBy ?: '—'}">—</td>
+                    <td class="text-right"><strong th:text="${@fmt.money(payment.amount)}">RWF 0</strong></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(payments)}"><td colspan="5"><div class="empty-state slim"><p>No payments recorded.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

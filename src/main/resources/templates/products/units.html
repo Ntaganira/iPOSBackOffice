@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.products}, ~{::content})}">
+<head><title>Units - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/products" class="subtle-link">Products</a> / Units</div>
+            <h1>Units of measure</h1>
+            <div class="subtitle">Pieces, kilograms, litres and any other selling unit.</div>
+        </div>
+        <div class="page-actions"><a href="/products" class="btn btn-outline">Back to products</a></div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="section">
+        <div class="section-header"><h2>Add unit</h2></div>
+        <form th:action="@{/products/units}" method="post" class="filter-bar">
+            <input type="hidden" name="id">
+            <input name="name" required maxlength="60" placeholder="Unit name, e.g. Pieces" style="flex:1 1 220px">
+            <input name="code" required maxlength="20" placeholder="Code, e.g. PCS" style="flex:0 1 140px">
+            <label class="checkbox-row"><input type="checkbox" name="active" value="true" checked> Active</label>
+            <button type="submit" class="btn btn-primary btn-sm">Add</button>
+        </form>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>All units</h2><span class="section-count" th:text="${#lists.size(units)}">0</span></div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Name</th><th>Code</th><th>Status</th><th class="text-right">Save</th></tr></thead>
+                <tbody>
+                <tr th:each="unit : ${units}">
+                    <td>
+                        <form th:action="@{/products/units}" method="post" class="inline-form" th:id="'unit-' + ${unit.id}">
+                            <input type="hidden" name="id" th:value="${unit.id}">
+                            <input name="name" th:value="${unit.name}" required maxlength="60">
+                            <input name="code" th:value="${unit.code}" required maxlength="20" class="mono" style="max-width:110px">
+                            <input type="checkbox" name="active" value="true" th:checked="${unit.active}" aria-label="Active">
+                        </form>
+                    </td>
+                    <td class="mono" th:text="${unit.code}">PCS</td>
+                    <td>
+                        <span class="badge" th:classappend="${unit.active} ? 'badge-success' : 'badge-secondary'"
+                              th:text="${unit.active ? 'Active' : 'Inactive'}">Active</span>
+                    </td>
+                    <td class="text-right">
+                        <button type="submit" class="btn btn-outline btn-sm" th:form="'unit-' + ${unit.id}">Save</button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(units)}"><td colspan="4"><div class="empty-state"><h3>No units yet</h3></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

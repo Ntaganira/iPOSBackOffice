@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.customers}, ~{::content})}">
+<head><title>Customer form - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/customers" class="subtle-link">Customers</a> / <span th:text="${editing ? 'Edit' : 'New'}">New</span></div>
+            <h1 th:text="${editing ? 'Edit customer' : 'New customer'}">New customer</h1>
+            <div class="subtitle">Contact and credit details.</div>
+        </div>
+        <div class="page-actions"><a href="/customers" class="btn btn-outline">Cancel</a></div>
+    </div>
+
+    <form th:action="${editing} ? @{/customers/{id}(id=${customerForm.id})} : @{/customers}" th:object="${customerForm}" method="post">
+        <div class="section">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="name">Name *</label>
+                    <input id="name" th:field="*{name}" required maxlength="160">
+                    <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input id="phone" th:field="*{phone}" maxlength="40">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" th:field="*{email}" type="email" maxlength="160">
+                    <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="tin">TIN</label>
+                    <input id="tin" th:field="*{tin}" maxlength="40">
+                </div>
+                <div class="form-group">
+                    <label for="customerType">Customer type</label>
+                    <select id="customerType" th:field="*{customerType}">
+                        <option th:each="type : ${customerTypes}" th:value="${type}" th:text="${type}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="creditLimit">Credit limit</label>
+                    <input id="creditLimit" th:field="*{creditLimit}" type="number" min="0" step="0.01">
+                    <div class="field-error" th:if="${#fields.hasErrors('creditLimit')}" th:errors="*{creditLimit}"></div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <label class="checkbox-row"><input type="checkbox" th:field="*{active}"> Active</label>
+                </div>
+                <div class="form-group full-width">
+                    <label for="address">Address</label>
+                    <textarea id="address" th:field="*{address}" rows="2" maxlength="255"></textarea>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing ? 'Save changes' : 'Create customer'}">Create customer</button>
+                <a href="/customers" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

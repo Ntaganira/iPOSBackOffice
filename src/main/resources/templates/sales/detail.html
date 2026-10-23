@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.sales}, ~{::content})}">
+<head><title>Sale details - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/sales" class="subtle-link">Sales</a> / Receipt</div>
+            <h1 th:text="${sale.receiptNumber}">NS-000001</h1>
+            <div class="subtitle">
+                <span th:text="${@fmt.dateTime(sale.saleDate)}">23 Oct 2026 10:24</span>
+                <span class="dot-separator"></span>
+                <span th:text="${sale.cashier == null ? 'System' : sale.cashier.fullName}">Cashier</span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline" th:href="@{/sales/{id}/receipt(id=${sale.id})}" target="_blank" rel="noopener">Print preview</a>
+            <a class="btn btn-outline" th:href="@{/sales/{id}/pdf(id=${sale.id},format='invoice')}">Download PDF</a>
+            <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary">New sale</a>
+        </div>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="value" th:text="${@fmt.money(sale.total)}">RWF 0</div>
+            <div class="label">Receipt total</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" th:text="${@fmt.money(sale.amountPaid)}">RWF 0</div>
+            <div class="label">Amount paid</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" th:text="${@fmt.money(sale.taxTotal)}">RWF 0</div>
+            <div class="label">Tax included</div>
+        </div>
+        <div class="summary-card">
+            <div class="value" th:text="${sale.paymentStatus}">PAID</div>
+            <div class="label">Payment status</div>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Items</h2>
+                    <p class="section-subtitle" th:text="${#lists.size(sale.lines)} + ' line(s) on this receipt'">Items</p>
+                </div>
+            </div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-right">Qty</th>
+                        <th class="text-right">Unit price</th>
+                        <th class="text-right">Discount</th>
+                        <th class="text-right">Tax</th>
+                        <th class="text-right">Line total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="line : ${sale.lines}">
+                        <td>
+                            <div class="table-primary" th:text="${line.productName}">Product</div>
+                            <div class="hint mono" th:text="${line.productCode}">CODE</div>
+                        </td>
+                        <td class="text-right" th:text="${@fmt.qty(line.quantity)}">1</td>
+                        <td class="text-right" th:text="${@fmt.money(line.unitPrice)}">RWF 0</td>
+                        <td class="text-right" th:text="${@fmt.money(line.discount)}">RWF 0</td>
+                        <td class="text-right" th:text="${@fmt.money(line.taxAmount)}">RWF 0</td>
+                        <td class="text-right"><strong th:text="${@fmt.money(line.lineTotal)}">RWF 0</strong></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="totals-box">
+                <div><span>Subtotal</span><strong th:text="${@fmt.money(sale.subtotal)}">RWF 0</strong></div>
+                <div><span>Discount</span><strong th:text="${@fmt.money(sale.discountTotal)}">RWF 0</strong></div>
+                <div><span>Tax</span><strong th:text="${@fmt.money(sale.taxTotal)}">RWF 0</strong></div>
+                <div class="grand"><span>Total</span><strong th:text="${@fmt.money(sale.total)}">RWF 0</strong></div>
+            </div>
+        </div>
+
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Customer</h2></div>
+                <div class="detail-list">
+                    <div><span>Name</span><strong th:text="${sale.customer == null ? 'Walk-in customer' : sale.customer.name}">Walk-in</strong></div>
+                    <div th:if="${sale.customer != null}"><span>Phone</span><strong th:text="${sale.customer.phone ?: '—'}">—</strong></div>
+                    <div th:if="${sale.customer != null}"><span>TIN</span><strong th:text="${sale.customer.tin ?: '—'}">—</strong></div>
+                    <div th:if="${sale.customer != null}"><span>Email</span><strong th:text="${sale.customer.email ?: '—'}">—</strong></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header"><h2>Payments</h2></div>
+                <div class="detail-list">
+                    <div th:each="payment : ${sale.payments}">
+                        <span th:text="${payment.paymentMethod}">CASH</span>
+                        <strong th:text="${@fmt.money(payment.amount)}">RWF 0</strong>
+                    </div>
+                    <div><span>Change due</span><strong th:text="${@fmt.money(sale.changeDue)}">RWF 0</strong></div>
+                    <div th:if="${sale.balanceDue.signum() > 0}"><span>Balance due</span><strong class="text-danger" th:text="${@fmt.money(sale.balanceDue)}">RWF 0</strong></div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header"><h2>Integrity</h2></div>
+                <div class="detail-list">
+                    <div><span>Signature</span><strong class="mono" style="word-break:break-all" th:text="${sale.ebmSignature}">—</strong></div>
+                    <div><span>Verified</span>
+                        <span class="badge" th:classappend="${verified} ? 'badge-success' : 'badge-danger'" th:text="${verified ? 'Valid' : 'Mismatch'}">Valid</span>
+                    </div>
+                    <div th:if="${sale.refundOf != null}"><span>Refund of</span>
+                        <a class="table-link" th:href="@{/sales/{id}(id=${sale.refundOf.id})}" th:text="${sale.refundOf.receiptNumber}">NS-000001</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header"><h2>Email receipt</h2></div>
+                <form th:action="@{/sales/{id}/email(id=${sale.id})}" method="post" class="stack-form" sec:authorize="hasAuthority('EMAIL_SEND')">
+                    <div class="form-group">
+                        <label for="recipient">Recipient email</label>
+                        <input id="recipient" name="recipient" type="email" required
+                               th:value="${sale.customer != null ? sale.customer.email : ''}" placeholder="name@example.com">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Send receipt</button>
+                </form>
+            </div>
+
+            <div class="section" sec:authorize="hasAuthority('SALE_REFUND')">
+                <div class="section-header"><h2>Refund</h2></div>
+                <form th:if="${sale.saleType.name() == 'SALE' and sale.status.name() == 'COMPLETED'}"
+                      th:action="@{/sales/{id}/refund(id=${sale.id})}" method="post" class="stack-form"
+                      onsubmit="return confirm('Create a full refund and restore stock?')">
+                    <div class="form-group">
+                        <label for="reason">Refund reason</label>
+                        <textarea id="reason" name="reason" rows="2" maxlength="500" placeholder="Why is this sale being refunded?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-sm">Create full refund</button>
+                </form>
+                <p class="hint" th:if="${sale.saleType.name() == 'REFUND'}">A refund cannot be refunded again.</p>
+                <p class="hint" th:if="${sale.status.name() != 'COMPLETED'}">This sale is no longer eligible for a refund.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

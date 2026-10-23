@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.suppliers}, ~{::content})}">
+<head><title>Supplier - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/suppliers" class="subtle-link">Suppliers</a> / Profile</div>
+            <h1 th:text="${supplier.name}">Supplier</h1>
+            <div class="subtitle">
+                <span th:text="${supplier.phone ?: 'No phone'}">No phone</span>
+                <span class="dot-separator"></span>
+                <span th:text="${supplier.email ?: 'No email'}">No email</span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('SUPPLIER_MANAGE')" class="btn btn-outline" th:href="@{/suppliers/{id}/edit(id=${supplier.id})}">Edit</a>
+            <form sec:authorize="hasAuthority('SUPPLIER_MANAGE')" th:action="@{/suppliers/{id}/toggle(id=${supplier.id})}" method="post" style="display:inline">
+                <button class="btn btn-outline" type="submit" th:text="${supplier.active ? 'Deactivate' : 'Activate'}">Deactivate</button>
+            </form>
+            <a sec:authorize="hasAuthority('PURCHASE_MANAGE')" th:href="@{/purchases/new(supplierId=${supplier.id})}" class="btn btn-primary">New purchase</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:classappend="${outstanding.signum() > 0} ? 'text-danger' : ''" th:text="${@fmt.money(outstanding)}">RWF 0</div><div class="label">Amount owed</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(purchases)}">0</div><div class="label">Purchases</div></div>
+        <div class="summary-card"><div class="value" th:text="${supplier.active ? 'Active' : 'Inactive'}">Active</div><div class="label">Supplier status</div></div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Purchase history</h2><span class="section-count" th:text="${#lists.size(purchases)}">0</span></div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead><tr><th>Number</th><th>Date</th><th>Status</th><th>Payment</th><th class="text-right">Total</th></tr></thead>
+                    <tbody>
+                    <tr th:each="purchase : ${purchases}">
+                        <td><a class="table-link mono" th:href="@{/purchases/{id}(id=${purchase.id})}" th:text="${purchase.purchaseNumber}">PO-0001</a></td>
+                        <td th:text="${@fmt.date(purchase.purchaseDate)}">Date</td>
+                        <td><span class="badge badge-secondary" th:text="${purchase.status}">ORDERED</span></td>
+                        <td><span class="badge" th:classappend="${purchase.paymentStatus.name() == 'PAID'} ? 'badge-success' : 'badge-warning'" th:text="${purchase.paymentStatus}">UNPAID</span></td>
+                        <td class="text-right" th:text="${@fmt.money(purchase.total)}">RWF 0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(purchases)}"><td colspan="5"><div class="empty-state slim"><p>No purchases yet.</p></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Contact</h2></div>
+                <div class="detail-list">
+                    <div><span>Phone</span><strong th:text="${supplier.phone ?: '—'}">—</strong></div>
+                    <div><span>Email</span><strong th:text="${supplier.email ?: '—'}">—</strong></div>
+                    <div><span>TIN</span><strong th:text="${supplier.tin ?: '—'}">—</strong></div>
+                    <div><span>Address</span><strong th:text="${supplier.address ?: '—'}">—</strong></div>
+                </div>
+            </div>
+            <div class="section" sec:authorize="hasAuthority('SUPPLIER_MANAGE')">
+                <div class="section-header"><h2>Record payment</h2></div>
+                <form th:action="@{/suppliers/{id}/payments(id=${supplier.id})}" method="post" class="stack-form">
+                    <div class="form-group"><label for="amount">Amount</label><input id="amount" name="amount" type="number" min="0.01" step="0.01" required></div>
+                    <div class="form-group"><label for="method">Method</label><select id="method" name="method" required><option th:each="method : ${paymentMethods}" th:value="${method}" th:text="${method}">CASH</option></select></div>
+                    <div class="form-group"><label for="reference">Reference</label><input id="reference" name="reference" maxlength="80"></div>
+                    <button type="submit" class="btn btn-primary btn-sm">Record payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Payments</h2><span class="section-count" th:text="${#lists.size(payments)}">0</span></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Date</th><th>Method</th><th>Reference</th><th>Recorded by</th><th class="text-right">Amount</th></tr></thead>
+                <tbody>
+                <tr th:each="payment : ${payments}">
+                    <td th:text="${@fmt.dateTime(payment.paidAt)}">Date</td>
+                    <td th:text="${payment.paymentMethod}">CASH</td>
+                    <td th:text="${payment.reference ?: '—'}">—</td>
+                    <td th:text="${payment.createdBy ?: '—'}">—</td>
+                    <td class="text-right"><strong th:text="${@fmt.money(payment.amount)}">RWF 0</strong></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(payments)}"><td colspan="5"><div class="empty-state slim"><p>No payments recorded.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

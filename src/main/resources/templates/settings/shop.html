@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.settings}, ~{::content})}">
+<head><title>Shop settings - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Settings</div>
+            <h1>Shop profile</h1>
+            <div class="subtitle">Identity, receipt numbering and stock behaviour.</div>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="filter-bar settings-tabs">
+        <a class="btn btn-primary btn-sm" href="/settings/shop">Shop</a>
+        <a class="btn btn-outline btn-sm" href="/settings/email">Email</a>
+        <a class="btn btn-outline btn-sm" href="/settings/tax">Tax</a>
+    </div>
+
+    <form th:action="@{/settings/shop}" th:object="${settings}" method="post" enctype="multipart/form-data" class="stack-form">
+        <div class="detail-grid">
+            <div class="section">
+                <div class="section-header"><h2>Identity</h2></div>
+                <div class="form-grid">
+                    <div class="form-group"><label for="shopName">Shop name</label><input id="shopName" th:field="*{shopName}" required maxlength="160"></div>
+                    <div class="form-group"><label for="shopTin">TIN</label><input id="shopTin" th:field="*{shopTin}" maxlength="40"></div>
+                    <div class="form-group"><label for="phone">Phone</label><input id="phone" th:field="*{phone}" maxlength="40"></div>
+                    <div class="form-group"><label for="email">Email</label><input id="email" type="email" th:field="*{email}" maxlength="160"></div>
+                    <div class="form-group form-span"><label for="address">Address</label><textarea id="address" th:field="*{address}" rows="2" maxlength="255"></textarea></div>
+                    <div class="form-group"><label for="currency">Currency</label><input id="currency" th:field="*{currency}" maxlength="8" required></div>
+                    <div class="form-group">
+                        <label for="logo">Logo</label>
+                        <input id="logo" type="file" name="logo" accept="image/png,image/jpeg,image/webp">
+                        <p class="hint">Used on printed receipts and in the sidebar.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-side">
+                <div class="section">
+                    <div class="section-header"><h2>Receipts</h2></div>
+                    <div class="stack-form">
+                        <div class="form-group"><label for="defaultPrintFormat">Default document</label>
+                            <select id="defaultPrintFormat" th:field="*{defaultPrintFormat}">
+                                <option th:each="format : ${printFormats}" th:value="${format}" th:text="${format}">RECEIPT</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label for="receiptPrefix">Sale number prefix</label><input id="receiptPrefix" th:field="*{receiptPrefix}" maxlength="10" required></div>
+                        <div class="form-group"><label for="refundPrefix">Refund number prefix</label><input id="refundPrefix" th:field="*{refundPrefix}" maxlength="10" required></div>
+                        <div class="form-group"><label for="receiptFooter">Receipt footer</label><textarea id="receiptFooter" th:field="*{receiptFooter}" rows="2" maxlength="255"></textarea></div>
+                        <label class="checkbox-row"><input type="checkbox" th:field="*{autoPrint}"> Auto-print after checkout</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header"><h2>Operations</h2></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="expenseApprovalThreshold">Expense approval threshold</label>
+                    <input id="expenseApprovalThreshold" type="number" step="0.01" min="0" th:field="*{expenseApprovalThreshold}">
+                    <p class="hint">Expenses at or above this amount require manager approval.</p>
+                </div>
+                <div class="form-group checkbox-stack">
+                    <label class="checkbox-row"><input type="checkbox" th:field="*{allowNegativeStock}"> Allow selling below zero stock</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save shop settings</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

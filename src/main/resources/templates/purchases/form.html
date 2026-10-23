@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.purchases}, ~{::content})}">
+<head><title>New purchase - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/purchases" class="subtle-link">Purchases</a> / New</div>
+            <h1>New purchase order</h1>
+            <div class="subtitle">Stock is added when the order is received.</div>
+        </div>
+        <div class="page-actions"><a href="/purchases" class="btn btn-outline">Cancel</a></div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/purchases}" method="post" th:object="${purchaseForm}">
+        <div class="section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="supplierId">Supplier *</label>
+                    <select id="supplierId" th:field="*{supplierId}" required>
+                        <option value="">Choose a supplier</option>
+                        <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="purchaseDate">Order date *</label>
+                    <input id="purchaseDate" th:field="*{purchaseDate}" type="date" required>
+                </div>
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" th:field="*{notes}" rows="2" maxlength="500" placeholder="Delivery instructions, supplier reference…"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Order lines</h2>
+                <button type="button" class="btn btn-outline btn-sm" id="add-line">Add line</button>
+            </div>
+            <div class="table-container table-flush">
+                <table class="purchase-lines">
+                    <thead><tr><th>Product *</th><th class="text-right">Quantity *</th><th class="text-right">Unit cost *</th><th class="text-right">Line total</th><th></th></tr></thead>
+                    <tbody id="line-rows">
+                    <tr class="purchase-line">
+                        <td>
+                            <select name="lines[0].productId" class="product-select" required>
+                                <option value="">Choose a product</option>
+                                <option th:each="product : ${products}" th:value="${product.id}"
+                                        th:attr="data-cost=${product.buyingPrice}" th:text="${product.name + ' (' + product.code + ')'}"></option>
+                            </select>
+                        </td>
+                        <td class="text-right"><input name="lines[0].quantity" type="number" min="0.001" step="0.001" value="1" required class="qty-input"></td>
+                        <td class="text-right"><input name="lines[0].unitCost" type="number" min="0" step="0.01" value="0.00" required class="cost-input"></td>
+                        <td class="text-right line-total">RWF 0</td>
+                        <td class="text-right"><button type="button" class="btn-icon remove-line" aria-label="Remove line">×</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="purchase-total">
+                <span>Order total</span>
+                <strong id="order-total">RWF 0</strong>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create purchase order</button>
+                <a href="/purchases" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+
+    <template id="line-template">
+        <tr class="purchase-line">
+            <td>
+                <select class="product-select" required>
+                    <option value="">Choose a product</option>
+                    <option th:each="product : ${products}" th:value="${product.id}" th:attr="data-cost=${product.buyingPrice}" th:text="${product.name + ' (' + product.code + ')'}"></option>
+                </select>
+            </td>
+            <td class="text-right"><input type="number" min="0.001" step="0.001" value="1" required class="qty-input"></td>
+            <td class="text-right"><input type="number" min="0" step="0.01" value="0.00" required class="cost-input"></td>
+            <td class="text-right line-total">RWF 0</td>
+            <td class="text-right"><button type="button" class="btn-icon remove-line" aria-label="Remove line">×</button></td>
+        </tr>
+    </template>
+
+    <script>
+        (function () {
+            const rows = document.getElementById('line-rows');
+            const template = document.getElementById('line-template');
+            const currency = 'RWF';
+
+            function renumber() {
+                rows.querySelectorAll('.purchase-line').forEach((row, index) => {
+                    row.querySelector('.product-select').name = `lines[${index}].productId`;
+                    row.querySelector('.qty-input').name = `lines[${index}].quantity`;
+                    row.querySelector('.cost-input').name = `lines[${index}].unitCost`;
+                });
+                recalculate();
+            }
+
+            function recalculate() {
+                let total = 0;
+                rows.querySelectorAll('.purchase-line').forEach(row => {
+                    const qty = Number(row.querySelector('.qty-input').value) || 0;
+                    const cost = Number(row.querySelector('.cost-input').value) || 0;
+                    const line = qty * cost;
+                    total += line;
+                    row.querySelector('.line-total').textContent = currency + ' ' + line.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                });
+                document.getElementById('order-total').textContent = currency + ' ' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+
+            function bind(row) {
+                row.querySelector('.product-select').addEventListener('change', event => {
+                    const option = event.target.selectedOptions[0];
+                    const cost = option?.dataset.cost;
+                    if (cost && Number(row.querySelector('.cost-input').value) === 0) {
+                        row.querySelector('.cost-input').value = Number(cost).toFixed(2);
+                    }
+                    recalculate();
+                });
+                row.querySelectorAll('.qty-input, .cost-input').forEach(input => input.addEventListener('input', recalculate));
+                row.querySelector('.remove-line').addEventListener('click', () => {
+                    if (rows.querySelectorAll('.purchase-line').length > 1) {
+                        row.remove();
+                        renumber();
+                    }
+                });
+            }
+
+            rows.querySelectorAll('.purchase-line').forEach(bind);
+            document.getElementById('add-line').addEventListener('click', () => {
+                const row = template.content.firstElementChild.cloneNode(true);
+                rows.appendChild(row);
+                bind(row);
+                renumber();
+            });
+            renumber();
+        })();
+    </script>
+</div>
+</body>
+</html>

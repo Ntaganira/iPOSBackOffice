@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.sales}, ~{::content})}">
+<head><title>Sales - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Invoicing</div>
+            <h1>Sales &amp; receipts</h1>
+            <div class="subtitle">Every sale, refund and payment in one place.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New sale
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <div class="section">
+        <form method="get" action="/sales" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Receipt number or customer…">
+            </div>
+            <input type="date" name="from" th:value="${from}" aria-label="From date">
+            <input type="date" name="to" th:value="${to}" aria-label="To date">
+            <select name="cashierId" aria-label="Cashier">
+                <option value="">All cashiers</option>
+                <option th:each="cashier : ${cashiers}" th:value="${cashier.id}" th:text="${cashier.fullName}"
+                        th:selected="${cashierId != null and cashierId == cashier.id}"></option>
+            </select>
+            <select name="status" aria-label="Status">
+                <option value="">All statuses</option>
+                <option th:each="option : ${statuses}" th:value="${option}" th:text="${option}"
+                        th:selected="${status != null and status == option}"></option>
+            </select>
+            <select name="type" aria-label="Type">
+                <option value="">All types</option>
+                <option th:each="option : ${types}" th:value="${option}" th:text="${option}"
+                        th:selected="${type != null and type == option}"></option>
+            </select>
+            <select name="method" aria-label="Payment method">
+                <option value="">All payments</option>
+                <option th:each="option : ${methods}" th:value="${option}" th:text="${option}"
+                        th:selected="${method != null and method == option}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/sales" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Receipt</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Cashier</th>
+                    <th>Payment</th>
+                    <th class="text-right">Total</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="sale : ${sales.content}">
+                    <td>
+                        <a class="table-link mono" th:href="@{/sales/{id}(id=${sale.id})}" th:text="${sale.receiptNumber}">NS-000001</a>
+                        <span class="badge badge-warning" th:if="${sale.refund}" style="margin-left:5px">REFUND</span>
+                    </td>
+                    <td class="nowrap">
+                        <div th:text="${@fmt.date(sale.saleDate)}">23 Oct 2026</div>
+                        <div class="hint" th:text="${@fmt.time(sale.saleDate)}">10:24</div>
+                    </td>
+                    <td th:text="${sale.customer == null ? 'Walk-in' : sale.customer.name}">Walk-in</td>
+                    <td th:text="${sale.cashier == null ? '—' : sale.cashier.fullName}">Cashier</td>
+                    <td>
+                        <span class="badge badge-secondary" th:if="${!#lists.isEmpty(sale.payments)}"
+                              th:text="${sale.payments[0].paymentMethod}">CASH</span>
+                        <span class="badge badge-secondary" th:if="${#lists.isEmpty(sale.payments)}">—</span>
+                    </td>
+                    <td class="text-right"><strong th:text="${@fmt.money(sale.total)}">RWF 0</strong></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${sale.status.name() == 'COMPLETED'} ? 'badge-success' : (${sale.status.name() == 'REFUNDED'} ? 'badge-warning' : 'badge-secondary')"
+                              th:text="${sale.status}">COMPLETED</span>
+                        <span class="badge badge-secondary" th:if="${sale.paymentStatus.name() != 'PAID'}" th:text="${sale.paymentStatus}">UNPAID</span>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group" style="justify-content:flex-end">
+                            <a class="btn btn-outline btn-sm" th:href="@{/sales/{id}(id=${sale.id})}">View</a>
+                            <a class="btn btn-outline btn-sm" th:href="@{/sales/{id}/receipt(id=${sale.id},copy=true)}" target="_blank" rel="noopener">Reprint</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${sales.totalElements == 0}">
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <h3>No sales found</h3>
+                            <p>Sales appear here after the first checkout.</p>
+                            <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary btn-sm">Open point of sale</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar" th:if="${sales.totalPages > 1}">
+            <span class="hint">
+                Page <strong th:text="${sales.number + 1}">1</strong> of <strong th:text="${sales.totalPages}">1</strong>
+                · <span th:text="${sales.totalElements}">0</span> sales
+            </span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${sales.first} ? 'disabled'"
+                   th:href="@{/sales(page=${sales.number - 1}, size=${sales.size}, q=${q}, from=${from}, to=${to}, cashierId=${cashierId}, status=${status}, type=${type}, method=${method})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${sales.last} ? 'disabled'"
+                   th:href="@{/sales(page=${sales.number + 1}, size=${sales.size}, q=${q}, from=${from}, to=${to}, cashierId=${cashierId}, status=${status}, type=${type}, method=${method})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

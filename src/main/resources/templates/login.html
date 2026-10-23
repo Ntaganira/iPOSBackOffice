@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{login.welcome}">iPOS Back Office</title>
+    <script>
+        (function () {
+            var t = localStorage.getItem('ipos-theme');
+            if (t !== 'dark') t = 'light';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    <link rel="stylesheet" href="/css/app.css">
+    <script defer src="/js/app.js"></script>
+</head>
+<body class="login-page">
+<div th:replace="~{fragments/toasts :: toasts}"></div>
+
+<main class="login-split">
+    <section class="login-brand" aria-labelledby="brand-title">
+        <div class="brand-top">
+            <div class="brand-lockup">
+                <span class="ipos-mark" aria-hidden="true">iP</span>
+                <div class="brand-name">
+                    <strong>iPOS</strong>
+                    <span th:text="#{login.brand.tagline}">Point of Sale Back Office</span>
+                </div>
+            </div>
+            <span class="brand-motto" th:text="#{login.brand.motto}">Faster · Smarter · Together</span>
+        </div>
+
+        <div class="brand-copy">
+            <h1 id="brand-title">
+                <span th:text="#{login.brand.title}">Every sale, every terminal,</span>
+                <span class="accent" th:text="#{login.brand.titleAccent}">in one place.</span>
+            </h1>
+            <p th:text="#{login.brand.subtitle}">iPOS connects invoices, stock movements, and shift closings from your terminals and turns them into clear, daily reporting.</p>
+        </div>
+
+        <ul class="brand-features">
+            <li>
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"></path>
+                    </svg>
+                </span>
+                <strong th:text="#{login.brand.feat1.title}">Reliable Operations</strong>
+                <span class="feature-desc" th:text="#{login.brand.feat1.desc}">Offline-first terminal sync with automatic upload.</span>
+            </li>
+            <li>
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <polyline points="9 12 11 14 15 10"></polyline>
+                    </svg>
+                </span>
+                <strong th:text="#{login.brand.feat2.title}">Secure &amp; Audited</strong>
+                <span class="feature-desc" th:text="#{login.brand.feat2.desc}">Full audit trail and transaction security.</span>
+            </li>
+            <li>
+                <span class="feature-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <path d="M12 3c2.5 2.5 4 5.6 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.6-4-9s1.5-6.5 4-9z"></path>
+                    </svg>
+                </span>
+                <strong th:text="#{login.brand.feat3.title}">Multi-language</strong>
+                <span class="feature-desc" th:text="#{login.brand.feat3.desc}">Work in your preferred language.</span>
+            </li>
+        </ul>
+
+        <div class="brand-bottom">
+            <div class="brand-stats">
+                <div class="stat">
+                    <span class="stat-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path>
+                            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path>
+                        </svg>
+                    </span>
+                    <div class="stat-text">
+                        <strong>24/7</strong>
+                        <span th:text="#{login.brand.stat1}">Sync</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            <polyline points="9 12 11 14 15 10"></polyline>
+                        </svg>
+                    </span>
+                    <div class="stat-text">
+                        <strong>100%</strong>
+                        <span th:text="#{login.brand.stat2}">Audited</span>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <path d="M12 3c2.5 2.5 4 5.6 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.6-4-9s1.5-6.5 4-9z"></path>
+                        </svg>
+                    </span>
+                    <div class="stat-text">
+                        <strong th:text="#{login.brand.stat3}">Multi-language</strong>
+                        <span th:text="#{login.brand.languages}">EN · FR · RW</span>
+                    </div>
+                </div>
+            </div>
+            <p class="brand-footer" th:text="#{login.brand.copyright(${#dates.year(#dates.createNow())})}">© 2026 iPOS. All rights reserved.</p>
+        </div>
+    </section>
+
+    <section class="login-form-side" aria-labelledby="login-title">
+        <div class="login-controls">
+            <nav class="login-langs" th:attr="aria-label=#{login.langLabel}">
+                <a th:href="@{/login(lang='en')}"
+                   th:classappend="${#locale.language == 'en' ? 'active' : ''}"
+                   th:title="#{login.lang.en}">EN</a>
+                <a th:href="@{/login(lang='fr')}"
+                   th:classappend="${#locale.language == 'fr' ? 'active' : ''}"
+                   th:title="#{login.lang.fr}">FR</a>
+                <a th:href="@{/login(lang='rw')}"
+                   th:classappend="${#locale.language == 'rw' ? 'active' : ''}"
+                   th:title="#{login.lang.rw}">RW</a>
+            </nav>
+
+            <button type="button" class="login-theme" id="theme-toggle" aria-label="Dark Mode">
+                <span class="theme-opt theme-opt-sun">
+                    <svg class="icon-sun" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </span>
+                <span class="theme-opt theme-opt-moon">
+                    <svg class="icon-moon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </span>
+            </button>
+        </div>
+
+        <div class="login-card">
+            <div class="login-brandmark">
+                <span class="ipos-mark ipos-mark-lg" aria-hidden="true">iP</span>
+                <div class="login-brandmark-text">
+                    <strong>iPOS</strong>
+                    <span th:text="#{login.brand.tagline}">Point of Sale Back Office</span>
+                </div>
+            </div>
+
+            <header class="login-header">
+                <h1 id="login-title" th:text="#{login.title}">Welcome back</h1>
+                <p th:text="#{login.subtitle}">Sign in to your iPOS back office account.</p>
+            </header>
+
+            <form th:action="@{/login}" method="post" class="login-form">
+                <div class="login-field">
+                    <label class="sr-only" for="username" th:text="#{login.username}">Username</label>
+                    <span class="field-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="8" r="4"></circle>
+                            <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"></path>
+                        </svg>
+                    </span>
+                    <input type="text" id="username" name="username"
+                           th:placeholder="#{login.usernamePh}" required autofocus
+                           autocomplete="username">
+                </div>
+
+                <div class="login-field">
+                    <label class="sr-only" for="password" th:text="#{login.password}">Password</label>
+                    <span class="field-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+                            <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                        </svg>
+                    </span>
+                    <input type="password" id="password" name="password"
+                           th:placeholder="#{login.passwordPh}" required
+                           autocomplete="current-password">
+                    <button type="button" class="password-toggle" data-password-toggle="password"
+                            aria-pressed="false"
+                            th:attr="aria-label=#{login.password.show},data-label-show=#{login.password.hide},data-label-hide=#{login.password.show}">
+                        <svg class="icon-eye-off" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"></path>
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"></path>
+                            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                        <svg class="icon-eye" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="login-options">
+                    <label class="login-remember">
+                        <input type="checkbox" name="remember-me" value="true">
+                        <span th:text="#{login.remember}">Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link"
+                       th:attr="data-info-toast=#{login.forgotHelp}"
+                       th:text="#{login.forgot}">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-submit">
+                    <span th:text="#{login.signIn}">Sign In</span>
+                    <svg class="submit-arrow" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                </button>
+            </form>
+
+            <div class="login-secure">
+                <span class="line"></span>
+                <span class="secure-label">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+                        <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                    </svg>
+                    <span th:text="#{login.secure}">Secure login</span>
+                </span>
+                <span class="line"></span>
+            </div>
+
+            <p class="login-legal" th:text="#{login.legal}">Authorized personnel only. All activities are logged and monitored.</p>
+            <p class="login-hint" th:text="#{login.defaultCredentials}">First run: admin / admin123 - change APP_ADMIN_PASSWORD before going live.</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

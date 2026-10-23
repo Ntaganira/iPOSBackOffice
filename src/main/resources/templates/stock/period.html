@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.periods}, ~{::content})}">
+<head><title>Stock period - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/stock/periods" class="subtle-link">Stock periods</a> / Detail</div>
+            <h1 th:text="${@fmt.date(period.periodStart)} + ' → ' + ${@fmt.date(period.periodEnd)}">Period</h1>
+            <div class="subtitle">
+                <span class="badge" th:classappend="${period.open} ? 'badge-warning' : 'badge-success'" th:text="${period.status}">OPEN</span>
+                <span th:if="${period.notes != null}" th:text="${period.notes}" style="margin-left:8px">Notes</span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <form th:if="${period.open}" sec:authorize="hasAuthority('STOCK_PERIOD_MANAGE')"
+                  th:action="@{/stock/periods/{id}/close(id=${period.id})}" method="post"
+                  onsubmit="return confirm('Close this period and snapshot closing quantities?')">
+                <button type="submit" class="btn btn-primary">Close period</button>
+            </form>
+            <a href="/stock/periods" class="btn btn-outline">Back</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${#lists.size(lines)}">0</div><div class="label">Products counted</div></div>
+        <div class="summary-card"><div class="value" th:text="${period.openedBy ?: '—'}">—</div><div class="label">Opened by</div></div>
+        <div class="summary-card"><div class="value" th:text="${period.closedBy ?: '—'}">—</div><div class="label">Closed by</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Opening and closing stock</h2></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Product</th><th class="text-right">Opening qty</th><th class="text-right">Opening value</th><th class="text-right">Closing qty</th><th class="text-right">Closing value</th><th class="text-right">Difference</th></tr></thead>
+                <tbody>
+                <tr th:each="line : ${lines}">
+                    <td><div class="table-primary" th:text="${line.product == null ? 'Removed product' : line.product.name}">Product</div><div class="hint mono" th:text="${line.product == null ? '' : line.product.code}">CODE</div></td>
+                    <td class="text-right" th:text="${@fmt.qty(line.openingQty)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(line.openingValue)}">RWF 0</td>
+                    <td class="text-right" th:text="${@fmt.qty(line.closingQty)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(line.closingValue)}">RWF 0</td>
+                    <td class="text-right">
+                        <strong th:classappend="${line.closingQty.compareTo(line.openingQty) < 0} ? 'text-danger' : (${line.closingQty.compareTo(line.openingQty) > 0} ? 'text-success' : '')"
+                                th:text="${@fmt.qty(line.closingQty.subtract(line.openingQty))}">0</strong>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

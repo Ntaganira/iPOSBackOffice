@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Sales report - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/reports" class="subtle-link">Reports</a> / Sales</div>
+            <h1>Sales report</h1>
+            <div class="subtitle" th:text="${@fmt.date(from)} + ' → ' + ${@fmt.date(to)}">Period</div>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline" th:href="@{/reports/sales.csv(from=${from},to=${to},cashierId=${cashierId})}">Export CSV</a>
+            <a class="btn btn-outline" th:href="@{/reports/tax.csv(from=${from},to=${to})}">Tax CSV</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/reports/sales" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <select name="cashierId">
+                <option value="">All cashiers</option>
+                <option th:each="cashier : ${cashiers}" th:value="${cashier.id}" th:text="${cashier.fullName}" th:selected="${cashierId != null and cashierId == cashier.id}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="/reports/sales" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.netSales)}">RWF 0</div><div class="label">Net sales</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.refunds)}">RWF 0</div><div class="label">Refunds</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.tax)}">RWF 0</div><div class="label">Tax</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.grossProfit)}">RWF 0</div><div class="label">Gross profit</div></div>
+        <div class="summary-card"><div class="value" th:text="${report.transactions}">0</div><div class="label">Transactions</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.averageSale)}">RWF 0</div><div class="label">Average sale</div></div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Daily totals</h2></div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead><tr><th>Date</th><th class="text-right">Sales</th><th class="text-right">Refunds</th><th class="text-right">Net</th><th class="text-right">Transactions</th></tr></thead>
+                    <tbody>
+                    <tr th:each="day : ${report.days}">
+                        <td th:text="${@fmt.date(day.date)}">Date</td>
+                        <td class="text-right" th:text="${@fmt.money(day.sales)}">RWF 0</td>
+                        <td class="text-right" th:text="${@fmt.money(day.refunds)}">RWF 0</td>
+                        <td class="text-right"><strong th:text="${@fmt.money(day.net())}">RWF 0</strong></td>
+                        <td class="text-right" th:text="${day.count}">0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(report.days)}"><td colspan="5"><div class="empty-state slim"><p>No sales in this period.</p></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Payment mix</h2></div>
+                <div class="detail-list">
+                    <div th:each="entry : ${report.paymentTotals}"><span th:text="${entry.key}">CASH</span><strong th:text="${@fmt.money(entry.value)}">RWF 0</strong></div>
+                    <div th:if="${#maps.isEmpty(report.paymentTotals)}"><span>No payments</span><strong>—</strong></div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header"><h2>Tax summary</h2></div>
+                <div class="detail-list">
+                    <div th:each="tax : ${report.taxSummary}"><span th:text="'Category ' + ${tax.code}">Tax</span><strong th:text="${@fmt.money(tax.tax)}">RWF 0</strong></div>
+                    <div th:if="${#lists.isEmpty(report.taxSummary)}"><span>No tax</span><strong>—</strong></div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header"><h2>Cashiers</h2></div>
+                <div class="detail-list">
+                    <div th:each="cashier : ${report.cashiers}"><span th:text="${cashier.name}">Cashier</span><strong th:text="${@fmt.money(cashier.sales)}">RWF 0</strong></div>
+                    <div th:if="${#lists.isEmpty(report.cashiers)}"><span>No cashiers</span><strong>—</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Top products</h2><span class="section-count" th:text="${#lists.size(report.topProducts)}">0</span></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Product</th><th>Code</th><th class="text-right">Quantity</th><th class="text-right">Revenue</th><th class="text-right">Cost</th><th class="text-right">Profit</th></tr></thead>
+                <tbody>
+                <tr th:each="product : ${report.topProducts}">
+                    <td th:text="${product.name}">Product</td>
+                    <td class="mono" th:text="${product.code}">CODE</td>
+                    <td class="text-right" th:text="${@fmt.qty(product.quantity)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(product.revenue)}">RWF 0</td>
+                    <td class="text-right" th:text="${@fmt.money(product.cost)}">RWF 0</td>
+                    <td class="text-right"><strong th:text="${@fmt.money(product.profit())}">RWF 0</strong></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(report.topProducts)}"><td colspan="6"><div class="empty-state slim"><p>No product sales.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

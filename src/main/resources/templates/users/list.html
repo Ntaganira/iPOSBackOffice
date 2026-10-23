@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.users}, ~{::content})}">
+<head><title>Users - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Administration</div>
+            <h1>Users &amp; roles</h1>
+            <div class="subtitle">Cashiers, storekeepers and managers who can sign in.</div>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline" href="/roles">Role permissions</a>
+            <a sec:authorize="hasAuthority('USER_MANAGE')" class="btn btn-primary" href="/users/new">New user</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="section">
+        <form method="get" action="/users" class="filter-bar">
+            <input type="search" name="q" th:value="${q}" placeholder="Search username, name or email" style="flex:1 1 260px">
+            <select name="role">
+                <option value="">All roles</option>
+                <option th:each="option : ${roles}" th:value="${option}" th:text="${option}" th:selected="${role != null and role == option}"></option>
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/users" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+
+        <div class="table-container">
+            <table>
+                <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last login</th><th class="text-right">Actions</th></tr></thead>
+                <tbody>
+                <tr th:each="user : ${users.content}">
+                    <td>
+                        <div class="product-cell">
+                            <span class="avatar avatar-sm">
+                                <img th:if="${user.avatarPath != null}" th:src="@{/files/{path}(path=${user.avatarPath})}" alt="">
+                                <span th:if="${user.avatarPath == null}" th:text="${#strings.substring(user.fullName, 0, 1)}">A</span>
+                            </span>
+                            <div><strong th:text="${user.fullName}">Name</strong><div class="muted mono" th:text="'@' + ${user.username}">@user</div></div>
+                        </div>
+                    </td>
+                    <td><span class="badge badge-secondary" th:text="${user.role}">CASHIER</span></td>
+                    <td>
+                        <span class="badge" th:classappend="${user.enabled} ? 'badge-success' : 'badge-danger'" th:text="${user.enabled ? 'Active' : 'Disabled'}">Active</span>
+                        <span th:if="${user.locked}" class="badge badge-warning">Locked</span>
+                    </td>
+                    <td th:text="${user.lastLoginAt == null ? 'Never' : @fmt.dateTime(user.lastLoginAt)}">Never</td>
+                    <td class="text-right">
+                        <div class="btn-group">
+                            <a sec:authorize="hasAuthority('USER_MANAGE')" class="btn btn-outline btn-sm" th:href="@{/users/{id}/edit(id=${user.id})}">Edit</a>
+                            <form sec:authorize="hasAuthority('USER_MANAGE')" th:action="@{/users/{id}/toggle(id=${user.id})}" method="post">
+                                <button type="submit" class="btn btn-outline btn-sm" th:text="${user.enabled ? 'Disable' : 'Enable'}">Disable</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${users.empty}"><td colspan="5"><div class="empty-state"><h3>No users found</h3><p>Adjust the filters or create a user.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-bar" th:if="${users.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${users.number + 1}">1</strong> of <strong th:text="${users.totalPages}">1</strong> · <span th:text="${users.totalElements}">0</span> users</span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${users.first} ? 'disabled'" th:href="@{/users(page=${users.number - 1}, size=${users.size}, q=${q}, role=${role})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${users.last} ? 'disabled'" th:href="@{/users(page=${users.number + 1}, size=${users.size}, q=${q}, role=${role})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

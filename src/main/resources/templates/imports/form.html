@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.imports}, ~{::content})}">
+<head><title>Import - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/imports" class="subtle-link">Imports</a> / <span th:text="${importForm.id == null ? 'New' : 'Edit'}">New</span></div>
+            <h1 th:text="${importForm.id == null ? 'New import batch' : 'Edit ' + importForm.referenceNo}">New import batch</h1>
+            <div class="subtitle">Add freight, customs and taxes to calculate a true landed cost per unit.</div>
+        </div>
+        <div class="page-actions"><a href="/imports" class="btn btn-outline">Cancel</a></div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="${importForm.id == null} ? @{/imports} : @{/imports/{id}(id=${importForm.id})}"
+          method="post" th:object="${importForm}">
+        <div class="section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="supplierId">Supplier</label>
+                    <select id="supplierId" th:field="*{supplierId}">
+                        <option value="">No supplier</option>
+                        <option th:each="supplier : ${suppliers}" th:value="${supplier.id}" th:text="${supplier.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="originCountry">Origin country</label>
+                    <input id="originCountry" th:field="*{originCountry}" maxlength="80" placeholder="e.g. China">
+                </div>
+                <div class="form-group">
+                    <label for="importDate">Import date *</label>
+                    <input id="importDate" th:field="*{importDate}" type="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="currency">Foreign currency *</label>
+                    <select id="currency" th:field="*{currency}" required>
+                        <option th:each="code : ${currencies}" th:value="${code}" th:text="${code}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="exchangeRate">Exchange rate to RWF *</label>
+                    <input id="exchangeRate" th:field="*{exchangeRate}" type="number" min="0.000001" step="0.000001" required>
+                </div>
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" th:field="*{notes}" rows="2" maxlength="500" placeholder="Shipping details, invoice number..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Goods</h2>
+                <button type="button" class="btn btn-outline btn-sm" id="add-line">Add line</button>
+            </div>
+            <div class="table-container table-flush">
+                <table class="purchase-lines">
+                    <thead><tr><th>Product *</th><th class="text-right">Quantity *</th><th class="text-right">Unit cost (foreign) *</th><th class="text-right">Foreign total</th><th></th></tr></thead>
+                    <tbody id="line-rows">
+                    <tr class="import-line" th:if="${#lists.isEmpty(importForm.lines)}">
+                        <td>
+                            <select name="lines[0].productId" class="product-select" required>
+                                <option value="">Choose a product</option>
+                                <option th:each="product : ${products}" th:value="${product.id}"
+                                        th:attr="data-cost=${product.buyingPrice}" th:text="${product.name + ' (' + product.code + ')'}"></option>
+                            </select>
+                        </td>
+                        <td class="text-right"><input name="lines[0].quantity" type="number" min="0.001" step="0.001" value="1" required class="qty-input"></td>
+                        <td class="text-right"><input name="lines[0].unitCostForeign" type="number" min="0" step="0.01" value="0.00" required class="cost-input"></td>
+                        <td class="text-right line-total">0.00</td>
+                        <td class="text-right"><button type="button" class="btn-icon remove-line" aria-label="Remove line">×</button></td>
+                    </tr>
+                    <tr class="import-line" th:each="line, stat : ${importForm.lines}">
+                        <td>
+                            <select th:name="|lines[${stat.index}].productId|" class="product-select" required>
+                                <option value="">Choose a product</option>
+                                <option th:each="product : ${products}" th:value="${product.id}"
+                                        th:selected="${line.productId != null and line.productId == product.id}"
+                                        th:text="${product.name + ' (' + product.code + ')'}"></option>
+                            </select>
+                        </td>
+                        <td class="text-right"><input th:name="|lines[${stat.index}].quantity|" th:value="${line.quantity}" type="number" min="0.001" step="0.001" required class="qty-input"></td>
+                        <td class="text-right"><input th:name="|lines[${stat.index}].unitCostForeign|" th:value="${line.unitCostForeign}" type="number" min="0" step="0.01" required class="cost-input"></td>
+                        <td class="text-right line-total">0.00</td>
+                        <td class="text-right"><button type="button" class="btn-icon remove-line" aria-label="Remove line">×</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header"><h2>Landed costs</h2></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="customsDuty">Customs duty (RWF)</label>
+                    <input id="customsDuty" th:field="*{customsDuty}" type="number" min="0" step="0.01" class="cost-extra">
+                </div>
+                <div class="form-group">
+                    <label for="taxes">Import taxes (RWF)</label>
+                    <input id="taxes" th:field="*{taxes}" type="number" min="0" step="0.01" class="cost-extra">
+                </div>
+                <div class="form-group">
+                    <label for="freight">Freight (RWF)</label>
+                    <input id="freight" th:field="*{freight}" type="number" min="0" step="0.01" class="cost-extra">
+                </div>
+                <div class="form-group">
+                    <label for="otherCosts">Other costs (RWF)</label>
+                    <input id="otherCosts" th:field="*{otherCosts}" type="number" min="0" step="0.01" class="cost-extra">
+                </div>
+            </div>
+            <div class="purchase-total">
+                <span>Estimated landed total</span>
+                <strong id="landed-total">RWF 0</strong>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${importForm.id == null ? 'Save draft' : 'Save changes'}">Save draft</button>
+                <a href="/imports" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+
+    <template id="line-template">
+        <tr class="import-line">
+            <td>
+                <select class="product-select" required>
+                    <option value="">Choose a product</option>
+                    <option th:each="product : ${products}" th:value="${product.id}" th:text="${product.name + ' (' + product.code + ')'}"></option>
+                </select>
+            </td>
+            <td class="text-right"><input type="number" min="0.001" step="0.001" value="1" required class="qty-input"></td>
+            <td class="text-right"><input type="number" min="0" step="0.01" value="0.00" required class="cost-input"></td>
+            <td class="text-right line-total">0.00</td>
+            <td class="text-right"><button type="button" class="btn-icon remove-line" aria-label="Remove line">×</button></td>
+        </tr>
+    </template>
+
+    <script>
+        (function () {
+            const rows = document.getElementById('line-rows');
+            const template = document.getElementById('line-template');
+            const rateInput = document.getElementById('exchangeRate');
+            const currencyInput = document.getElementById('currency');
+
+            function renumber() {
+                rows.querySelectorAll('.import-line').forEach((row, index) => {
+                    row.querySelector('.product-select').name = `lines[${index}].productId`;
+                    row.querySelector('.qty-input').name = `lines[${index}].quantity`;
+                    row.querySelector('.cost-input').name = `lines[${index}].unitCostForeign`;
+                });
+                recalculate();
+            }
+
+            function money(value) {
+                return 'RWF ' + value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+
+            function recalculate() {
+                const rate = Number(rateInput.value) || 0;
+                let foreign = 0;
+                rows.querySelectorAll('.import-line').forEach(row => {
+                    const qty = Number(row.querySelector('.qty-input').value) || 0;
+                    const cost = Number(row.querySelector('.cost-input').value) || 0;
+                    const line = qty * cost;
+                    foreign += line;
+                    row.querySelector('.line-total').textContent = line.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                });
+                const extras = Array.from(document.querySelectorAll('.cost-extra'))
+                    .reduce((sum, input) => sum + (Number(input.value) || 0), 0);
+                document.getElementById('landed-total').textContent =
+                    money(foreign * rate + extras) + ' (' + currencyInput.value + ' ' +
+                    foreign.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' goods)';
+            }
+
+            function bind(row) {
+                row.querySelectorAll('.qty-input, .cost-input').forEach(input =>
+                    input.addEventListener('input', recalculate));
+                row.querySelector('.remove-line').addEventListener('click', () => {
+                    if (rows.querySelectorAll('.import-line').length > 1) {
+                        row.remove();
+                        renumber();
+                    }
+                });
+            }
+
+            rows.querySelectorAll('.import-line').forEach(bind);
+            document.getElementById('add-line').addEventListener('click', () => {
+                const row = template.content.firstElementChild.cloneNode(true);
+                rows.appendChild(row);
+                bind(row);
+                renumber();
+            });
+            rateInput.addEventListener('input', recalculate);
+            currencyInput.addEventListener('change', recalculate);
+            document.querySelectorAll('.cost-extra').forEach(input =>
+                input.addEventListener('input', recalculate));
+            renumber();
+        })();
+    </script>
+</div>
+</body>
+</html>

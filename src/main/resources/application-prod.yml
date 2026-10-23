@@ -1,0 +1,17 @@
+spring:
+  thymeleaf:
+    cache: true
+  jpa:
+    show-sql: false
+
+server:
+  forward-headers-strategy: native
+
+logging:
+  level:
+    root: WARN
+    com.ntaganira.heritier.ipos.backoffice: INFO
+
+app:
+  demo:
+    enabled: false

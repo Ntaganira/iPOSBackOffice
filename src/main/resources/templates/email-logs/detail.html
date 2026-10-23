@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.emailLogs}, ~{::content})}">
+<head><title>Email detail - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/email-logs" class="subtle-link">Email log</a> / Detail</div>
+            <h1 th:text="${log.subject}">Subject</h1>
+            <div class="subtitle" th:text="${@fmt.dateTime(log.createdAt)}">When</div>
+        </div>
+        <div class="page-actions">
+            <form sec:authorize="hasAuthority('EMAIL_SEND')" th:if="${log.status.name() == 'FAILED'}" th:action="@{/email-logs/{id}/resend(id=${log.id})}" method="post">
+                <button type="submit" class="btn btn-primary">Resend email</button>
+            </form>
+            <a href="/email-logs" class="btn btn-outline">Back</a>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Message</h2></div>
+            <div class="detail-list">
+                <div><span>To</span><strong th:text="${log.recipient}">email</strong></div>
+                <div><span>CC</span><strong th:text="${log.cc ?: '—'}">—</strong></div>
+                <div><span>Status</span><strong th:text="${log.status}">SENT</strong></div>
+                <div><span>Sent at</span><strong th:text="${log.sentAt == null ? '—' : @fmt.dateTime(log.sentAt)}">—</strong></div>
+                <div><span>Retries</span><strong th:text="${log.retryCount}">0</strong></div>
+                <div><span>Document</span><strong th:text="${(log.documentType ?: '') + ' ' + (log.documentNumber ?: '')}">SALE NS-0001</strong></div>
+            </div>
+            <div th:if="${log.errorMessage != null}" class="alert alert-danger" style="margin-top:14px" th:text="${log.errorMessage}">error</div>
+        </div>
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Actions</h2></div>
+                <div class="stack-form">
+                    <a th:if="${log.documentType == 'SALE' and log.documentNumber != null}" class="btn btn-outline btn-sm" href="/sales">Open sales</a>
+                    <p class="hint">Delivery is handled by the configured SMTP server. Failures are logged with the server response.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

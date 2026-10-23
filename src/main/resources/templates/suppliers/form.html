@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.suppliers}, ~{::content})}">
+<head><title>Supplier form - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/suppliers" class="subtle-link">Suppliers</a> / <span th:text="${editing ? 'Edit' : 'New'}">New</span></div>
+            <h1 th:text="${editing ? 'Edit supplier' : 'New supplier'}">New supplier</h1>
+            <div class="subtitle">Vendor contact and tax details.</div>
+        </div>
+        <div class="page-actions"><a href="/suppliers" class="btn btn-outline">Cancel</a></div>
+    </div>
+    <form th:action="${editing} ? @{/suppliers/{id}(id=${supplierForm.id})} : @{/suppliers}" th:object="${supplierForm}" method="post">
+        <div class="section">
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="name">Name *</label>
+                    <input id="name" th:field="*{name}" required maxlength="160">
+                    <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+                <div class="form-group"><label for="phone">Phone</label><input id="phone" th:field="*{phone}" maxlength="40"></div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" th:field="*{email}" type="email" maxlength="160">
+                    <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+                <div class="form-group"><label for="tin">TIN</label><input id="tin" th:field="*{tin}" maxlength="40"></div>
+                <div class="form-group"><label>Status</label><label class="checkbox-row"><input type="checkbox" th:field="*{active}"> Active</label></div>
+                <div class="form-group full-width"><label for="address">Address</label><textarea id="address" th:field="*{address}" rows="2" maxlength="255"></textarea></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing ? 'Save changes' : 'Create supplier'}">Create supplier</button>
+                <a href="/suppliers" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

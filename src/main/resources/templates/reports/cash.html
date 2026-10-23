@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Cash drawer - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/reports" class="subtle-link">Reports</a> / Cash drawer</div>
+            <h1>Daily cash summary</h1>
+            <div class="subtitle" th:text="${'Reconcile the till for ' + @fmt.date(summary.date)}">Reconcile the till.</div>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn btn-outline" onclick="window.print()">Print</button>
+            <a th:href="@{/sales(from=${date},to=${date},paymentMethod='CASH')}" class="btn btn-outline">Cash sales</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/reports/cash" class="filter-bar">
+            <label for="date" class="hint">Business day</label>
+            <input id="date" type="date" name="date" th:value="${date}">
+            <label for="openingCash" class="hint">Opening cash</label>
+            <input id="openingCash" type="number" name="openingCash" min="0" step="0.01" th:value="${openingCash}">
+            <button type="submit" class="btn btn-primary btn-sm">Recalculate</button>
+            <a href="/reports/cash" class="btn btn-outline btn-sm">Today</a>
+        </form>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(summary.openingCash)}">RWF 0</div><div class="label">Opening cash</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(summary.cashSales)}">RWF 0</div><div class="label">Cash sales</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(summary.cashRefunds)}">RWF 0</div><div class="label">Cash refunds</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(summary.cashExpenses)}">RWF 0</div><div class="label">Cash expenses</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Expected cash in drawer</h2></div>
+        <div class="totals-box">
+            <div><span>Opening cash</span><strong th:text="${@fmt.money(summary.openingCash)}">RWF 0</strong></div>
+            <div><span>+ Cash sales</span><strong th:text="${@fmt.money(summary.cashSales)}">RWF 0</strong></div>
+            <div><span>- Cash refunds</span><strong th:text="${@fmt.money(summary.cashRefunds)}">RWF 0</strong></div>
+            <div><span>- Cash expenses (approved or paid)</span><strong th:text="${@fmt.money(summary.cashExpenses)}">RWF 0</strong></div>
+            <div class="grand"><span>Expected cash</span><strong th:text="${@fmt.money(summary.expectedCash)}">RWF 0</strong></div>
+        </div>
+        <p class="hint" th:text="${summary.cashSaleCount + ' cash sale(s) and ' + summary.refundCount + ' refund(s) recorded on this day.'}">No cash sales.</p>
+    </div>
+</div>
+</body>
+</html>

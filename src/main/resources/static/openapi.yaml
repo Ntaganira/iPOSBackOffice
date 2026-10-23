@@ -1,0 +1,380 @@
+openapi: 3.0.3
+info:
+  title: iPOS Back Office Sync API
+  version: 1.0.0
+  description: |
+    Synchronisation contract between iPOS terminals and the back office.
+
+    Terminals push their outbox revisions to `POST /sync/push` and poll
+    `GET /sync/pull` for master-data changes after a cursor. The push endpoint
+    always stores each item in the sync inbox before importing it, so a valid
+    batch returns `200` even when individual items are rejected or stored for
+    manual review. It never returns `409`; resolve conflicts through the
+    `conflicts` array and the sync inbox screens instead.
+
+    Authentication is a shared bearer token configured with `APP_SYNC_TOKEN`.
+    The terminal is registered automatically by its `device_id` on first use.
+servers:
+  - url: http://localhost:8081
+    description: Local development server
+tags:
+  - name: Sync
+    description: Terminal outbox ingestion and master-data pull
+security:
+  - bearerAuth: []
+paths:
+  /sync/push:
+    post:
+      tags: [Sync]
+      operationId: pushSyncItems
+      summary: Push a terminal outbox batch
+      description: |
+        Records every item in `sync_inbox`, then imports it according to
+        `entity_type`. Items are deduplicated by `(device_id, outbox_id)`;
+        duplicates, including duplicates inside one batch, are accepted but
+        imported only once.
+
+        A malformed individual payload is stored with status `REJECTED` and an
+        error message; it does not prevent the rest of the batch from being
+        imported. Unknown `entity_type` values are stored as `STORED`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncPushRequest'
+            examples:
+              invoiceBundle:
+                summary: Completed sale with one line and one stock movement
+                value:
+                  device_id: terminal-001
+                  items:
+                    - outbox_id: 7d1e4b3a-0f6c-4f46-9a01-2f3c4d5e6a7b
+                      entity_type: invoice_bundle
+                      entity_id: 6a8b7c9d-1e2f-4a3b-8c9d-0e1f2a3b4c5d
+                      operation: upsert
+                      occurred_at: '2026-10-23T08:15:05Z'
+                      payload:
+                        invoice:
+                          id: 6a8b7c9d-1e2f-4a3b-8c9d-0e1f2a3b4c5d
+                          invoice_number: INV-20261023-00001
+                          customer_id: null
+                          subtotal_cents: 120000
+                          tax_cents: 21600
+                          core_fee_total_cents: 0
+                          discount_cents: 0
+                          total_cents: 141600
+                          tax_rate_bps: 1800
+                          payment_method: cash
+                          status: completed
+                          issued_at: '2026-10-23T08:15:00Z'
+                          updated_at: '2026-10-23T08:15:00Z'
+                          is_deleted: false
+                        lines:
+                          - id: 1f2e3d4c-5b6a-4978-8a9b-0c1d2e3f4a5b
+                            invoice_id: 6a8b7c9d-1e2f-4a3b-8c9d-0e1f2a3b4c5d
+                            product_id: 9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b
+                            sku_snapshot: OIL-5W30
+                            part_name_snapshot: Engine oil 5W-30
+                            brand_snapshot: Total
+                            unit_price_cents: 120000
+                            quantity: 1
+                            uom_factor: 1
+                            uom_label: piece
+                            core_fee_cents: 0
+                            line_discount_cents: 0
+                            tax_rate_bps: 1800
+                            line_total_cents: 120000
+                            updated_at: '2026-10-23T08:15:00Z'
+                            is_deleted: false
+                        movements:
+                          - id: 3c4d5e6f-7a8b-4c9d-8e0f-1a2b3c4d5e6f
+                            product_id: 9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b
+                            bin_location: FRONT
+                            qty_delta: -1
+                            reference_type: sale
+                            reference_id: 6a8b7c9d-1e2f-4a3b-8c9d-0e1f2a3b4c5d
+                            updated_at: '2026-10-23T08:15:00Z'
+      responses:
+        '200':
+          description: Batch recorded. Check `accepted` and the sync inbox.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPushResponse'
+              examples:
+                accepted:
+                  value:
+                    accepted:
+                      - 7d1e4b3a-0f6c-4f46-9a01-2f3c4d5e6a7b
+                    conflicts: []
+                    server_time: '2026-10-23T08:16:02Z'
+        '400':
+          description: The request is unreadable or fails request-level validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              examples:
+                invalid:
+                  value:
+                    error: items: must not be empty
+                    server_time: '2026-10-23T08:16:02Z'
+        '401':
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: The terminal is registered but disabled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+  /sync/pull:
+    get:
+      tags: [Sync]
+      operationId: pullSyncChanges
+      summary: Pull master-data changes after a cursor
+      description: |
+        Returns server-side changes after `cursor` and the cursor to send on the
+        next poll. The current back office has no server-originated master-data
+        edits, so `changes` is empty and `next_cursor` echoes the cursor.
+      parameters:
+        - name: device_id
+          in: query
+          required: true
+          description: Terminal identifier used for telemetry and device registration.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+          example: terminal-001
+        - name: cursor
+          in: query
+          required: false
+          description: Last cursor received by the terminal.
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+            default: 0
+          example: 0
+      responses:
+        '200':
+          description: Changes after the cursor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPullResponse'
+              examples:
+                empty:
+                  value:
+                    changes: []
+                    next_cursor: 0
+                    server_time: '2026-10-23T08:17:11Z'
+        '400':
+          description: Missing, invalid, or negative query parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: The terminal is registered but disabled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    post:
+      tags: [Sync]
+      operationId: pullSyncChangesWithBody
+      summary: Pull changes using a JSON body (legacy)
+      deprecated: true
+      description: |
+        Backward-compatible JSON-body variant of `GET /sync/pull`. Prefer the
+        GET form used by the terminal's HTTP transport.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncPullRequest'
+            example:
+              device_id: terminal-001
+              cursor: 0
+      responses:
+        '200':
+          description: Changes after the cursor.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPullResponse'
+        '400':
+          description: The request is unreadable or fails validation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Missing or invalid bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          description: The terminal is registered but disabled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: Shared terminal token from `APP_SYNC_TOKEN`.
+  schemas:
+    SyncPushRequest:
+      type: object
+      required: [device_id, items]
+      properties:
+        device_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+          example: terminal-001
+        items:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/SyncPushItem'
+    SyncPushItem:
+      type: object
+      required: [outbox_id, entity_type, entity_id, operation, payload, occurred_at]
+      properties:
+        outbox_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: Terminal-generated outbox revision id; deduplicated per device.
+        entity_type:
+          type: string
+          minLength: 1
+          maxLength: 40
+          description: |
+            Known values are `invoice_bundle`, `product`, `customer`,
+            `shift_closure`, `stock_ledger`, and `uom_conversion`. Unknown
+            values are accepted and stored without importing.
+          example: invoice_bundle
+        entity_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        operation:
+          type: string
+          minLength: 1
+          maxLength: 20
+          description: Usually `upsert` or `delete`; delete flags are also carried in the payload.
+          example: upsert
+        payload:
+          type: object
+          additionalProperties: true
+          description: Entity snapshot whose keys depend on `entity_type` and `operation`.
+        occurred_at:
+          type: string
+          format: date-time
+          description: Time the outbox revision was created on the terminal.
+    SyncPushResponse:
+      type: object
+      required: [accepted, conflicts, server_time]
+      properties:
+        accepted:
+          type: array
+          description: Outbox ids durably recorded by this call, in request order.
+          items:
+            type: string
+        conflicts:
+          type: array
+          description: Authoritative server records for conflicts. Currently empty.
+          items:
+            $ref: '#/components/schemas/SyncConflict'
+        server_time:
+          type: string
+          format: date-time
+    SyncConflict:
+      type: object
+      required: [outbox_id, entity_type, entity_id, operation, payload]
+      properties:
+        outbox_id:
+          type: string
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+        operation:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+    SyncPullRequest:
+      type: object
+      required: [device_id]
+      properties:
+        device_id:
+          type: string
+          minLength: 1
+          maxLength: 64
+        cursor:
+          type: integer
+          format: int64
+          minimum: 0
+          default: 0
+    SyncPullResponse:
+      type: object
+      required: [changes, next_cursor, server_time]
+      properties:
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncChange'
+        next_cursor:
+          type: integer
+          format: int64
+          minimum: 0
+        server_time:
+          type: string
+          format: date-time
+    SyncChange:
+      type: object
+      required: [entity_type, entity_id, operation, payload, updated_at]
+      properties:
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+        operation:
+          type: string
+        payload:
+          type: object
+          additionalProperties: true
+        updated_at:
+          type: string
+          format: date-time
+    ApiError:
+      type: object
+      required: [error, server_time]
+      properties:
+        error:
+          type: string
+        server_time:
+          type: string
+          format: date-time

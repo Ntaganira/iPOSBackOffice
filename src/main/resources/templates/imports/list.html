@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.imports}, ~{::content})}">
+<head><title>Imports - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Purchasing</div>
+            <h1>Import management</h1>
+            <div class="subtitle">Track international purchases, landed costs and customs charges.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('IMPORT_MANAGE')" href="/imports/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New import
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${imports.totalElements}">0</div><div class="label">Matching imports</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(imports.content)}">0</div><div class="label">On this page</div></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/imports" class="filter-bar">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Reference, supplier or origin...">
+            </div>
+            <select name="status">
+                <option value="">All statuses</option>
+                <option th:each="option : ${statuses}" th:value="${option}" th:text="${option}" th:selected="${status != null and status == option}"></option>
+            </select>
+            <input type="date" name="from" th:value="${from}">
+            <input type="date" name="to" th:value="${to}">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/imports" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Reference</th><th>Supplier</th><th>Origin</th><th>Date</th><th>Status</th><th class="text-right">Rate</th><th class="text-right">Landed total</th><th class="text-right"></th></tr></thead>
+                <tbody>
+                <tr th:each="batch : ${imports.content}">
+                    <td><a class="table-link mono" th:href="@{/imports/{id}(id=${batch.id})}" th:text="${batch.referenceNo}">IMP-0001</a></td>
+                    <td th:text="${batch.supplier == null ? '-' : batch.supplier.name}">Supplier</td>
+                    <td th:text="${batch.originCountry == null ? '-' : batch.originCountry}">Origin</td>
+                    <td th:text="${@fmt.date(batch.importDate)}">Date</td>
+                    <td><span class="badge" th:classappend="${batch.status.name() == 'RECEIVED'} ? 'badge-success' : (${batch.status.name() == 'CANCELLED'} ? 'badge-secondary' : 'badge-warning')" th:text="${batch.status}">DRAFT</span></td>
+                    <td class="text-right"><span th:text="${batch.currency}">USD</span> <span th:text="${@fmt.money(batch.exchangeRate)}">1</span></td>
+                    <td class="text-right"><strong th:text="${@fmt.money(batch.totalLanded)}">RWF 0</strong></td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" th:href="@{/imports/{id}(id=${batch.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${imports.totalElements == 0}"><td colspan="8"><div class="empty-state"><h3>No imports found</h3><p>Create an import batch when goods are sourced abroad.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" th:if="${imports.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${imports.number + 1}">1</strong> of <strong th:text="${imports.totalPages}">1</strong></span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${imports.first} ? 'disabled'" th:href="@{/imports(page=${imports.number - 1}, size=${imports.size}, q=${q}, status=${status}, from=${from}, to=${to})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${imports.last} ? 'disabled'" th:href="@{/imports(page=${imports.number + 1}, size=${imports.size}, q=${q}, status=${status}, from=${from}, to=${to})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

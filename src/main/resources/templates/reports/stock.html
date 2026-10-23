@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.reports}, ~{::content})}">
+<head><title>Stock report - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/reports" class="subtle-link">Reports</a> / Stock</div>
+            <h1>Stock report</h1>
+            <div class="subtitle" th:text="${@fmt.date(from)} + ' → ' + ${@fmt.date(to)}">Period</div>
+        </div>
+        <div class="page-actions">
+            <a class="btn btn-outline" th:href="@{/reports/stock.csv(from=${from},to=${to})}">Stock CSV</a>
+            <a class="btn btn-outline" th:href="@{/reports/movements.csv(from=${from},to=${to})}">Movements CSV</a>
+        </div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/reports/stock" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="/reports/stock" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(report.stockValue)}">RWF 0</div><div class="label">Stock value</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.qty(report.stockQuantity)}">0</div><div class="label">Units on hand</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(report.lowStock)}">0</div><div class="label">Low stock</div></div>
+        <div class="summary-card"><div class="value" th:text="${#lists.size(report.movements)}">0</div><div class="label">Movements</div></div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Low stock</h2></div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead><tr><th>Product</th><th>Code</th><th class="text-right">Stock</th><th class="text-right">Reorder level</th></tr></thead>
+                    <tbody>
+                    <tr th:each="product : ${report.lowStock}">
+                        <td th:text="${product.name}">Product</td>
+                        <td class="mono" th:text="${product.code}">CODE</td>
+                        <td class="text-right text-danger"><strong th:text="${@fmt.qty(product.stockQuantity)}">0</strong></td>
+                        <td class="text-right" th:text="${@fmt.qty(product.reorderLevel)}">0</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(report.lowStock)}"><td colspan="4"><div class="empty-state slim"><p>No products below reorder level.</p></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Stock in by type</h2></div>
+                <div class="detail-list">
+                    <div th:each="entry : ${report.inByType}"><span th:text="${entry.key}">PURCHASE</span><strong th:text="${@fmt.qty(entry.value)}">0</strong></div>
+                    <div th:if="${#maps.isEmpty(report.inByType)}"><span>No stock in</span><strong>—</strong></div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-header"><h2>Stock out by type</h2></div>
+                <div class="detail-list">
+                    <div th:each="entry : ${report.outByType}"><span th:text="${entry.key}">SALE</span><strong th:text="${@fmt.qty(entry.value)}">0</strong></div>
+                    <div th:if="${#maps.isEmpty(report.outByType)}"><span>No stock out</span><strong>—</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

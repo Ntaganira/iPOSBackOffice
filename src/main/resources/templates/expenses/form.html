@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.expenses}, ~{::content})}">
+<head><title>Expense form - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/expenses" class="subtle-link">Expenses</a> / <span th:text="${editing ? 'Edit' : 'New'}">New</span></div>
+            <h1 th:text="${editing ? 'Edit expense' : 'New expense'}">New expense</h1>
+            <div class="subtitle">Attach a receipt image or PDF for the audit trail.</div>
+        </div>
+        <div class="page-actions"><a href="/expenses" class="btn btn-outline">Cancel</a></div>
+    </div>
+
+    <form th:action="${editing} ? @{/expenses/{id}(id=${expenseForm.id})} : @{/expenses}" th:object="${expenseForm}" method="post" enctype="multipart/form-data">
+        <div class="section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="expenseDate">Date *</label>
+                    <input id="expenseDate" th:field="*{expenseDate}" type="date" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('expenseDate')}" th:errors="*{expenseDate}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="categoryId">Category *</label>
+                    <select id="categoryId" th:field="*{categoryId}" required>
+                        <option value="">Choose a category</option>
+                        <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
+                    </select>
+                    <div class="field-error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="description">Description *</label>
+                    <input id="description" th:field="*{description}" required maxlength="255">
+                    <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount *</label>
+                    <input id="amount" th:field="*{amount}" type="number" min="0.01" step="0.01" required>
+                    <div class="field-error" th:if="${#fields.hasErrors('amount')}" th:errors="*{amount}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="taxAmount">Tax included</label>
+                    <input id="taxAmount" th:field="*{taxAmount}" type="number" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment method</label>
+                    <select id="paymentMethod" th:field="*{paymentMethod}"><option th:each="method : ${methods}" th:value="${method}" th:text="${method}"></option></select>
+                </div>
+                <div class="form-group"><label for="payee">Payee</label><input id="payee" th:field="*{payee}" maxlength="160"></div>
+                <div class="form-group"><label for="reference">Reference</label><input id="reference" th:field="*{reference}" maxlength="80"></div>
+                <div class="form-group"><label for="attachment">Attachment</label><input id="attachment" name="attachment" type="file" accept="image/*,.pdf"></div>
+                <div class="form-group">
+                    <label>Recurring</label>
+                    <label class="checkbox-row"><input type="checkbox" th:field="*{recurring}"> This expense repeats</label>
+                </div>
+                <div class="form-group">
+                    <label for="recurrence">Recurrence</label>
+                    <select id="recurrence" th:field="*{recurrence}">
+                        <option value="">Not recurring</option>
+                        <option th:each="option : ${recurrences}" th:value="${option}" th:text="${option}"></option>
+                    </select>
+                </div>
+                <div class="form-group"><label for="nextOccurrence">Next occurrence</label><input id="nextOccurrence" th:field="*{nextOccurrence}" type="date"></div>
+                <div class="form-group full-width"><label for="notes">Notes</label><textarea id="notes" th:field="*{notes}" rows="3" maxlength="500"></textarea></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing ? 'Save changes' : 'Record expense'}">Record expense</button>
+                <a href="/expenses" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

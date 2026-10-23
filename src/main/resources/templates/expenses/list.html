@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.expenses}, ~{::content})}">
+<head><title>Expenses - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Finance</div>
+            <h1>Expenses</h1>
+            <div class="subtitle">Operating costs, approval status and attachments.</div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('EXPENSE_CATEGORY_MANAGE')" href="/expenses/categories" class="btn btn-outline">Categories</a>
+            <a sec:authorize="hasAuthority('EXPENSE_CREATE')" href="/expenses/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New expense
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(total)}">RWF 0</div><div class="label">Total for selection</div></div>
+        <div class="summary-card"><div class="value" th:text="${expenses.totalElements}">0</div><div class="label">Expenses</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.date(from)} + ' → ' + ${@fmt.date(to)}">Range</div><div class="label">Period</div></div>
+    </div>
+
+    <div class="section">
+        <form method="get" action="/expenses" class="filter-bar">
+            <input type="date" name="from" th:value="${from}" aria-label="From">
+            <input type="date" name="to" th:value="${to}" aria-label="To">
+            <select name="categoryId">
+                <option value="">All categories</option>
+                <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}" th:selected="${categoryId != null and categoryId == category.id}"></option>
+            </select>
+            <select name="method">
+                <option value="">All methods</option>
+                <option th:each="option : ${methods}" th:value="${option}" th:text="${option}" th:selected="${method != null and method == option}"></option>
+            </select>
+            <select name="status">
+                <option value="">All statuses</option>
+                <option th:each="option : ${statuses}" th:value="${option}" th:text="${option}" th:selected="${status != null and status == option}"></option>
+            </select>
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="search" name="q" th:value="${q}" placeholder="Description, payee, reference…">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/expenses" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Payee</th><th>Method</th><th>Status</th><th class="text-right">Amount</th><th class="text-right"></th></tr></thead>
+                <tbody>
+                <tr th:each="expense : ${expenses.content}">
+                    <td class="nowrap" th:text="${@fmt.date(expense.expenseDate)}">Date</td>
+                    <td>
+                        <a class="table-link" th:href="@{/expenses/{id}(id=${expense.id})}" th:text="${expense.description}">Description</a>
+                        <div class="hint" th:if="${expense.recurring}">Recurring · <span th:text="${expense.recurrence}">MONTHLY</span></div>
+                    </td>
+                    <td th:text="${expense.category == null ? '—' : expense.category.name}">Category</td>
+                    <td th:text="${expense.payee ?: '—'}">—</td>
+                    <td th:text="${expense.paymentMethod}">CASH</td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${expense.status.name() == 'PAID' or expense.status.name() == 'APPROVED'} ? 'badge-success' : (${expense.status.name() == 'PENDING'} ? 'badge-warning' : 'badge-secondary')"
+                              th:text="${expense.status}">PAID</span>
+                    </td>
+                    <td class="text-right"><strong th:text="${@fmt.money(expense.amount)}">RWF 0</strong></td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" th:href="@{/expenses/{id}(id=${expense.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${expenses.totalElements == 0}"><td colspan="8"><div class="empty-state"><h3>No expenses found</h3><p>Record rent, utilities, salaries and other costs here.</p></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination-bar" th:if="${expenses.totalPages > 1}">
+            <span class="hint">Page <strong th:text="${expenses.number + 1}">1</strong> of <strong th:text="${expenses.totalPages}">1</strong></span>
+            <div class="btn-group">
+                <a class="btn btn-outline btn-sm" th:classappend="${expenses.first} ? 'disabled'" th:href="@{/expenses(page=${expenses.number - 1}, size=${expenses.size}, from=${from}, to=${to}, categoryId=${categoryId}, method=${method}, status=${status}, q=${q})}">Previous</a>
+                <a class="btn btn-outline btn-sm" th:classappend="${expenses.last} ? 'disabled'" th:href="@{/expenses(page=${expenses.number + 1}, size=${expenses.size}, from=${from}, to=${to}, categoryId=${categoryId}, method=${method}, status=${status}, q=${q})}">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

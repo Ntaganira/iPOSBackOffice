@@ -1,0 +1,16 @@
+spring:
+  thymeleaf:
+    cache: false
+  jpa:
+    show-sql: false
+  mail:
+    host: ${IPOS_SMTP_HOST:localhost}
+    port: ${IPOS_SMTP_PORT:1025}
+
+logging:
+  level:
+    com.ntaganira.heritier.ipos.backoffice: DEBUG
+
+app:
+  demo:
+    enabled: ${IPOS_DEMO_DATA:true}

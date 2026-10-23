@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.expenses}, ~{::content})}">
+<head><title>Expense - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/expenses" class="subtle-link">Expenses</a> / Detail</div>
+            <h1 th:text="${expense.description}">Expense</h1>
+            <div class="subtitle">
+                <span th:text="${@fmt.date(expense.expenseDate)}">Date</span>
+                <span class="dot-separator"></span>
+                <span th:text="${expense.category == null ? 'No category' : expense.category.name}">Category</span>
+                <span class="badge" style="margin-left:8px" th:text="${expense.status}">PAID</span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAuthority('EXPENSE_EDIT')" class="btn btn-outline" th:href="@{/expenses/{id}/edit(id=${expense.id})}">Edit</a>
+            <a href="/expenses" class="btn btn-outline">Back</a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(expense.amount)}">RWF 0</div><div class="label">Amount</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(expense.taxAmount)}">RWF 0</div><div class="label">Tax included</div></div>
+        <div class="summary-card"><div class="value" th:text="${expense.paymentMethod}">CASH</div><div class="label">Paid by</div></div>
+    </div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Details</h2></div>
+            <div class="detail-list">
+                <div><span>Category</span><strong th:text="${expense.category == null ? '—' : expense.category.name}">—</strong></div>
+                <div><span>Payee</span><strong th:text="${expense.payee ?: '—'}">—</strong></div>
+                <div><span>Reference</span><strong th:text="${expense.reference ?: '—'}">—</strong></div>
+                <div><span>Recurring</span><strong th:text="${expense.recurring ? expense.recurrence : 'No'}">No</strong></div>
+                <div th:if="${expense.nextOccurrence != null}"><span>Next occurrence</span><strong th:text="${@fmt.date(expense.nextOccurrence)}">—</strong></div>
+                <div><span>Notes</span><strong th:text="${expense.notes ?: '—'}">—</strong></div>
+                <div th:if="${expense.approvedBy != null}"><span>Approved by</span><strong th:text="${expense.approvedBy} + ' · ' + ${@fmt.dateTime(expense.approvedAt)}">—</strong></div>
+                <div th:if="${expense.rejectionReason != null}"><span>Rejection reason</span><strong th:text="${expense.rejectionReason}">—</strong></div>
+                <div th:if="${expense.voidReason != null}"><span>Void reason</span><strong th:text="${expense.voidReason}">—</strong></div>
+            </div>
+            <div class="form-actions" th:if="${expense.attachmentPath != null}">
+                <a class="btn btn-outline btn-sm" th:href="@{/files/{path}(path=${expense.attachmentPath})}" target="_blank" rel="noopener">Open attachment</a>
+            </div>
+        </div>
+
+        <div class="detail-side">
+            <div class="section" sec:authorize="hasAuthority('EXPENSE_APPROVE')">
+                <div class="section-header"><h2>Approval</h2></div>
+                <form th:if="${expense.status.name() == 'PENDING'}" th:action="@{/expenses/{id}/approve(id=${expense.id})}" method="post" class="stack-form">
+                    <button type="submit" class="btn btn-primary btn-sm">Approve expense</button>
+                </form>
+                <form th:if="${expense.status.name() == 'APPROVED'}" th:action="@{/expenses/{id}/pay(id=${expense.id})}" method="post" class="stack-form">
+                    <button type="submit" class="btn btn-primary btn-sm">Mark as paid</button>
+                </form>
+                <form th:if="${expense.status.name() == 'PENDING'}" th:action="@{/expenses/{id}/reject(id=${expense.id})}" method="post" class="stack-form">
+                    <div class="form-group"><label for="reason">Rejection reason</label><textarea id="reason" name="reason" rows="2" required maxlength="500"></textarea></div>
+                    <button type="submit" class="btn btn-outline btn-sm">Reject</button>
+                </form>
+                <p class="hint" th:if="${expense.status.name() != 'PENDING' and expense.status.name() != 'APPROVED'}">No approval action is available for this status.</p>
+            </div>
+            <div class="section" sec:authorize="hasAuthority('EXPENSE_VOID')">
+                <div class="section-header"><h2>Void</h2></div>
+                <form th:if="${expense.status.name() != 'VOID'}" th:action="@{/expenses/{id}/void(id=${expense.id})}" method="post" class="stack-form"
+                      onsubmit="return confirm('Void this expense?')">
+                    <div class="form-group"><label for="void-reason">Reason</label><textarea id="void-reason" name="reason" rows="2" required maxlength="500"></textarea></div>
+                    <button type="submit" class="btn btn-danger btn-sm">Void expense</button>
+                </form>
+                <p class="hint" th:if="${expense.status.name() == 'VOID'}">This expense is voided.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

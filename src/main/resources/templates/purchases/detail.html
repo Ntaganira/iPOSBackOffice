@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.purchases}, ~{::content})}">
+<head><title>Purchase order - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/purchases" class="subtle-link">Purchases</a> / Order</div>
+            <h1 th:text="${purchase.purchaseNumber}">PO-0001</h1>
+            <div class="subtitle">
+                <span th:text="${@fmt.date(purchase.purchaseDate)}">Date</span>
+                <span class="dot-separator"></span>
+                <a class="subtle-link" th:if="${purchase.supplier != null}" th:href="@{/suppliers/{id}(id=${purchase.supplier.id})}" th:text="${purchase.supplier.name}">Supplier</a>
+            </div>
+        </div>
+        <div class="page-actions">
+            <form th:if="${purchase.status.name() == 'ORDERED' or purchase.status.name() == 'PARTIAL'}"
+                  sec:authorize="hasAuthority('PURCHASE_RECEIVE')" th:action="@{/purchases/{id}/receive(id=${purchase.id})}" method="post" style="display:inline"
+                  onsubmit="return confirm('Receive this purchase and add all quantities to stock?')">
+                <button type="submit" class="btn btn-primary">Receive stock</button>
+            </form>
+            <form th:if="${purchase.status.name() == 'ORDERED'}" sec:authorize="hasAuthority('PURCHASE_MANAGE')"
+                  th:action="@{/purchases/{id}/cancel(id=${purchase.id})}" method="post" style="display:inline"
+                  onsubmit="return confirm('Cancel this purchase order?')">
+                <button type="submit" class="btn btn-outline">Cancel order</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="summary-grid">
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(purchase.total)}">RWF 0</div><div class="label">Order total</div></div>
+        <div class="summary-card"><div class="value" th:text="${@fmt.money(purchase.amountPaid)}">RWF 0</div><div class="label">Paid</div></div>
+        <div class="summary-card"><div class="value" th:text="${purchase.status}">ORDERED</div><div class="label">Status</div></div>
+        <div class="summary-card"><div class="value" th:text="${purchase.paymentStatus}">UNPAID</div><div class="label">Payment</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Order lines</h2><span class="section-count" th:text="${#lists.size(purchase.lines)}">0</span></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Product</th><th class="text-right">Ordered</th><th class="text-right">Received</th><th class="text-right">Unit cost</th><th class="text-right">Line total</th></tr></thead>
+                <tbody>
+                <tr th:each="line : ${purchase.lines}">
+                    <td>
+                        <div class="table-primary" th:text="${line.product == null ? 'Product removed' : line.product.name}">Product</div>
+                        <div class="hint mono" th:text="${line.product == null ? '' : line.product.code}">CODE</div>
+                    </td>
+                    <td class="text-right" th:text="${@fmt.qty(line.quantityOrdered)}">0</td>
+                    <td class="text-right" th:text="${@fmt.qty(line.quantityReceived)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(line.unitCost)}">RWF 0</td>
+                    <td class="text-right"><strong th:text="${@fmt.money(line.lineTotal)}">RWF 0</strong></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="totals-box">
+            <div><span>Subtotal</span><strong th:text="${@fmt.money(purchase.subtotal)}">RWF 0</strong></div>
+            <div><span>Tax</span><strong th:text="${@fmt.money(purchase.taxTotal)}">RWF 0</strong></div>
+            <div class="grand"><span>Total</span><strong th:text="${@fmt.money(purchase.total)}">RWF 0</strong></div>
+        </div>
+    </div>
+
+    <div class="section" th:if="${purchase.notes != null}">
+        <div class="section-header"><h2>Notes</h2></div>
+        <p class="text-muted" th:text="${purchase.notes}">Notes</p>
+    </div>
+</div>
+</body>
+</html>

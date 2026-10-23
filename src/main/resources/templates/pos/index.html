@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.pos}, ~{::content})}">
+<head><title>Point of sale - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header pos-page-header">
+        <div>
+            <div class="eyebrow">Checkout</div>
+            <h1>Point of sale</h1>
+            <div class="subtitle">Scan or search a product, build the cart and take payment.</div>
+        </div>
+        <div class="page-actions">
+            <button type="button" class="btn btn-outline" id="held-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Held sales <span class="badge badge-info" id="held-count" th:text="${#lists.size(heldSales)}">0</span>
+            </button>
+            <button type="button" class="btn btn-outline" id="new-sale-btn">New sale</button>
+        </div>
+    </div>
+
+    <div class="pos-layout">
+        <section class="pos-catalog">
+            <div class="pos-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="search" id="product-search" placeholder="Search by name, code or scan barcode…" autocomplete="off" autofocus>
+                <kbd>F2</kbd>
+            </div>
+            <div class="pos-category-bar" id="category-bar">
+                <button type="button" class="category-chip active" data-category="all">All products</button>
+                <button type="button" class="category-chip" th:each="category : ${categories}"
+                        th:data-category="${category.name}" th:text="${category.name}">Category</button>
+                <button type="button" class="btn btn-outline btn-sm" id="quick-product-btn"
+                        sec:authorize="hasAuthority('PRODUCT_CREATE')" style="margin-left:auto">
+                    + New product
+                </button>
+            </div>
+            <div class="product-grid" id="product-grid"></div>
+            <div class="empty-state" id="product-empty" hidden>
+                <p>No product matches your search.</p>
+                <button type="button" class="btn btn-primary btn-sm" id="quick-product-empty-btn"
+                        sec:authorize="hasAuthority('PRODUCT_CREATE')">Create this product</button>
+            </div>
+        </section>
+
+        <aside class="pos-cart">
+            <div class="pos-cart-head">
+                <div>
+                    <h2>Current sale</h2>
+                    <span class="muted" id="cart-count">0 items</span>
+                </div>
+                <button type="button" class="btn-icon danger" id="clear-cart-btn" title="Clear cart" aria-label="Clear cart">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+
+            <div class="pos-customer">
+                <div class="pos-customer-row">
+                    <div class="select-search">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <select id="customer-select">
+                            <option value="">Walk-in customer</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-icon" id="quick-customer-btn" title="Quick add customer"
+                            sec:authorize="hasAuthority('CUSTOMER_CREATE')" aria-label="Quick add customer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                </div>
+                <div class="pos-customer-meta" id="customer-meta" hidden></div>
+            </div>
+
+            <div class="pos-lines" id="cart-lines">
+                <div class="cart-empty" id="cart-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    <p>Your cart is empty</p>
+                    <span>Choose a product to start a sale.</span>
+                </div>
+            </div>
+
+            <div class="pos-summary">
+                <div class="pos-summary-row"><span>Subtotal</span><strong id="sum-subtotal">0</strong></div>
+                <div class="pos-summary-row"><span>Discount</span><strong id="sum-discount">0</strong></div>
+                <div class="pos-summary-row"><span>Tax included</span><strong id="sum-tax">0</strong></div>
+                <div class="pos-summary-row total"><span>Total</span><strong id="sum-total">0</strong></div>
+            </div>
+
+            <div class="pos-cart-actions">
+                <textarea id="cart-notes" class="pos-notes" rows="1" placeholder="Add a note to this sale (optional)"></textarea>
+                <div class="pos-action-row">
+                    <button type="button" class="btn btn-outline" id="hold-btn">Hold</button>
+                    <button type="button" class="btn btn-primary pos-checkout-btn" id="checkout-btn">
+                        Checkout <kbd>F4</kbd>
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="customer-modal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="customer-modal-title">
+            <div class="modal-header">
+                <h3 id="customer-modal-title">Quick add customer</h3>
+                <button type="button" class="modal-close" data-close="customer-modal" aria-label="Close">&times;</button>
+            </div>
+            <form id="customer-form">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="qc-name">Name <span class="required">*</span></label>
+                            <input id="qc-name" name="name" required maxlength="160" placeholder="Customer or company name">
+                        </div>
+                        <div class="form-group">
+                            <label for="qc-phone">Phone</label>
+                            <input id="qc-phone" name="phone" maxlength="40" placeholder="+250 7xx xxx xxx">
+                        </div>
+                        <div class="form-group">
+                            <label for="qc-tin">TIN</label>
+                            <input id="qc-tin" name="tin" maxlength="40" placeholder="Optional">
+                        </div>
+                        <div class="form-group">
+                            <label for="qc-type">Type</label>
+                            <select id="qc-type" name="customerType">
+                                <option th:each="type : ${customerTypes}" th:value="${type}" th:text="${type}">INDIVIDUAL</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="qc-email">Email</label>
+                            <input id="qc-email" name="email" type="email" maxlength="160" placeholder="name@example.com">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="qc-address">Address</label>
+                            <input id="qc-address" name="address" maxlength="255" placeholder="Street, sector, district">
+                        </div>
+                    </div>
+                    <div class="form-error" id="customer-form-error" hidden></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close="customer-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="customer-save-btn">Save customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="product-modal-title">
+            <div class="modal-header">
+                <h3 id="product-modal-title">Quick add product</h3>
+                <button type="button" class="modal-close" data-close="product-modal" aria-label="Close">&times;</button>
+            </div>
+            <form id="product-form">
+                <div class="modal-body">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="qp-code">Code <span class="required">*</span></label>
+                            <input id="qp-code" name="code" required maxlength="40">
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-barcode">Barcode</label>
+                            <input id="qp-barcode" name="barcode" maxlength="60">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="qp-name">Name <span class="required">*</span></label>
+                            <input id="qp-name" name="name" required maxlength="160">
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-category">Category <span class="required">*</span></label>
+                            <select id="qp-category" name="categoryId" required>
+                                <option value="">Choose</option>
+                                <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-unit">Unit <span class="required">*</span></label>
+                            <select id="qp-unit" name="unitId" required>
+                                <option value="">Choose</option>
+                                <option th:each="unit : ${units}" th:value="${unit.id}" th:text="${unit.name + ' (' + unit.code + ')'}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-buy">Buying price</label>
+                            <input id="qp-buy" name="buyingPrice" type="number" min="0" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-sell">Selling price <span class="required">*</span></label>
+                            <input id="qp-sell" name="sellingPrice" type="number" min="0" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-tax">Tax category</label>
+                            <select id="qp-tax" name="taxCategoryCode">
+                                <option th:each="tax : ${taxCategories}" th:value="${tax.code}"
+                                        th:text="${tax.code + ' — ' + tax.name}"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-stock">Opening quantity</label>
+                            <input id="qp-stock" name="openingQuantity" type="number" min="0" step="0.001" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-reorder">Reorder level</label>
+                            <input id="qp-reorder" name="reorderLevel" type="number" min="0" step="0.001" value="0">
+                        </div>
+                    </div>
+                    <div class="form-error" id="product-form-error" hidden></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close="product-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="product-save-btn">Save &amp; add to cart</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="checkout-modal-title">
+            <div class="modal-header">
+                <h3 id="checkout-modal-title">Take payment</h3>
+                <button type="button" class="modal-close" data-close="checkout-modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="checkout-summary">
+                    <div><span>Items</span><strong id="co-items">0</strong></div>
+                    <div><span>Discount</span><strong id="co-discount">RWF 0</strong></div>
+                    <div><span>Tax included</span><strong id="co-tax">RWF 0</strong></div>
+                    <div class="grand"><span>Amount due</span><strong id="co-total">RWF 0</strong></div>
+                </div>
+                <div class="quick-cash" id="quick-cash"></div>
+                <div class="payment-rows" id="payment-rows"></div>
+                <button type="button" class="btn btn-outline btn-sm" id="add-payment-btn">+ Add split payment</button>
+                <div class="checkout-totals">
+                    <div><span>Paid</span><strong id="co-paid">RWF 0</strong></div>
+                    <div><span>Change</span><strong id="co-change">RWF 0</strong></div>
+                    <div><span>Balance</span><strong id="co-balance">RWF 0</strong></div>
+                </div>
+                <div class="form-error" id="checkout-error" hidden></div>
+                <label class="checkbox-row" style="margin-top:14px">
+                    <input type="checkbox" id="checkout-email">
+                    <span>Email the receipt to the customer</span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-close="checkout-modal">Back to cart</button>
+                <button type="button" class="btn btn-primary" id="confirm-checkout-btn">Confirm sale</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="receipt-modal">
+        <div class="modal receipt-modal" role="dialog" aria-modal="true" aria-labelledby="receipt-modal-title">
+            <div class="modal-header">
+                <h3 id="receipt-modal-title">Sale complete</h3>
+                <button type="button" class="modal-close" data-close="receipt-modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body receipt-modal-body">
+                <div class="receipt-success">
+                    <span class="receipt-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    </span>
+                    <div>
+                        <h3>Payment received</h3>
+                        <p id="receipt-summary">Receipt</p>
+                    </div>
+                </div>
+                <iframe id="receipt-frame" title="Receipt preview" src="about:blank"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="print-receipt-btn">Print receipt</button>
+                <button type="button" class="btn btn-primary" id="next-sale-btn">New sale</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="held-modal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="held-modal-title">
+            <div class="modal-header">
+                <h3 id="held-modal-title">Held sales</h3>
+                <button type="button" class="modal-close" data-close="held-modal" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="held-list"></div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        (function () {
+            const initialProducts = /*[[${products}]]*/ [];
+            const initialCustomers = /*[[${customers}]]*/ [];
+            const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            const money = (value) => 'RWF ' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const plain = (value) => Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const state = {
+                products: initialProducts,
+                customers: initialCustomers,
+                category: 'all',
+                customerId: null,
+                items: [],
+                notes: ''
+            };
+
+            const el = (id) => document.getElementById(id);
+            const grid = el('product-grid');
+            const cartLines = el('cart-lines');
+            const customerSelect = el('customer-select');
+
+            function openModal(id) {
+                const node = el(id);
+                if (node) node.classList.add('open');
+            }
+            function closeModal(id) {
+                const node = el(id);
+                if (node) node.classList.remove('open');
+            }
+            document.querySelectorAll('[data-close]').forEach(btn => {
+                btn.addEventListener('click', () => closeModal(btn.dataset.close));
+            });
+
+            async function api(url, options) {
+                options = options || {};
+                options.headers = Object.assign({
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    [csrfHeader]: csrfToken
+                }, options.headers || {});
+                const response = await fetch(url, options);
+                const text = await response.text();
+                let data = null;
+                try { data = text ? JSON.parse(text) : null; } catch (e) { data = { message: text }; }
+                if (!response.ok) {
+                    const error = new Error((data && data.message) || 'Something went wrong.');
+                    error.fields = data && data.fields;
+                    throw error;
+                }
+                return data;
+            }
+
+            function productCard(product) {
+                const out = Number(product.stock) <= 0;
+                const node = document.createElement('button');
+                node.type = 'button';
+                node.className = 'product-card' + (out ? ' is-out' : '');
+                node.dataset.id = product.id;
+                const initials = (product.name || '?').split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+                node.innerHTML =
+                    '<span class="product-thumb">' + (product.imagePath
+                        ? '<img src="/files/' + product.imagePath + '" alt="" loading="lazy">'
+                        : '<span>' + initials + '</span>') + '</span>' +
+                    '<span class="product-body">' +
+                    '<span class="product-name"></span>' +
+                    '<span class="product-meta"><span class="mono"></span><span class="product-stock"></span></span>' +
+                    '</span>' +
+                    '<span class="product-price"></span>';
+                node.querySelector('.product-name').textContent = product.name;
+                node.querySelector('.mono').textContent = product.code;
+                node.querySelector('.product-stock').textContent = out ? 'Out of stock' : Number(product.stock).toLocaleString() + ' ' + (product.unit || '');
+                node.querySelector('.product-price').textContent = money(product.price);
+                node.addEventListener('click', () => addProduct(product));
+                return node;
+            }
+
+            function renderProducts() {
+                grid.innerHTML = '';
+                const q = el('product-search').value.trim().toLowerCase();
+                const filtered = state.products.filter(product => {
+                    const categoryMatch = state.category === 'all' || product.category === state.category;
+                    const queryMatch = !q || [product.name, product.code, product.barcode].some(value => (value || '').toLowerCase().includes(q));
+                    return categoryMatch && queryMatch;
+                });
+                filtered.forEach(product => grid.appendChild(productCard(product)));
+                el('product-empty').hidden = filtered.length > 0;
+                grid.hidden = filtered.length === 0;
+            }
+
+            function addProduct(product) {
+                if (Number(product.stock) <= 0) {
+                    window.showToast(product.name + ' is out of stock.', 'warning');
+                    return;
+                }
+                const line = state.items.find(item => item.id === product.id);
+                if (line) {
+                    if (line.quantity >= Number(product.stock)) {
+                        window.showToast('Only ' + Number(product.stock) + ' ' + (product.unit || '') + ' available.', 'warning');
+                        return;
+                    }
+                    line.quantity += 1;
+                } else {
+                    state.items.push({
+                        id: product.id, name: product.name, code: product.code,
+                        price: Number(product.price), stock: Number(product.stock),
+                        unit: product.unit, taxRate: Number(product.taxRate || 0),
+                        quantity: 1, discount: 0
+                    });
+                }
+                renderCart();
+                el('product-search').focus();
+            }
+
+            function renderCart() {
+                cartLines.querySelectorAll('.cart-line').forEach(node => node.remove());
+                el('cart-empty').hidden = state.items.length > 0;
+                state.items.forEach(item => {
+                    const node = document.createElement('div');
+                    node.className = 'cart-line';
+                    node.innerHTML =
+                        '<div class="cart-line-main">' +
+                        '<div class="cart-line-title"><strong></strong><button type="button" class="cart-remove" aria-label="Remove">&times;</button></div>' +
+                        '<span class="cart-line-code mono"></span>' +
+                        '<div class="cart-line-controls">' +
+                        '<div class="qty-control"><button type="button" data-action="minus">−</button><input type="number" min="1" step="1" inputmode="decimal"><button type="button" data-action="plus">+</button></div>' +
+                        '<label class="discount-input">Disc. <input type="number" min="0" step="0.01" value="0"></label>' +
+                        '</div></div>' +
+                        '<div class="cart-line-total"></div>';
+                    node.querySelector('strong').textContent = item.name;
+                    node.querySelector('.cart-line-code').textContent = item.code;
+                    node.querySelector('input[type="number"]').value = item.quantity;
+                    node.querySelector('.discount-input input').value = item.discount || 0;
+                    node.querySelector('.cart-line-total').textContent = money(lineTotal(item));
+                    node.querySelector('[data-action="minus"]').addEventListener('click', () => changeQty(item, -1));
+                    node.querySelector('[data-action="plus"]').addEventListener('click', () => changeQty(item, 1));
+                    node.querySelector('input[type="number"]').addEventListener('change', event => {
+                        const quantity = Math.max(1, Math.min(item.stock, Number(event.target.value) || 1));
+                        item.quantity = quantity;
+                        renderCart();
+                    });
+                    node.querySelector('.discount-input input').addEventListener('change', event => {
+                        item.discount = Math.max(0, Math.min(item.price * item.quantity, Number(event.target.value) || 0));
+                        renderCart();
+                    });
+                    node.querySelector('.cart-remove').addEventListener('click', () => {
+                        state.items = state.items.filter(candidate => candidate.id !== item.id);
+                        renderCart();
+                    });
+                    cartLines.appendChild(node);
+                });
+                updateTotals();
+            }
+
+            function changeQty(item, delta) {
+                if (delta > 0 && item.quantity >= item.stock) {
+                    window.showToast('Only ' + item.stock + ' ' + (item.unit || '') + ' available.', 'warning');
+                    return;
+                }
+                item.quantity = Math.max(1, item.quantity + delta);
+                renderCart();
+            }
+
+            function lineBase(item) { return item.price * item.quantity - (item.discount || 0); }
+            function lineTax(item) {
+                const base = lineBase(item);
+                return item.taxRate > 0 ? base * item.taxRate / (100 + item.taxRate) : 0;
+            }
+            function lineTotal(item) { return lineBase(item); }
+            function totals() {
+                const gross = state.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+                const discount = state.items.reduce((sum, item) => sum + (item.discount || 0), 0);
+                const tax = state.items.reduce((sum, item) => sum + lineTax(item), 0);
+                return { gross, discount, tax, subtotal: gross, total: gross - discount, items: state.items.reduce((sum, item) => sum + item.quantity, 0) };
+            }
+
+            function updateTotals() {
+                const t = totals();
+                el('sum-subtotal').textContent = money(t.subtotal);
+                el('sum-discount').textContent = money(t.discount);
+                el('sum-tax').textContent = money(t.tax);
+                el('sum-total').textContent = money(t.total);
+                el('cart-count').textContent = t.items + (t.items === 1 ? ' item' : ' items');
+                el('checkout-btn').disabled = state.items.length === 0;
+            }
+
+            function populateCustomers() {
+                state.customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = customer.name + (customer.phone ? ' — ' + customer.phone : '');
+                    customerSelect.appendChild(option);
+                });
+            }
+
+            customerSelect.addEventListener('change', () => {
+                state.customerId = customerSelect.value ? Number(customerSelect.value) : null;
+                const customer = state.customers.find(candidate => candidate.id === state.customerId);
+                const meta = el('customer-meta');
+                if (customer) {
+                    meta.hidden = false;
+                    meta.innerHTML = 'Credit limit <strong>' + money(customer.creditLimit) + '</strong> · Balance <strong>' + money(customer.balance) + '</strong>';
+                } else {
+                    meta.hidden = true;
+                }
+            });
+
+            el('product-search').addEventListener('input', renderProducts);
+            document.querySelectorAll('.category-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.category-chip').forEach(node => node.classList.remove('active'));
+                    chip.classList.add('active');
+                    state.category = chip.dataset.category;
+                    renderProducts();
+                });
+            });
+
+            el('clear-cart-btn').addEventListener('click', () => {
+                if (!state.items.length) return;
+                window.iposConfirm('Clear this cart?', () => {
+                    state.items = [];
+                    el('cart-notes').value = '';
+                    renderCart();
+                }, { title: 'Clear cart', danger: true });
+            });
+
+            function resetSale() {
+                state.items = [];
+                state.customerId = null;
+                customerSelect.value = '';
+                el('customer-meta').hidden = true;
+                el('cart-notes').value = '';
+                el('checkout-email').checked = false;
+                renderCart();
+                closeModal('receipt-modal');
+                el('product-search').value = '';
+                renderProducts();
+                el('product-search').focus();
+            }
+            el('new-sale-btn').addEventListener('click', resetSale);
+            el('next-sale-btn').addEventListener('click', resetSale);
+
+            el('hold-btn').addEventListener('click', async () => {
+                if (!state.items.length) { window.showToast('Add products before holding a sale.', 'warning'); return; }
+                const label = window.prompt('Label this held sale (e.g. table 4 or customer name)', 'Held sale');
+                if (label === null) return;
+                try {
+                    const held = await api('/pos/hold?label=' + encodeURIComponent(label), {
+                        method: 'POST',
+                        body: JSON.stringify({ customerId: state.customerId, items: state.items.map(item => ({ productId: item.id, quantity: item.quantity, discount: item.discount })), notes: el('cart-notes').value })
+                    });
+                    window.showToast('Sale held as ' + held.label + '.', 'success');
+                    state.items = [];
+                    renderCart();
+                    refreshHeld();
+                } catch (error) { window.showToast(error.message, 'error'); }
+            });
+
+            async function refreshHeld() {
+                try {
+                    const held = await api('/pos/held');
+                    el('held-count').textContent = held.length;
+                    const list = el('held-list');
+                    list.innerHTML = '';
+                    if (!held.length) {
+                        list.innerHTML = '<div class="empty-state slim"><p>No sales are on hold.</p></div>';
+                        return;
+                    }
+                    held.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = 'held-row';
+                        row.innerHTML = '<div><strong></strong><span class="hint"></span></div><div class="btn-group"><button type="button" class="btn btn-primary btn-sm">Resume</button><button type="button" class="btn btn-outline btn-sm">Delete</button></div>';
+                        row.querySelector('strong').textContent = item.label;
+                        row.querySelector('.hint').textContent = new Date(item.createdAt).toLocaleString();
+                        row.querySelector('.btn-primary').addEventListener('click', async () => {
+                            const cart = await api('/pos/held/' + item.id);
+                            state.customerId = cart.customerId || null;
+                            customerSelect.value = cart.customerId || '';
+                            state.items = (cart.items || []).map(line => {
+                                const product = state.products.find(candidate => candidate.id === line.productId);
+                                return product ? { id: product.id, name: product.name, code: product.code, price: Number(product.price), stock: Number(product.stock), unit: product.unit, taxRate: Number(product.taxRate || 0), quantity: Number(line.quantity), discount: Number(line.discount || 0) } : null;
+                            }).filter(Boolean);
+                            el('cart-notes').value = cart.notes || '';
+                            renderCart();
+                            closeModal('held-modal');
+                        });
+                        row.querySelector('.btn-outline').addEventListener('click', async () => {
+                            await api('/pos/held/' + item.id, { method: 'DELETE' });
+                            refreshHeld();
+                        });
+                        list.appendChild(row);
+                    });
+                } catch (error) { /* ignore */ }
+            }
+            el('held-btn').addEventListener('click', () => { refreshHeld(); openModal('held-modal'); });
+
+            el('quick-customer-btn').addEventListener('click', () => openModal('customer-modal'));
+            el('customer-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const form = new FormData(event.target);
+                const payload = Object.fromEntries(form.entries());
+                payload.creditLimit = 0;
+                payload.active = true;
+                try {
+                    const customer = await api('/pos/customers', { method: 'POST', body: JSON.stringify(payload) });
+                    state.customers.push(customer);
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = customer.name + (customer.phone ? ' — ' + customer.phone : '');
+                    customerSelect.appendChild(option);
+                    customerSelect.value = customer.id;
+                    state.customerId = customer.id;
+                    closeModal('customer-modal');
+                    event.target.reset();
+                    window.showToast('Customer added and selected.', 'success');
+                } catch (error) {
+                    const box = el('customer-form-error');
+                    box.hidden = false;
+                    box.textContent = error.message + (error.fields ? ' ' + Object.values(error.fields).join(' ') : '');
+                }
+            });
+
+            function openProductForm() {
+                if (el('product-search').value) el('qp-barcode').value = el('product-search').value;
+                openModal('product-modal');
+            }
+            el('quick-product-btn').addEventListener('click', openProductForm);
+            el('quick-product-empty-btn').addEventListener('click', openProductForm);
+            el('product-form').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const form = new FormData(event.target);
+                const payload = Object.fromEntries(form.entries());
+                ['categoryId','unitId'].forEach(key => payload[key] = payload[key] ? Number(payload[key]) : null);
+                ['buyingPrice','sellingPrice','openingQuantity','reorderLevel'].forEach(key => payload[key] = Number(payload[key] || 0));
+                payload.active = true;
+                try {
+                    const product = await api('/pos/products', { method: 'POST', body: JSON.stringify(payload) });
+                    state.products.unshift(product);
+                    renderProducts();
+                    addProduct(product);
+                    closeModal('product-modal');
+                    event.target.reset();
+                    window.showToast('Product created and added to cart.', 'success');
+                } catch (error) {
+                    const box = el('product-form-error');
+                    box.hidden = false;
+                    box.textContent = error.message + (error.fields ? ' ' + Object.values(error.fields).join(' ') : '');
+                }
+            });
+
+            const paymentState = { rows: [] };
+            function newPaymentRow(method, amount) {
+                return { method: method || 'CASH', amount: Number(amount || 0), reference: '' };
+            }
+            function renderPayments() {
+                const container = el('payment-rows');
+                container.innerHTML = '';
+                paymentState.rows.forEach((payment, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'payment-row';
+                    row.innerHTML =
+                        '<select>' + ['CASH','MOBILE_MONEY','CARD','BANK','CREDIT'].map(method => '<option value="' + method + '"' + (method === payment.method ? ' selected' : '') + '>' + method.replace('_', ' ') + '</option>').join('') + '</select>' +
+                        '<input type="number" min="0" step="0.01" placeholder="Amount">' +
+                        '<input type="text" maxlength="80" placeholder="Reference (optional)">' +
+                        '<button type="button" class="btn-icon danger" aria-label="Remove payment">&times;</button>';
+                    const [select, amount, reference] = row.querySelectorAll('select,input');
+                    amount.value = payment.amount || '';
+                    reference.value = payment.reference || '';
+                    select.addEventListener('change', () => { payment.method = select.value; updateCheckout(); });
+                    amount.addEventListener('input', () => { payment.amount = Number(amount.value || 0); updateCheckout(); });
+                    reference.addEventListener('input', () => { payment.reference = reference.value; });
+                    row.querySelector('button').addEventListener('click', () => {
+                        if (paymentState.rows.length === 1) { payment.amount = 0; amount.value = ''; }
+                        else paymentState.rows.splice(index, 1);
+                        renderPayments();
+                        updateCheckout();
+                    });
+                    container.appendChild(row);
+                });
+            }
+            function updateCheckout() {
+                const t = totals();
+                const paid = paymentState.rows.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+                const due = t.total;
+                el('co-items').textContent = t.items;
+                el('co-discount').textContent = money(t.discount);
+                el('co-tax').textContent = money(t.tax);
+                el('co-total').textContent = money(due);
+                el('co-paid').textContent = money(paid);
+                el('co-change').textContent = money(Math.max(0, paid - due));
+                el('co-balance').textContent = money(Math.max(0, due - paid));
+            }
+            el('checkout-btn').addEventListener('click', () => {
+                if (!state.items.length) return;
+                paymentState.rows = [newPaymentRow('CASH', totals().total)];
+                renderPayments();
+                renderQuickCash();
+                updateCheckout();
+                el('checkout-error').hidden = true;
+                openModal('checkout-modal');
+            });
+            function renderQuickCash() {
+                const t = totals().total;
+                const box = el('quick-cash');
+                const values = [...new Set([Math.ceil(t), 1000, 5000, 10000, 20000])].filter(value => value > 0);
+                box.innerHTML = '';
+                values.forEach(value => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'quick-cash-btn';
+                    button.textContent = Number(value).toLocaleString();
+                    button.addEventListener('click', () => { paymentState.rows[0].amount = value; renderPayments(); updateCheckout(); });
+                    box.appendChild(button);
+                });
+            }
+            el('add-payment-btn').addEventListener('click', () => {
+                const t = totals();
+                const paid = paymentState.rows.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+                paymentState.rows.push(newPaymentRow('MOBILE_MONEY', Math.max(0, t.total - paid)));
+                renderPayments();
+                updateCheckout();
+            });
+            el('checkout-email').addEventListener('change', () => {});
+
+            el('confirm-checkout-btn').addEventListener('click', async () => {
+                const t = totals();
+                const paid = paymentState.rows.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+                const creditRow = paymentState.rows.find(payment => payment.method === 'CREDIT');
+                if (paid + 0.001 < t.total && !creditRow && !state.customerId) {
+                    el('checkout-error').hidden = false;
+                    el('checkout-error').textContent = 'Payment does not cover the total. Choose Credit or add another payment.';
+                    return;
+                }
+                const button = el('confirm-checkout-btn');
+                button.disabled = true;
+                try {
+                    const sale = await api('/pos/checkout', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            customerId: state.customerId,
+                            items: state.items.map(item => ({ productId: item.id, quantity: item.quantity, discount: item.discount })),
+                            payments: paymentState.rows.filter(payment => payment.amount > 0).map(payment => ({ method: payment.method, amount: payment.amount, reference: payment.reference })),
+                            notes: el('cart-notes').value
+                        })
+                    });
+                    closeModal('checkout-modal');
+                    el('receipt-summary').textContent = sale.receiptNumber + ' · ' + money(sale.total) + (Number(sale.changeDue) > 0 ? ' · Change ' + money(sale.changeDue) : '');
+                    el('receipt-frame').src = sale.receiptUrl + '?embedded=1';
+                    openModal('receipt-modal');
+                    state.products = await api('/pos/products');
+                    renderProducts();
+                    state.items = [];
+                    renderCart();
+                } catch (error) {
+                    el('checkout-error').hidden = false;
+                    el('checkout-error').textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            });
+            el('print-receipt-btn').addEventListener('click', () => {
+                const frame = el('receipt-frame');
+                if (frame && frame.contentWindow) frame.contentWindow.print();
+            });
+
+            document.addEventListener('keydown', event => {
+                if (event.key === 'F2') { event.preventDefault(); el('product-search').focus(); }
+                if (event.key === 'F4') { event.preventDefault(); if (!el('checkout-modal').classList.contains('open')) el('checkout-btn').click(); }
+                if (event.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay.open').forEach(node => node.classList.remove('open'));
+                }
+            });
+
+            populateCustomers();
+            renderProducts();
+            renderCart();
+            refreshHeld();
+        })();
+    </script>
+</div>
+</body>
+</html>

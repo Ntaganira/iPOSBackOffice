@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.settings}, ~{::content})}">
+<head><title>Email settings - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Settings</div>
+            <h1>Email &amp; SMTP</h1>
+            <div class="subtitle">Send receipts and invoices to customers.</div>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="filter-bar settings-tabs">
+        <a class="btn btn-outline btn-sm" href="/settings/shop">Shop</a>
+        <a class="btn btn-primary btn-sm" href="/settings/email">Email</a>
+        <a class="btn btn-outline btn-sm" href="/settings/tax">Tax</a>
+    </div>
+
+    <div class="detail-grid">
+        <form th:action="@{/settings/email}" th:object="${settings}" method="post" class="section stack-form">
+            <div class="section-header"><h2>SMTP server</h2></div>
+            <label class="checkbox-row"><input type="checkbox" th:field="*{emailEnabled}"> Enable email sending</label>
+            <label class="checkbox-row"><input type="checkbox" th:field="*{autoEmailInvoice}"> Automatically email invoices when a customer has an address</label>
+            <div class="form-grid">
+                <div class="form-group"><label for="smtpHost">Host</label><input id="smtpHost" th:field="*{smtpHost}" maxlength="160" placeholder="smtp.example.com"></div>
+                <div class="form-group"><label for="smtpPort">Port</label><input id="smtpPort" type="number" min="1" max="65535" th:field="*{smtpPort}"></div>
+                <div class="form-group"><label for="smtpUsername">Username</label><input id="smtpUsername" th:field="*{smtpUsername}" maxlength="160" autocomplete="off"></div>
+                <div class="form-group"><label for="smtpPassword">Password</label><input id="smtpPassword" type="password" th:field="*{smtpPassword}" autocomplete="new-password"><p class="hint">Leave blank to keep the saved password.</p></div>
+                <div class="form-group"><label for="smtpSecurity">Security</label>
+                    <select id="smtpSecurity" th:field="*{smtpSecurity}">
+                        <option th:each="option : ${securityOptions}" th:value="${option}" th:text="${option}">NONE</option>
+                    </select>
+                </div>
+                <div class="form-group"><label for="emailFromAddress">From address</label><input id="emailFromAddress" type="email" th:field="*{emailFromAddress}" maxlength="160"></div>
+                <div class="form-group"><label for="emailFromName">From name</label><input id="emailFromName" th:field="*{emailFromName}" maxlength="160"></div>
+                <div class="form-group"><label for="emailReplyTo">Reply-to</label><input id="emailReplyTo" type="email" th:field="*{emailReplyTo}" maxlength="160"></div>
+            </div>
+            <label class="checkbox-row"><input type="checkbox" th:field="*{emailBccShop}"> BCC the shop address on every message</label>
+            <div class="form-actions"><button type="submit" class="btn btn-primary">Save email settings</button></div>
+        </form>
+
+        <div class="detail-side stack-form">
+            <div class="section">
+                <div class="section-header"><h2>Send a test</h2></div>
+                <form th:action="@{/settings/email/test}" method="post" class="stack-form">
+                    <div class="form-group"><label for="recipient">Recipient</label><input id="recipient" type="email" name="recipient" required placeholder="you@example.com"></div>
+                    <button type="submit" class="btn btn-outline btn-sm">Send test email</button>
+                </form>
+                <p class="hint">Local development uses Mailpit on port 1025; messages appear at <a href="http://localhost:8025" target="_blank" rel="noopener">localhost:8025</a>.</p>
+            </div>
+            <div class="section">
+                <div class="section-header"><h2>Message template</h2></div>
+                <form th:action="@{/settings/email}" th:object="${settings}" method="post" class="stack-form">
+                    <input type="hidden" th:field="*{emailEnabled}">
+                    <input type="hidden" th:field="*{autoEmailInvoice}">
+                    <input type="hidden" th:field="*{smtpHost}">
+                    <input type="hidden" th:field="*{smtpPort}">
+                    <input type="hidden" th:field="*{smtpUsername}">
+                    <input type="hidden" th:field="*{smtpSecurity}">
+                    <input type="hidden" th:field="*{emailFromName}">
+                    <input type="hidden" th:field="*{emailFromAddress}">
+                    <input type="hidden" th:field="*{emailReplyTo}">
+                    <input type="hidden" th:field="*{emailBccShop}">
+                    <div class="form-group"><label for="emailSubjectTemplate">Subject</label><input id="emailSubjectTemplate" th:field="*{emailSubjectTemplate}" maxlength="255"></div>
+                    <div class="form-group"><label for="emailBodyTemplate">Body</label><textarea id="emailBodyTemplate" th:field="*{emailBodyTemplate}" rows="7"></textarea><p class="hint">Placeholders: {invoiceNumber}, {shopName}, {customerName}.</p></div>
+                    <button type="submit" class="btn btn-outline btn-sm">Save template</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

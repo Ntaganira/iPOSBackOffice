@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.users}, ~{::content})}">
+<head><title>User - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/users" class="subtle-link">Users</a> / <span th:text="${editing ? 'Edit' : 'New'}">New</span></div>
+            <h1 th:text="${editing} ? 'Edit user' : 'New user'">New user</h1>
+            <div class="subtitle" th:if="${editing and editedUser != null}" th:text="${editedUser.username}">username</div>
+        </div>
+        <div class="page-actions"><a href="/users" class="btn btn-outline">Back</a></div>
+    </div>
+
+    <div th:if="${formError}" class="alert alert-danger" th:text="${formError}"></div>
+
+    <form th:action="${editing} ? @{/users/{id}(id=${userForm.id})} : @{/users}" th:object="${userForm}" method="post" class="form-layout">
+        <div class="detail-grid">
+            <div class="section">
+                <div class="section-header"><h2>Account</h2></div>
+                <div class="form-grid">
+                    <div class="form-group"><label for="username">Username</label><input id="username" th:field="*{username}" required maxlength="50" autocomplete="off"><span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span></div>
+                    <div class="form-group"><label for="fullName">Full name</label><input id="fullName" th:field="*{fullName}" required maxlength="120"><span class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span></div>
+                    <div class="form-group"><label for="email">Email</label><input id="email" type="email" th:field="*{email}" maxlength="160"><span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span></div>
+                    <div class="form-group"><label for="phone">Phone</label><input id="phone" th:field="*{phone}" maxlength="40"><span class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span></div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" th:field="*{role}">
+                            <option th:each="option : ${roles}" th:value="${option}" th:text="${option}">CASHIER</option>
+                        </select>
+                    </div>
+                    <div class="form-group checkbox-stack">
+                        <label class="checkbox-row"><input type="checkbox" th:field="*{enabled}"> Account enabled</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-side">
+                <div class="section">
+                    <div class="section-header"><h2 th:text="${editing} ? 'Set a new password' : 'Initial password'">Password</h2></div>
+                    <div class="form-group"><label for="password">Password</label><input id="password" type="password" th:field="*{password}" autocomplete="new-password" th:required="${!editing}"><span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span><p class="hint">At least 8 characters with a letter and a digit.</p></div>
+                    <div class="form-group"><label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password"><span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span></div>
+                    <label class="checkbox-row"><input type="checkbox" th:field="*{passwordChangeRequired}"> Require a password change at next login</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions"><button type="submit" class="btn btn-primary" th:text="${editing} ? 'Save changes' : 'Create user'">Create user</button></div>
+    </form>
+
+    <div class="section" th:if="${editing}">
+        <div class="section-header"><h2>Reset password</h2></div>
+        <form th:action="@{/users/{id}/reset-password(id=${userForm.id})}" method="post" class="stack-form"
+              onsubmit="return confirm('Reset this user\'s password?')">
+            <div class="form-group"><label for="newPassword">New password</label><input id="newPassword" type="password" name="newPassword" required minlength="8" autocomplete="new-password"></div>
+            <label class="checkbox-row"><input type="checkbox" name="requireChange" value="true" checked> Require change at next login</label>
+            <button type="submit" class="btn btn-outline btn-sm">Reset password</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

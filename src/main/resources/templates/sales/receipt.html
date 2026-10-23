@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Receipt ' + ${sale.receiptNumber} + ' - iPOS'">Receipt - iPOS</title>
+    <link rel="stylesheet" href="/css/receipt.css">
+</head>
+<body th:classappend="${embedded} ? 'embedded' : ''" th:attr="data-default-format=${defaultFormat}">
+<div class="print-toolbar no-print" th:if="${!embedded}">
+    <a href="/sales" class="toolbar-back">← Sales</a>
+    <div class="toolbar-title">
+        <strong th:text="${sale.receiptNumber}">NS-000001</strong>
+        <span th:text="${sale.saleType.name() == 'REFUND' ? 'Refund receipt' : 'Tax receipt'}">Tax receipt</span>
+    </div>
+    <div class="toolbar-actions">
+        <div class="format-toggle">
+            <button type="button" data-format="receipt">80mm receipt</button>
+            <button type="button" data-format="invoice">A4 invoice</button>
+        </div>
+        <a class="toolbar-btn" th:href="@{/sales/{id}/pdf(id=${sale.id},format='receipt')}">Receipt PDF</a>
+        <a class="toolbar-btn" th:href="@{/sales/{id}/pdf(id=${sale.id},format='invoice')}">Invoice PDF</a>
+        <button type="button" class="toolbar-btn primary" id="print-btn">Print</button>
+        <button type="button" class="toolbar-btn" onclick="window.close()">Close</button>
+    </div>
+</div>
+
+<main class="preview-stage">
+    <article class="paper receipt-paper" id="receipt-paper">
+        <div class="receipt-head">
+            <div class="shop-name" th:text="${shop.shopName}">iPOS Demo Shop</div>
+            <div th:if="${shop.address}" th:text="${shop.address}">Kigali, Rwanda</div>
+            <div th:if="${shop.phone}" th:text="'Tel: ' + ${shop.phone}">Tel: +250</div>
+            <div th:if="${shop.shopTin}" th:text="'TIN: ' + ${shop.shopTin}">TIN: 123</div>
+        </div>
+        <div class="receipt-type">
+            <strong th:text="${sale.saleType.name() == 'REFUND' ? 'REFUND RECEIPT' : 'TAX RECEIPT'}">TAX RECEIPT</strong>
+            <span class="copy-mark" th:if="${copy}">COPY</span>
+            <span class="status-mark" th:if="${sale.status.name() == 'VOID'}">VOID</span>
+        </div>
+        <div class="receipt-meta">
+            <div><span>Receipt</span><strong th:text="${sale.receiptNumber}">NS-000001</strong></div>
+            <div><span>Date</span><strong th:text="${receiptDateTime}">23/10/2026 10:24:00</strong></div>
+            <div><span>Cashier</span><strong th:text="${sale.cashier == null ? 'System' : sale.cashier.fullName}">Cashier</strong></div>
+            <div><span>Customer</span><strong th:text="${sale.customer == null ? 'Walk-in' : sale.customer.name}">Walk-in</strong></div>
+            <div th:if="${sale.customer != null and sale.customer.tin != null}"><span>Client TIN</span><strong th:text="${sale.customer.tin}">TIN</strong></div>
+        </div>
+
+        <table class="receipt-lines">
+            <thead>
+            <tr><th>Item</th><th class="qty">Qty</th><th class="money">Amount</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="line : ${sale.lines}">
+                <td>
+                    <span th:text="${line.productName}">Product</span>
+                    <small th:if="${line.taxCategoryCode != null}" th:text="'[' + ${line.taxCategoryCode} + '] ' + ${@fmt.amount(line.unitPrice)}">[B] 1,000.00</small>
+                    <small th:if="${line.discount.signum() > 0}" th:text="'Discount -' + ${@fmt.amount(line.discount)}">Discount</small>
+                </td>
+                <td class="qty" th:text="${@fmt.qty(line.quantity)}">1</td>
+                <td class="money" th:text="${@fmt.amount(line.lineTotal)}">1,000.00</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="receipt-totals">
+            <div><span>Subtotal</span><strong th:text="${@fmt.amount(sale.subtotal)}">0.00</strong></div>
+            <div th:if="${sale.discountTotal.signum() > 0}"><span>Discount</span><strong th:text="'-' + ${@fmt.amount(sale.discountTotal)}">0.00</strong></div>
+            <div th:each="tax : ${taxLines}">
+                <span th:text="'Tax ' + ${tax.code} + ' (taxable ' + ${@fmt.amount(tax.taxable)} + ')'">Tax B</span>
+                <strong th:text="${@fmt.amount(tax.tax)}">0.00</strong>
+            </div>
+            <div class="receipt-grand"><span>TOTAL</span><strong th:text="${@fmt.amount(sale.total)}">0.00</strong></div>
+            <div><span>Paid</span><strong th:text="${@fmt.amount(sale.amountPaid)}">0.00</strong></div>
+            <div th:if="${sale.changeDue.signum() > 0}"><span>Change</span><strong th:text="${@fmt.amount(sale.changeDue)}">0.00</strong></div>
+            <div th:if="${sale.balanceDue.signum() > 0}"><span>Balance</span><strong th:text="${@fmt.amount(sale.balanceDue)}">0.00</strong></div>
+        </div>
+
+        <div class="receipt-payments">
+            <span th:each="payment : ${sale.payments}" th:text="${payment.paymentMethod} + ': ' + ${@fmt.amount(payment.amount)}">CASH: 1,000.00</span>
+        </div>
+
+        <div class="receipt-qr">
+            <img th:src="${qr}" alt="Receipt QR code" width="112" height="112">
+            <div class="receipt-verification">
+                <div>Verification code</div>
+                <strong th:text="${verificationCode}">ABC123</strong>
+                <div class="verified" th:if="${verified}">✓ Signature verified</div>
+            </div>
+        </div>
+
+        <div class="receipt-signature">
+            <span>Signature</span>
+            <code th:text="${sale.ebmSignature}">signature</code>
+        </div>
+        <div class="receipt-footer">
+            <p th:if="${shop.receiptFooter}" th:text="${shop.receiptFooter}">Thank you for your purchase.</p>
+            <p>Powered by iPOS</p>
+        </div>
+    </article>
+
+    <article class="paper invoice-paper" id="invoice-paper">
+        <header class="invoice-head">
+            <div class="invoice-brand">
+                <span class="invoice-mark">iP</span>
+                <div>
+                    <h1 th:text="${shop.shopName}">iPOS Demo Shop</h1>
+                    <p th:text="${shop.address ?: 'Kigali, Rwanda'}">Kigali, Rwanda</p>
+                    <p th:text="(${shop.phone ?: ''} + (${shop.shopTin != null} ? ' · TIN ' + ${shop.shopTin} : ''))">Phone · TIN</p>
+                </div>
+            </div>
+            <div class="invoice-title">
+                <h2 th:text="${sale.saleType.name() == 'REFUND' ? 'CREDIT NOTE' : 'INVOICE'}">INVOICE</h2>
+                <p th:text="${sale.receiptNumber}">NS-000001</p>
+                <span th:if="${copy}">COPY</span>
+                <span th:if="${sale.status.name() == 'VOID'}" class="void">VOID</span>
+            </div>
+        </header>
+
+        <section class="invoice-parties">
+            <div>
+                <h3>Billed to</h3>
+                <strong th:text="${sale.customer == null ? 'Walk-in customer' : sale.customer.name}">Walk-in customer</strong>
+                <p th:if="${sale.customer != null and sale.customer.address != null}" th:text="${sale.customer.address}">Address</p>
+                <p th:if="${sale.customer != null and sale.customer.phone != null}" th:text="${sale.customer.phone}">Phone</p>
+                <p th:if="${sale.customer != null and sale.customer.tin != null}" th:text="'TIN: ' + ${sale.customer.tin}">TIN</p>
+            </div>
+            <div class="invoice-meta">
+                <div><span>Invoice date</span><strong th:text="${receiptDateTime}">23/10/2026</strong></div>
+                <div><span>Cashier</span><strong th:text="${sale.cashier == null ? 'System' : sale.cashier.fullName}">Cashier</strong></div>
+                <div><span>Status</span><strong th:text="${sale.paymentStatus}">PAID</strong></div>
+            </div>
+        </section>
+
+        <table class="invoice-lines">
+            <thead>
+            <tr>
+                <th>Description</th>
+                <th class="center">Tax</th>
+                <th class="right">Qty</th>
+                <th class="right">Unit price</th>
+                <th class="right">Discount</th>
+                <th class="right">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="line : ${sale.lines}">
+                <td>
+                    <strong th:text="${line.productName}">Product</strong>
+                    <small th:text="${line.productCode}">CODE</small>
+                </td>
+                <td class="center" th:text="${line.taxCategoryCode ?: 'A'}">B</td>
+                <td class="right" th:text="${@fmt.qty(line.quantity)}">1</td>
+                <td class="right" th:text="${@fmt.amount(line.unitPrice)}">0.00</td>
+                <td class="right" th:text="${@fmt.amount(line.discount)}">0.00</td>
+                <td class="right" th:text="${@fmt.amount(line.lineTotal)}">0.00</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <section class="invoice-bottom">
+            <div class="invoice-notes">
+                <h3>Payment</h3>
+                <table class="invoice-mini">
+                    <tr th:each="payment : ${sale.payments}">
+                        <td th:text="${payment.paymentMethod}">CASH</td>
+                        <td class="right" th:text="${@fmt.amount(payment.amount)}">0.00</td>
+                    </tr>
+                </table>
+                <p th:if="${sale.notes}" class="invoice-note" th:text="${sale.notes}">Notes</p>
+                <div class="invoice-verification">
+                    <img th:src="${qr}" alt="Receipt QR code" width="92" height="92">
+                    <div>
+                        <p>Verification code</p>
+                        <strong th:text="${verificationCode}">ABC123</strong>
+                        <p class="truncate" th:text="${sale.ebmSignature}">signature</p>
+                    </div>
+                </div>
+            </div>
+            <div class="invoice-totals">
+                <div><span>Subtotal</span><strong th:text="${@fmt.amount(sale.subtotal)}">0.00</strong></div>
+                <div th:if="${sale.discountTotal.signum() > 0}"><span>Discount</span><strong th:text="${@fmt.amount(sale.discountTotal)}">0.00</strong></div>
+                <div><span>Tax total</span><strong th:text="${@fmt.amount(sale.taxTotal)}">0.00</strong></div>
+                <div class="grand"><span>Total</span><strong th:text="${shop.currency} + ' ' + ${@fmt.amount(sale.total)}">RWF 0.00</strong></div>
+                <div><span>Amount paid</span><strong th:text="${@fmt.amount(sale.amountPaid)}">0.00</strong></div>
+                <div th:if="${sale.balanceDue.signum() > 0}"><span>Balance due</span><strong th:text="${@fmt.amount(sale.balanceDue)}">0.00</strong></div>
+            </div>
+        </section>
+
+        <footer class="invoice-footer">
+            <p th:if="${shop.receiptFooter}" th:text="${shop.receiptFooter}">Thank you for your purchase.</p>
+            <p>Powered by iPOS · <span th:text="${shop.shopName}">Shop</span></p>
+        </footer>
+    </article>
+</main>
+
+<style id="print-page-style"></style>
+<script>
+    (function () {
+        const defaultFormat = document.body.dataset.defaultFormat === 'INVOICE' ? 'invoice' : 'receipt';
+        const formatButtons = document.querySelectorAll('[data-format]');
+        const pageStyle = document.getElementById('print-page-style');
+
+        function applyFormat(format) {
+            document.body.dataset.format = format;
+            document.getElementById('receipt-paper').classList.toggle('active', format === 'receipt');
+            document.getElementById('invoice-paper').classList.toggle('active', format === 'invoice');
+            formatButtons.forEach(button => button.classList.toggle('active', button.dataset.format === format));
+            pageStyle.textContent = format === 'invoice'
+                ? '@page { size: A4; margin: 14mm; }'
+                : '@page { size: 80mm auto; margin: 4mm; }';
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('format', format);
+                history.replaceState(null, '', url);
+            } catch (e) { /* ignore */ }
+        }
+
+        formatButtons.forEach(button => button.addEventListener('click', () => applyFormat(button.dataset.format)));
+        document.getElementById('print-btn')?.addEventListener('click', () => window.print());
+        const requested = new URLSearchParams(window.location.search).get('format');
+        applyFormat(requested === 'invoice' || requested === 'receipt' ? requested : defaultFormat);
+        document.addEventListener('keydown', event => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'p') {
+                event.preventDefault();
+                window.print();
+            }
+            if (event.key === 'Escape' && !document.body.classList.contains('embedded')) window.close();
+        });
+    })();
+</script>
+</body>
+</html>

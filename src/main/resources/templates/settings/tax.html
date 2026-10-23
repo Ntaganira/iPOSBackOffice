@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.settings}, ~{::content})}">
+<head><title>Tax settings - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Settings</div>
+            <h1>Tax categories</h1>
+            <div class="subtitle">VAT rates applied to product prices.</div>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="filter-bar settings-tabs">
+        <a class="btn btn-outline btn-sm" href="/settings/shop">Shop</a>
+        <a class="btn btn-outline btn-sm" href="/settings/email">Email</a>
+        <a class="btn btn-primary btn-sm" href="/settings/tax">Tax</a>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Rates</h2><span class="section-count" th:text="${#lists.size(taxCategories)}">0</span></div>
+        <div class="table-container table-flush">
+            <table>
+                <thead><tr><th>Code</th><th>Name</th><th class="text-right">Rate (%)</th><th>Exempt</th><th>Active</th><th class="text-right">Save</th></tr></thead>
+                <tbody>
+                <tr th:each="category : ${taxCategories}">
+                    <td>
+                        <form th:action="@{/settings/tax}" method="post" class="inline-form" th:id="'tax-' + ${category.code}">
+                            <input type="hidden" name="code" th:value="${category.code}">
+                            <span class="mono" th:text="${category.code}">A</span>
+                        </form>
+                    </td>
+                    <td><input name="name" th:value="${category.name}" required maxlength="80" th:form="'tax-' + ${category.code}"></td>
+                    <td class="text-right"><input name="rate" type="number" step="0.01" min="0" max="100" th:value="${category.rate}" th:form="'tax-' + ${category.code}" style="width:90px;text-align:right"></td>
+                    <td><input type="checkbox" name="exempt" value="true" th:checked="${category.exempt}" th:form="'tax-' + ${category.code}" aria-label="Exempt"></td>
+                    <td><input type="checkbox" name="active" value="true" th:checked="${category.active}" th:form="'tax-' + ${category.code}" aria-label="Active"></td>
+                    <td class="text-right"><button type="submit" class="btn btn-outline btn-sm" th:form="'tax-' + ${category.code}">Save</button></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="hint">Rates are percentages, e.g. 18 means 18% VAT. Prices in iPOS are VAT-inclusive.</p>
+    </div>
+</div>
+</body>
+</html>

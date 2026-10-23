@@ -1,0 +1,520 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{dash.title}, ~{::content})}">
+<head><title>Dashboard - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header dash-page-header">
+        <div>
+            <div class="eyebrow">
+                <span data-greeting th:text="#{dash.morning}">Good morning</span>,
+                <span th:text="${profileFullName}">Administrator</span>
+            </div>
+            <h1>Business overview</h1>
+            <div class="subtitle">
+                Sales, stock and money at a glance.
+                <span class="dot-separator"></span>
+                <span data-today-label></span>
+            </div>
+        </div>
+        <div class="page-actions">
+            <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New sale
+            </a>
+            <a sec:authorize="hasAuthority('PRODUCT_CREATE')" href="/products/new" class="btn btn-outline">Add product</a>
+        </div>
+    </div>
+
+    <div class="stats-grid dashboard-kpis">
+        <div class="stat-card kpi-card">
+            <div class="stat-info">
+                <h3>Revenue today</h3>
+                <div class="number" th:text="${@fmt.money(dashboard.today().netSales())}">RWF 0</div>
+                <div class="change" th:classappend="${trendChange >= 0} ? 'positive' : 'negative'">
+                    <span th:text="${(trendChange >= 0 ? '+' : '') + #numbers.formatDecimal(trendChange, 1, 1) + '%'}">+0.0%</span>
+                    <span class="muted">vs previous day</span>
+                </div>
+            </div>
+            <div class="stat-icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card kpi-card">
+            <div class="stat-info">
+                <h3>Sales today</h3>
+                <div class="number" th:text="${@fmt.number(dashboard.today().transactions())}">0</div>
+                <div class="change positive">
+                    <span th:text="${@fmt.money(dashboard.today().averageSale())}">RWF 0</span>
+                    <span class="muted">average sale</span>
+                </div>
+            </div>
+            <div class="stat-icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"></path>
+                    <line x1="9" y1="7" x2="15" y2="7"></line><line x1="9" y1="11" x2="15" y2="11"></line>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card kpi-card">
+            <div class="stat-info">
+                <h3>Revenue this month</h3>
+                <div class="number" th:text="${@fmt.money(dashboard.month().netSales())}">RWF 0</div>
+                <div class="change positive">
+                    <span th:text="${@fmt.number(dashboard.month().transactions())}">0</span>
+                    <span class="muted">transactions</span>
+                </div>
+            </div>
+            <div class="stat-icon purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
+        </div>
+        <div class="stat-card kpi-card">
+            <div class="stat-info">
+                <h3>Stock value</h3>
+                <div class="number" th:text="${@fmt.money(dashboard.stockValue())}">RWF 0</div>
+                <div class="change">
+                    <span th:text="${@fmt.number(dashboard.productCount())}">0</span>
+                    <span class="muted">active products</span>
+                </div>
+            </div>
+            <div class="stat-icon yellow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-grid mini-stats">
+        <a class="summary-card mini-card" href="/customers">
+            <div class="value" th:text="${@fmt.money(dashboard.customerDebt())}">RWF 0</div>
+            <div class="label">Customer credit outstanding</div>
+        </a>
+        <a class="summary-card mini-card" href="/stock">
+            <div class="value" th:text="${@fmt.number(dashboard.lowStockCount())}">0</div>
+            <div class="label">Products at or below reorder level</div>
+        </a>
+        <a class="summary-card mini-card" href="/expenses?status=PENDING">
+            <div class="value" th:text="${@fmt.number(dashboard.pendingExpenses())}">0</div>
+            <div class="label">Expenses waiting for approval</div>
+        </a>
+        <a class="summary-card mini-card" href="/purchases?status=ORDERED">
+            <div class="value" th:text="${@fmt.number(dashboard.pendingPurchases())}">0</div>
+            <div class="label">Open purchase orders</div>
+        </a>
+    </div>
+
+    <div class="chart-grid chart-grid-main">
+        <div class="section chart-card">
+            <div class="section-header">
+                <div>
+                    <h2>Sales trend</h2>
+                    <p class="section-subtitle">Net sales for the last 7 days</p>
+                </div>
+                <span class="badge badge-info">7 days</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesTrendChart"></canvas>
+            </div>
+        </div>
+        <div class="section chart-card">
+            <div class="section-header">
+                <div>
+                    <h2>Payment mix</h2>
+                    <p class="section-subtitle">How customers paid this week</p>
+                </div>
+            </div>
+            <div class="chart-container chart-doughnut" th:if="${!#lists.isEmpty(paymentLabels)}">
+                <canvas id="paymentMixChart"></canvas>
+            </div>
+            <div class="empty-state slim" th:if="${#lists.isEmpty(paymentLabels)}">
+                <p>No payments recorded in the last 7 days.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="chart-grid">
+        <div class="section chart-card">
+            <div class="section-header">
+                <div>
+                    <h2>Top products</h2>
+                    <p class="section-subtitle">By revenue this week</p>
+                </div>
+                <a href="/reports" class="btn btn-outline btn-sm">Reports</a>
+            </div>
+            <div class="chart-container chart-tall" th:if="${!#lists.isEmpty(topLabels)}">
+                <canvas id="topProductsChart"></canvas>
+            </div>
+            <div class="empty-state slim" th:if="${#lists.isEmpty(topLabels)}">
+                <p>No product sales this week yet.</p>
+            </div>
+        </div>
+        <div class="section chart-card">
+            <div class="section-header">
+                <div>
+                    <h2>Cashier performance</h2>
+                    <p class="section-subtitle">Sales handled this week</p>
+                </div>
+            </div>
+            <div class="chart-container chart-tall" th:if="${!#lists.isEmpty(cashierLabels)}">
+                <canvas id="cashierChart"></canvas>
+            </div>
+            <div class="empty-state slim" th:if="${#lists.isEmpty(cashierLabels)}">
+                <p>No cashier activity this week.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-bottom-grid">
+        <div class="section">
+            <div class="section-header">
+                <div>
+                    <h2>Recent sales</h2>
+                    <p class="section-subtitle">Latest receipts from the till</p>
+                </div>
+                <a href="/sales" class="btn btn-outline btn-sm">View all</a>
+            </div>
+            <div class="table-container table-flush">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Customer</th>
+                        <th>Time</th>
+                        <th>Payment</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="sale : ${dashboard.recentSales()}">
+                        <td>
+                            <a class="mono table-link" th:href="@{/sales/{id}(id=${sale.id})}"
+                               th:text="${sale.receiptNumber}">NS-000001</a>
+                            <span class="badge badge-warning" th:if="${sale.refund}" style="margin-left:6px;">Refund</span>
+                        </td>
+                        <td th:text="${sale.customer == null ? 'Walk-in' : sale.customer.name}">Walk-in</td>
+                        <td class="text-muted nowrap" th:text="${@fmt.time(sale.saleDate)}">10:24</td>
+                        <td>
+                            <span class="badge badge-secondary" th:text="${sale.paymentStatus}">PAID</span>
+                        </td>
+                        <td class="text-right"><strong th:text="${@fmt.money(sale.total)}">RWF 0</strong></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(dashboard.recentSales())}">
+                        <td colspan="5"><div class="empty-state slim"><p>No sales yet today. Open the till to start selling.</p></div></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-side-stack">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <h2>Low stock alerts</h2>
+                        <p class="section-subtitle">Reorder these soon</p>
+                    </div>
+                    <a href="/stock" class="btn btn-outline btn-sm">View stock</a>
+                </div>
+                <div class="alert-list">
+                    <a class="alert-row" th:each="product : ${dashboard.lowStock()}" th:href="@{/products/{id}/edit(id=${product.id})}">
+                        <span class="alert-dot" th:classappend="${product.outOfStock} ? 'red' : 'amber'"></span>
+                        <span class="alert-main">
+                            <span class="alert-title" th:text="${product.name}">Product</span>
+                            <span class="alert-sub" th:text="${product.code}">CODE</span>
+                        </span>
+                        <span class="alert-qty" th:text="${@fmt.qty(product.stockQuantity)}">0</span>
+                    </a>
+                    <div class="empty-state slim" th:if="${#lists.isEmpty(dashboard.lowStock())}">
+                        <p>All products are above their reorder level.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section quick-actions">
+                <div class="section-header">
+                    <h2>Quick actions</h2>
+                </div>
+                <div class="quick-grid">
+                    <a sec:authorize="hasAuthority('SALE_VIEW')" href="/sales" class="quick-tile">
+                        <span class="quick-icon blue">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"></path></svg>
+                        </span>
+                        <span>Sales &amp; receipts</span>
+                    </a>
+                    <a sec:authorize="hasAuthority('PURCHASE_MANAGE')" href="/purchases/new" class="quick-tile">
+                        <span class="quick-icon green">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        </span>
+                        <span>New purchase</span>
+                    </a>
+                    <a sec:authorize="hasAuthority('EXPENSE_CREATE')" href="/expenses/new" class="quick-tile">
+                        <span class="quick-icon amber">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                        </span>
+                        <span>Record expense</span>
+                    </a>
+                    <a sec:authorize="hasAuthority('REPORT_VIEW')" href="/reports" class="quick-tile">
+                        <span class="quick-icon purple">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        </span>
+                        <span>Open reports</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <div>
+                <h2>Recent stock activity</h2>
+                <p class="section-subtitle">Latest movements across the shop</p>
+            </div>
+            <a href="/stock/movements" class="btn btn-outline btn-sm">All movements</a>
+        </div>
+        <div class="table-container table-flush">
+            <table>
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Product</th>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th class="text-right">Change</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="movement : ${dashboard.recentMovements()}">
+                    <td class="text-muted nowrap" th:text="${@fmt.dateTime(movement.occurredAt())}">23 Oct 10:24</td>
+                    <td>
+                        <div class="table-primary" th:text="${movement.productName()}">Product</div>
+                        <div class="hint mono" th:text="${movement.productCode()}">CODE</div>
+                    </td>
+                    <td><span class="badge badge-secondary" th:text="${movement.type()}">SALE</span></td>
+                    <td class="mono" th:text="${movement.referenceId() == null ? '—' : movement.referenceId()}">—</td>
+                    <td class="text-right">
+                        <span class="qty-delta" th:classappend="${movement.quantityDelta() != null and movement.quantityDelta().signum() < 0} ? 'negative' : 'positive'"
+                              th:text="${(movement.quantityDelta() != null and movement.quantityDelta().signum() > 0 ? '+' : '') + @fmt.qty(movement.quantityDelta())}">0</span>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(dashboard.recentMovements())}">
+                    <td colspan="5"><div class="empty-state slim"><p>No stock movements yet.</p></div></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/vendor/chartjs/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        (function () {
+            const trendLabels = /*[[${trendLabels}]]*/ [];
+            const trendValues = /*[[${trendValues}]]*/ [];
+            const paymentLabels = /*[[${paymentLabels}]]*/ [];
+            const paymentValues = /*[[${paymentValues}]]*/ [];
+            const topLabels = /*[[${topLabels}]]*/ [];
+            const topValues = /*[[${topValues}]]*/ [];
+            const cashierLabels = /*[[${cashierLabels}]]*/ [];
+            const cashierValues = /*[[${cashierValues}]]*/ [];
+
+            const styles = getComputedStyle(document.documentElement);
+            const primary = (styles.getPropertyValue('--primary') || '#268071').trim();
+            const secondary = (styles.getPropertyValue('--secondary') || '#4fb8a8').trim();
+            const gridColor = (styles.getPropertyValue('--gray-200') || '#e2e8f0').trim();
+            const tickColor = (styles.getPropertyValue('--gray-500') || '#64748b').trim();
+            const surface = (styles.getPropertyValue('--surface') || '#ffffff').trim();
+
+            Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            Chart.defaults.color = tickColor;
+
+            const money = (value) => 'RWF ' + Number(value || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+            const moneyTick = (value) => Number(value || 0).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
+            const humanize = (value) => String(value || '').toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            const truncate = (value, max) => value && value.length > max ? value.slice(0, max - 1) + '…' : value;
+
+            const trendCanvas = document.getElementById('salesTrendChart');
+            if (trendCanvas) {
+                const context = trendCanvas.getContext('2d');
+                const gradient = context.createLinearGradient(0, 0, 0, 320);
+                gradient.addColorStop(0, primary + 'e6');
+                gradient.addColorStop(1, primary + '55');
+                new Chart(context, {
+                    type: 'bar',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [{
+                            label: 'Net sales',
+                            data: trendValues,
+                            backgroundColor: gradient,
+                            hoverBackgroundColor: primary,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            maxBarThickness: 46
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: { label: (item) => ' ' + money(item.raw) }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, border: { display: false }, ticks: { color: tickColor } },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor, drawTicks: false },
+                                border: { display: false },
+                                ticks: { color: tickColor, padding: 8, callback: moneyTick }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const paymentCanvas = document.getElementById('paymentMixChart');
+            if (paymentCanvas) {
+                const palette = [primary, secondary, '#6366f1', '#f59e0b', '#0ea5e9', '#ef4444'];
+                new Chart(paymentCanvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: paymentLabels.map(humanize),
+                        datasets: [{
+                            data: paymentValues,
+                            backgroundColor: palette.slice(0, paymentLabels.length),
+                            borderWidth: 4,
+                            borderColor: surface,
+                            hoverOffset: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '68%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 16, color: tickColor }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: { label: (item) => ' ' + item.label + ': ' + money(item.raw) }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const topCanvas = document.getElementById('topProductsChart');
+            if (topCanvas) {
+                new Chart(topCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: topLabels.map(label => truncate(label, 24)),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: topValues,
+                            backgroundColor: secondary,
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            maxBarThickness: 22
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: { label: (item) => ' ' + money(item.raw) }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { color: gridColor, drawTicks: false },
+                                border: { display: false },
+                                ticks: { color: tickColor, callback: moneyTick }
+                            },
+                            y: { grid: { display: false }, border: { display: false }, ticks: { color: tickColor } }
+                        }
+                    }
+                });
+            }
+
+            const cashierCanvas = document.getElementById('cashierChart');
+            if (cashierCanvas) {
+                new Chart(cashierCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: cashierLabels,
+                        datasets: [{
+                            label: 'Sales',
+                            data: cashierValues,
+                            backgroundColor: '#6366f1',
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            maxBarThickness: 36
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: '#0f172a',
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: { label: (item) => ' ' + money(item.raw) }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { display: false }, border: { display: false }, ticks: { color: tickColor } },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: gridColor, drawTicks: false },
+                                border: { display: false },
+                                ticks: { color: tickColor, padding: 8, callback: moneyTick }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const hour = new Date().getHours();
+            const greeting = document.querySelector('[data-greeting]');
+            if (greeting) {
+                greeting.textContent = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+            }
+            const today = document.querySelector('[data-today-label]');
+            if (today) {
+                today.textContent = new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'short' }).format(new Date());
+            }
+        })();
+    </script>
+</div>
+</body>
+</html>

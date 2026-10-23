@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html('My profile', ~{::content})}">
+<head><title>My profile - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Account</div>
+            <h1>My profile</h1>
+            <div class="subtitle">Manage your details and password.</div>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <div th:if="${param.passwordChange != null}" class="alert alert-warning">Your password must be changed before you continue.</div>
+
+    <div class="detail-grid">
+        <div class="section">
+            <div class="section-header"><h2>Profile details</h2></div>
+            <form th:action="@{/profile}" method="post" enctype="multipart/form-data" class="stack-form">
+                <div class="profile-head">
+                    <span class="avatar avatar-lg">
+                        <img th:if="${profileUser.avatarPath != null}" th:src="@{/files/{path}(path=${profileUser.avatarPath})}" alt="">
+                        <span th:if="${profileUser.avatarPath == null}" th:text="${#strings.substring(profileUser.fullName, 0, 1)}">A</span>
+                    </span>
+                    <div>
+                        <strong th:text="${profileUser.username}">username</strong>
+                        <div class="muted" th:text="${profileUser.role}">CASHIER</div>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label for="fullName">Full name</label><input id="fullName" name="fullName" th:value="${profileUser.fullName}" required maxlength="120"></div>
+                    <div class="form-group"><label for="email">Email</label><input id="email" type="email" name="email" th:value="${profileUser.email}" maxlength="160"></div>
+                    <div class="form-group"><label for="phone">Phone</label><input id="phone" name="phone" th:value="${profileUser.phone}" maxlength="40"></div>
+                    <div class="form-group"><label for="locale">Language</label>
+                        <select id="locale" name="locale">
+                            <option value="en" th:selected="${profileUser.locale == 'en'}">English</option>
+                            <option value="fr" th:selected="${profileUser.locale == 'fr'}">Français</option>
+                            <option value="rw" th:selected="${profileUser.locale == 'rw'}">Ikinyarwanda</option>
+                        </select>
+                    </div>
+                    <div class="form-group form-span"><label for="avatar">Profile photo</label><input id="avatar" type="file" name="avatar" accept="image/png,image/jpeg,image/webp"></div>
+                </div>
+                <div class="form-actions"><button type="submit" class="btn btn-primary">Save profile</button></div>
+            </form>
+        </div>
+
+        <div class="detail-side">
+            <div class="section">
+                <div class="section-header"><h2>Change password</h2></div>
+                <form th:action="@{/profile/password}" method="post" class="stack-form">
+                    <div class="form-group"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" name="currentPassword" required autocomplete="current-password"></div>
+                    <div class="form-group"><label for="newPassword">New password</label><input id="newPassword" type="password" name="newPassword" required minlength="8" autocomplete="new-password"><p class="hint">At least 8 characters with a letter and a digit.</p></div>
+                    <div class="form-group"><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" name="confirmPassword" required autocomplete="new-password"></div>
+                    <button type="submit" class="btn btn-outline">Change password</button>
+                </form>
+            </div>
+            <div class="section">
+                <div class="section-header"><h2>Account</h2></div>
+                <div class="detail-list">
+                    <div><span>Username</span><strong th:text="${profileUser.username}">username</strong></div>
+                    <div><span>Role</span><strong th:text="${profileUser.role}">CASHIER</strong></div>
+                    <div><span>Last login</span><strong th:text="${profileUser.lastLoginAt == null ? 'Never' : @fmt.dateTime(profileUser.lastLoginAt)}">Never</strong></div>
+                    <div><span>Status</span><strong th:text="${profileUser.enabled ? 'Active' : 'Disabled'}">Active</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
