@@ -1,16 +1,20 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+import com.ntaganira.heritier.ipos.backoffice.dto.NotificationItem;
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
+import com.ntaganira.heritier.ipos.backoffice.service.NotificationService;
 import com.ntaganira.heritier.ipos.backoffice.service.SettingsService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.time.Year;
+import java.util.List;
 import java.util.Locale;
 
 @ControllerAdvice
@@ -18,10 +22,13 @@ public class GlobalModelAdvice {
 
     private final AppUserRepository userRepository;
     private final SettingsService settingsService;
+    private final NotificationService notificationService;
 
-    public GlobalModelAdvice(AppUserRepository userRepository, SettingsService settingsService) {
+    public GlobalModelAdvice(AppUserRepository userRepository, SettingsService settingsService,
+                             NotificationService notificationService) {
         this.userRepository = userRepository;
         this.settingsService = settingsService;
+        this.notificationService = notificationService;
     }
 
     @ModelAttribute("requestURI")
@@ -37,6 +44,13 @@ public class GlobalModelAdvice {
     @ModelAttribute("currentUser")
     public AppUser currentUserModel(Authentication authentication) {
         return currentUser(authentication);
+    }
+
+    @ModelAttribute
+    public void notifications(Authentication authentication, Model model) {
+        List<NotificationItem> items = notificationService.forUser(authentication);
+        model.addAttribute("notifications", items);
+        model.addAttribute("notificationCount", items.stream().mapToLong(NotificationItem::count).sum());
     }
 
     @ModelAttribute("profileFullName")

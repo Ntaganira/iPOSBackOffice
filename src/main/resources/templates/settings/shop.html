@@ -3,78 +3,291 @@
       th:replace="~{layout/sidebar :: html(#{nav.settings}, ~{::content})}">
 <head><title>Shop settings - iPOS</title></head>
 <body>
-<div th:fragment="content">
+<div th:fragment="content" class="settings-page">
     <div class="page-header">
         <div>
             <div class="eyebrow">Settings</div>
             <h1>Shop profile</h1>
-            <div class="subtitle">Identity, receipt numbering and stock behaviour.</div>
+            <div class="subtitle">Control how your shop appears and how checkout behaves.</div>
         </div>
+        <span class="settings-saved-badge">
+            <span class="settings-saved-dot"></span>
+            Saved changes apply immediately
+        </span>
     </div>
 
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-    <div class="filter-bar settings-tabs">
-        <a class="btn btn-primary btn-sm" href="/settings/shop">Shop</a>
-        <a class="btn btn-outline btn-sm" href="/settings/email">Email</a>
-        <a class="btn btn-outline btn-sm" href="/settings/tax">Tax</a>
-    </div>
+    <div th:replace="~{settings/tabs :: tabs('shop')}"></div>
 
-    <form th:action="@{/settings/shop}" th:object="${settings}" method="post" enctype="multipart/form-data" class="stack-form">
-        <div class="detail-grid">
-            <div class="section">
-                <div class="section-header"><h2>Identity</h2></div>
-                <div class="form-grid">
-                    <div class="form-group"><label for="shopName">Shop name</label><input id="shopName" th:field="*{shopName}" required maxlength="160"></div>
-                    <div class="form-group"><label for="shopTin">TIN</label><input id="shopTin" th:field="*{shopTin}" maxlength="40"></div>
-                    <div class="form-group"><label for="phone">Phone</label><input id="phone" th:field="*{phone}" maxlength="40"></div>
-                    <div class="form-group"><label for="email">Email</label><input id="email" type="email" th:field="*{email}" maxlength="160"></div>
-                    <div class="form-group form-span"><label for="address">Address</label><textarea id="address" th:field="*{address}" rows="2" maxlength="255"></textarea></div>
-                    <div class="form-group"><label for="currency">Currency</label><input id="currency" th:field="*{currency}" maxlength="8" required></div>
-                    <div class="form-group">
-                        <label for="logo">Logo</label>
-                        <input id="logo" type="file" name="logo" accept="image/png,image/jpeg,image/webp">
-                        <p class="hint">Used on printed receipts and in the sidebar.</p>
-                    </div>
+    <form id="shop-settings-form" th:action="@{/settings/shop}" th:object="${settings}" method="post" enctype="multipart/form-data" class="settings-form">
+        <section class="settings-card">
+            <div class="settings-card-head">
+                <span class="settings-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>
+                </span>
+                <div>
+                    <h2>Store identity</h2>
+                    <p>Shown on the dashboard, printed receipts and customer invoices.</p>
                 </div>
             </div>
-            <div class="detail-side">
-                <div class="section">
-                    <div class="section-header"><h2>Receipts</h2></div>
-                    <div class="stack-form">
-                        <div class="form-group"><label for="defaultPrintFormat">Default document</label>
-                            <select id="defaultPrintFormat" th:field="*{defaultPrintFormat}">
-                                <option th:each="format : ${printFormats}" th:value="${format}" th:text="${format}">RECEIPT</option>
-                            </select>
+            <div class="settings-card-body">
+                <div class="settings-logo-row">
+                    <div class="settings-logo-preview">
+                        <img id="shop-logo-image" alt="Shop logo"
+                             th:attr="src=${settings.logoPath != null ? '/files/' + settings.logoPath : null}"
+                             th:hidden="${settings.logoPath == null}">
+                        <span id="shop-logo-initial" th:hidden="${settings.logoPath != null}"
+                              th:text="${#strings.isEmpty(settings.shopName) ? 'i' : #strings.substring(settings.shopName, 0, 1)}">i</span>
+                    </div>
+                    <div class="settings-logo-copy">
+                        <strong>Shop logo</strong>
+                        <p>A square logo gives the best result on receipts and in the sidebar.</p>
+                        <div class="settings-file-row">
+                            <label class="btn btn-outline btn-sm" for="logo">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                Choose image
+                            </label>
+                            <input id="logo" class="sr-only" type="file" name="logo" accept="image/png,image/jpeg,image/webp">
+                            <span id="logo-file-name" class="settings-file-name" aria-live="polite">No file selected</span>
                         </div>
-                        <div class="form-group"><label for="receiptPrefix">Sale number prefix</label><input id="receiptPrefix" th:field="*{receiptPrefix}" maxlength="10" required></div>
-                        <div class="form-group"><label for="refundPrefix">Refund number prefix</label><input id="refundPrefix" th:field="*{refundPrefix}" maxlength="10" required></div>
-                        <div class="form-group"><label for="receiptFooter">Receipt footer</label><textarea id="receiptFooter" th:field="*{receiptFooter}" rows="2" maxlength="255"></textarea></div>
-                        <label class="checkbox-row"><input type="checkbox" th:field="*{autoPrint}"> Auto-print after checkout</label>
+                        <span class="hint">PNG, JPG or WebP, up to 5 MB.</span>
+                    </div>
+                </div>
+
+                <div class="form-grid settings-fields">
+                    <div class="form-group form-span">
+                        <label for="shopName">Shop name</label>
+                        <input id="shopName" th:field="*{shopName}" required maxlength="160" autocomplete="organization">
+                        <span class="hint">Use the name your customers know.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="shopTin">TIN</label>
+                        <input id="shopTin" th:field="*{shopTin}" maxlength="40" placeholder="Tax identification number">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input id="phone" th:field="*{phone}" maxlength="40" autocomplete="tel" placeholder="+250 7XX XXX XXX">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input id="email" type="email" th:field="*{email}" maxlength="160" autocomplete="email" placeholder="shop@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="currency">Currency</label>
+                        <input id="currency" th:field="*{currency}" maxlength="8" required placeholder="RWF">
+                    </div>
+                    <div class="form-group form-span">
+                        <label for="address">Address</label>
+                        <textarea id="address" th:field="*{address}" rows="2" maxlength="255" placeholder="Street, district, city"></textarea>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="section">
-            <div class="section-header"><h2>Operations</h2></div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="expenseApprovalThreshold">Expense approval threshold</label>
-                    <input id="expenseApprovalThreshold" type="number" step="0.01" min="0" th:field="*{expenseApprovalThreshold}">
-                    <p class="hint">Expenses at or above this amount require manager approval.</p>
-                </div>
-                <div class="form-group checkbox-stack">
-                    <label class="checkbox-row"><input type="checkbox" th:field="*{allowNegativeStock}"> Allow selling below zero stock</label>
+        <section class="settings-card">
+            <div class="settings-card-head">
+                <span class="settings-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2h16v20l-4-2-4 2-4-2-4 2z"></path><line x1="8" y1="7" x2="16" y2="7"></line><line x1="8" y1="11" x2="16" y2="11"></line><line x1="8" y1="15" x2="13" y2="15"></line></svg>
+                </span>
+                <div>
+                    <h2>Receipts &amp; numbering</h2>
+                    <p>Set the document customers receive and the numbers used for sales.</p>
                 </div>
             </div>
-        </div>
+            <div class="settings-card-body settings-split">
+                <div class="stack-form settings-fields">
+                    <div class="form-group">
+                        <label for="defaultPrintFormat">Default document</label>
+                        <select id="defaultPrintFormat" th:field="*{defaultPrintFormat}">
+                            <option th:each="format : ${printFormats}" th:value="${format}" th:text="${format == 'RECEIPT' ? 'Receipt' : 'Invoice'}">RECEIPT</option>
+                        </select>
+                        <span class="hint">Receipts are compact; invoices include customer details.</span>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="receiptPrefix">Sale number prefix</label>
+                            <input id="receiptPrefix" th:field="*{receiptPrefix}" maxlength="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="refundPrefix">Refund number prefix</label>
+                            <input id="refundPrefix" th:field="*{refundPrefix}" maxlength="10" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="receiptFooter">Receipt footer</label>
+                        <textarea id="receiptFooter" th:field="*{receiptFooter}" rows="2" maxlength="255" placeholder="Thank you for shopping with us."></textarea>
+                        <span class="hint">A short message printed below the total.</span>
+                    </div>
+                    <label class="settings-toggle">
+                        <span class="settings-toggle-copy">
+                            <strong>Auto-print after checkout</strong>
+                            <span>Send the receipt straight to the printer when a sale completes.</span>
+                        </span>
+                        <span class="switch">
+                            <input type="checkbox" th:field="*{autoPrint}">
+                            <span class="switch-track" aria-hidden="true"></span>
+                        </span>
+                    </label>
+                </div>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Save shop settings</button>
+                <aside class="receipt-preview" aria-label="Receipt preview">
+                    <div class="receipt-preview-head">
+                        <span>Live preview</span>
+                        <span class="receipt-preview-format" id="preview-format">Receipt</span>
+                    </div>
+                    <div class="receipt-paper">
+                        <div class="receipt-brand">
+                            <img id="preview-logo" alt=""
+                                 th:attr="src=${settings.logoPath != null ? '/files/' + settings.logoPath : null}"
+                                 th:hidden="${settings.logoPath == null}">
+                            <span id="preview-logo-initial" th:hidden="${settings.logoPath != null}"
+                                  th:text="${#strings.isEmpty(settings.shopName) ? 'i' : #strings.substring(settings.shopName, 0, 1)}">i</span>
+                            <strong id="preview-shop-name" th:text="${settings.shopName}">iPOS Shop</strong>
+                            <small id="preview-shop-contact"
+                                   th:text="${#strings.isEmpty(settings.phone) and #strings.isEmpty(settings.address) ? 'Kigali, Rwanda' : (settings.phone ?: settings.address)}">Kigali, Rwanda</small>
+                        </div>
+                        <div class="receipt-rule"></div>
+                        <div class="receipt-row"><span>Document no.</span><strong id="preview-document-number" th:text="${settings.receiptPrefix + '000001'}">NS-000001</strong></div>
+                        <div class="receipt-row"><span>Sample item</span><strong>1,500 RWF</strong></div>
+                        <div class="receipt-row"><span>Total</span><strong class="receipt-total">1,500 RWF</strong></div>
+                        <div class="receipt-rule"></div>
+                        <p id="preview-footer" th:text="${#strings.isEmpty(settings.receiptFooter) ? 'Thank you for shopping with us.' : settings.receiptFooter}">Thank you for shopping with us.</p>
+                        <span class="receipt-preview-note">Sample only</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <section class="settings-card">
+            <div class="settings-card-head">
+                <span class="settings-card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l7 4v6c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"></path><path d="M9 12l2 2 4-4"></path></svg>
+                </span>
+                <div>
+                    <h2>Operations</h2>
+                    <p>Balance day-to-day speed with the controls your shop needs.</p>
+                </div>
+            </div>
+            <div class="settings-card-body">
+                <div class="form-grid settings-fields">
+                    <div class="form-group">
+                        <label for="expenseApprovalThreshold">Expense approval threshold</label>
+                        <div class="field-with-suffix">
+                            <input id="expenseApprovalThreshold" type="number" step="0.01" min="0" th:field="*{expenseApprovalThreshold}">
+                            <span id="threshold-currency" th:text="${settings.currency}">RWF</span>
+                        </div>
+                        <span class="hint">Expenses above this amount need a manager's approval. Smaller expenses are recorded as paid.</span>
+                    </div>
+                    <div class="settings-toggle-card">
+                        <label class="settings-toggle">
+                            <span class="settings-toggle-copy">
+                                <strong>Allow selling below zero stock</strong>
+                                <span>Use only when stock counts are corrected later. Sales can continue when an item is out of stock.</span>
+                            </span>
+                            <span class="switch">
+                                <input type="checkbox" th:field="*{allowNegativeStock}">
+                                <span class="switch-track" aria-hidden="true"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="settings-savebar">
+            <div>
+                <strong>Ready to save?</strong>
+                <span>These settings apply to every terminal after submission.</span>
+            </div>
+            <div class="settings-savebar-actions">
+                <a class="btn btn-outline" th:href="@{/settings/shop}">Discard changes</a>
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    Save shop settings
+                </button>
+            </div>
         </div>
     </form>
+
+    <script>
+        (function () {
+            var logoInput = document.getElementById('logo');
+            var logoImage = document.getElementById('shop-logo-image');
+            var logoInitial = document.getElementById('shop-logo-initial');
+            var logoName = document.getElementById('logo-file-name');
+            var previewLogo = document.getElementById('preview-logo');
+            var previewInitial = document.getElementById('preview-logo-initial');
+            var shopName = document.getElementById('shopName');
+            var shopPhone = document.getElementById('phone');
+            var shopAddress = document.getElementById('address');
+            var receiptPrefix = document.getElementById('receiptPrefix');
+            var receiptFooter = document.getElementById('receiptFooter');
+            var defaultFormat = document.getElementById('defaultPrintFormat');
+            var currency = document.getElementById('currency');
+            var previewName = document.getElementById('preview-shop-name');
+            var previewContact = document.getElementById('preview-shop-contact');
+            var previewNumber = document.getElementById('preview-document-number');
+            var previewFooter = document.getElementById('preview-footer');
+            var previewFormat = document.getElementById('preview-format');
+            var thresholdCurrency = document.getElementById('threshold-currency');
+            var objectUrl = null;
+
+            var showLogo = function (src) {
+                if (logoImage) {
+                    logoImage.src = src;
+                    logoImage.hidden = false;
+                }
+                if (previewLogo) {
+                    previewLogo.src = src;
+                    previewLogo.hidden = false;
+                }
+                if (logoInitial) logoInitial.hidden = true;
+                if (previewInitial) previewInitial.hidden = true;
+            };
+
+            if (logoInput) {
+                logoInput.addEventListener('change', function () {
+                    var file = logoInput.files && logoInput.files[0];
+                    if (!file) return;
+                    var validType = ['image/png', 'image/jpeg', 'image/webp'].indexOf(file.type) !== -1;
+                    if (!validType) {
+                        if (window.showToast) window.showToast('Choose a PNG, JPG or WebP image.', 'error');
+                        logoInput.value = '';
+                        return;
+                    }
+                    if (file.size > 5 * 1024 * 1024) {
+                        if (window.showToast) window.showToast('The logo must be 5 MB or smaller.', 'error');
+                        logoInput.value = '';
+                        return;
+                    }
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    objectUrl = URL.createObjectURL(file);
+                    showLogo(objectUrl);
+                    if (logoName) logoName.textContent = file.name;
+                });
+            }
+
+            var updatePreview = function () {
+                var name = shopName && shopName.value.trim() ? shopName.value.trim() : 'Your shop';
+                if (previewName) previewName.textContent = name;
+                if (logoInitial && !logoInitial.hidden) logoInitial.textContent = name.charAt(0).toUpperCase();
+                if (previewInitial && !previewInitial.hidden) previewInitial.textContent = name.charAt(0).toUpperCase();
+                var contact = (shopPhone && shopPhone.value.trim()) || (shopAddress && shopAddress.value.trim()) || 'Kigali, Rwanda';
+                if (previewContact) previewContact.textContent = contact;
+                if (previewNumber) previewNumber.textContent = (receiptPrefix && receiptPrefix.value.trim() || 'NS-') + '000001';
+                if (previewFooter) previewFooter.textContent = (receiptFooter && receiptFooter.value.trim()) || 'Thank you for shopping with us.';
+                if (previewFormat) previewFormat.textContent = defaultFormat && defaultFormat.value === 'INVOICE' ? 'Invoice' : 'Receipt';
+                if (thresholdCurrency) thresholdCurrency.textContent = (currency && currency.value.trim()) || 'RWF';
+            };
+
+            [shopName, shopPhone, shopAddress, receiptPrefix, receiptFooter, defaultFormat, currency].forEach(function (field) {
+                if (field) field.addEventListener('input', updatePreview);
+                if (field) field.addEventListener('change', updatePreview);
+            });
+        })();
+    </script>
 </div>
 </body>
 </html>

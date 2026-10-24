@@ -37,9 +37,10 @@ public class ProfileController {
                          @RequestParam(required = false) String phone,
                          @RequestParam(required = false) String locale,
                          @RequestPart(value = "avatar", required = false) MultipartFile avatar,
+                         @RequestParam(defaultValue = "false") boolean removeAvatar,
                          RedirectAttributes redirect) {
         try {
-            userService.updateProfile(currentUser.requireUser().getId(), fullName, email, phone, locale, avatar);
+            userService.updateProfile(currentUser.requireUser().getId(), fullName, email, phone, locale, avatar, removeAvatar);
             redirect.addFlashAttribute("success", "Profile updated.");
         } catch (BusinessException | IllegalArgumentException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());

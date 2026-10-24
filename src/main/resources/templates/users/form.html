@@ -3,61 +3,171 @@
       th:replace="~{layout/sidebar :: html(#{nav.users}, ~{::content})}">
 <head><title>User - iPOS</title></head>
 <body>
-<div th:fragment="content">
+<div th:fragment="content" class="settings-page user-form-page">
     <div class="page-header">
         <div>
             <div class="eyebrow"><a href="/users" class="subtle-link">Users</a> / <span th:text="${editing ? 'Edit' : 'New'}">New</span></div>
-            <h1 th:text="${editing} ? 'Edit user' : 'New user'">New user</h1>
-            <div class="subtitle" th:if="${editing and editedUser != null}" th:text="${editedUser.username}">username</div>
+            <h1 th:text="${editing} ? 'Edit user' : 'Create user'">Create user</h1>
+            <div class="subtitle" th:text="${editing} ? 'Update this account, its role and sign-in options.' : 'Create a back-office account for a team member.'">Create a back-office account for a team member.</div>
         </div>
-        <div class="page-actions"><a href="/users" class="btn btn-outline">Back</a></div>
+        <div class="page-actions"><a href="/users" class="btn btn-outline">Back to users</a></div>
     </div>
 
     <div th:if="${formError}" class="alert alert-danger" th:text="${formError}"></div>
 
-    <form th:action="${editing} ? @{/users/{id}(id=${userForm.id})} : @{/users}" th:object="${userForm}" method="post" class="form-layout">
-        <div class="detail-grid">
-            <div class="section">
-                <div class="section-header"><h2>Account</h2></div>
-                <div class="form-grid">
-                    <div class="form-group"><label for="username">Username</label><input id="username" th:field="*{username}" required maxlength="50" autocomplete="off"><span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span></div>
-                    <div class="form-group"><label for="fullName">Full name</label><input id="fullName" th:field="*{fullName}" required maxlength="120"><span class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span></div>
-                    <div class="form-group"><label for="email">Email</label><input id="email" type="email" th:field="*{email}" maxlength="160"><span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span></div>
-                    <div class="form-group"><label for="phone">Phone</label><input id="phone" th:field="*{phone}" maxlength="40"><span class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span></div>
-                    <div class="form-group">
-                        <label for="role">Role</label>
-                        <select id="role" th:field="*{role}">
-                            <option th:each="option : ${roles}" th:value="${option}" th:text="${option}">CASHIER</option>
-                        </select>
+    <form th:action="${editing} ? @{/users/{id}(id=${userForm.id})} : @{/users}" th:object="${userForm}" method="post" class="user-form">
+        <div class="user-form-layout">
+            <section class="settings-card">
+                <div class="settings-card-head">
+                    <span class="settings-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle><path d="M20 8v6"></path><path d="M23 11h-6"></path></svg>
+                    </span>
+                    <div>
+                        <h2>Account details</h2>
+                        <p>Identity, contact details and the role used to sign in.</p>
                     </div>
-                    <div class="form-group checkbox-stack">
-                        <label class="checkbox-row"><input type="checkbox" th:field="*{enabled}"> Account enabled</label>
+                    <span class="user-status-pill" th:if="${editing and editedUser != null}"
+                          th:classappend="${editedUser.enabled} ? 'is-enabled' : 'is-disabled'"
+                          th:text="${editedUser.enabled ? 'Enabled' : 'Disabled'}">Enabled</span>
+                </div>
+                <div class="settings-card-body">
+                    <div class="form-grid settings-fields">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input id="username" th:field="*{username}" required maxlength="50" autocomplete="off" placeholder="e.g. amukamana">
+                            <span class="hint">Lowercase, used to sign in and shown in the audit log.</span>
+                            <span class="field-error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="fullName">Full name</label>
+                            <input id="fullName" th:field="*{fullName}" required maxlength="120" autocomplete="name" placeholder="e.g. Alice Mukamana">
+                            <span class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input id="email" type="email" th:field="*{email}" maxlength="160" autocomplete="email" placeholder="name@example.com">
+                            <span class="hint">Used for account contact and invoice emails.</span>
+                            <span class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input id="phone" th:field="*{phone}" maxlength="40" autocomplete="tel" placeholder="+250 7XX XXX XXX">
+                            <span class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
+                        </div>
+                        <div class="form-group form-span">
+                            <label for="role">Role</label>
+                            <select id="role" th:field="*{role}">
+                                <option th:each="option : ${roles}" th:value="${option}"
+                                        th:text="${#strings.capitalize(#strings.toLowerCase(option.name()))}">Cashier</option>
+                            </select>
+                            <span class="hint">The role controls which modules and actions this user can access.</span>
+                        </div>
+                        <div class="form-span">
+                            <label class="settings-toggle" for="enabled">
+                                <span class="settings-toggle-copy">
+                                    <strong>Account enabled</strong>
+                                    <span>Disabled accounts keep their data but cannot sign in.</span>
+                                </span>
+                                <span class="switch">
+                                    <input id="enabled" type="checkbox" th:field="*{enabled}">
+                                    <span class="switch-track" aria-hidden="true"></span>
+                                </span>
+                            </label>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="detail-side">
-                <div class="section">
-                    <div class="section-header"><h2 th:text="${editing} ? 'Set a new password' : 'Initial password'">Password</h2></div>
-                    <div class="form-group"><label for="password">Password</label><input id="password" type="password" th:field="*{password}" autocomplete="new-password" th:required="${!editing}"><span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span><p class="hint">At least 8 characters with a letter and a digit.</p></div>
-                    <div class="form-group"><label for="confirmPassword">Confirm password</label><input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password"><span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span></div>
-                    <label class="checkbox-row"><input type="checkbox" th:field="*{passwordChangeRequired}"> Require a password change at next login</label>
-                </div>
-            </div>
+            <aside class="user-form-side">
+                <section class="settings-card">
+                    <div class="settings-card-head">
+                        <span class="settings-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </span>
+                        <div>
+                            <h2 th:text="${editing} ? 'Set a new password' : 'Initial password'">Initial password</h2>
+                            <p th:text="${editing} ? 'Leave both fields blank to keep the current password.' : 'Give this user a temporary password to sign in.'">Give this user a temporary password to sign in.</p>
+                        </div>
+                    </div>
+                    <div class="settings-card-body stack-form settings-fields">
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input id="password" type="password" th:field="*{password}" autocomplete="new-password" th:required="${!editing}" placeholder="At least 8 characters">
+                            <span class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm password</label>
+                            <input id="confirmPassword" type="password" th:field="*{confirmPassword}" autocomplete="new-password" th:required="${!editing}" placeholder="Repeat the password">
+                            <span class="field-error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+                        </div>
+                        <p class="hint">At least 8 characters, including one letter and one digit.</p>
+                        <label class="settings-toggle" for="passwordChangeRequired">
+                            <span class="settings-toggle-copy">
+                                <strong>Require a password change</strong>
+                                <span>Ask this user to choose a new password at next sign-in.</span>
+                            </span>
+                            <span class="switch">
+                                <input id="passwordChangeRequired" type="checkbox" th:field="*{passwordChangeRequired}">
+                                <span class="switch-track" aria-hidden="true"></span>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="settings-card" th:if="${editing and editedUser != null}">
+                    <div class="settings-card-head">
+                        <span class="settings-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+                        </span>
+                        <div>
+                            <h2>Account activity</h2>
+                            <p>Sign-in and record details for this account.</p>
+                        </div>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="profile-account-list">
+                            <div><span>Last login</span><strong th:text="${editedUser.lastLoginAt == null ? 'Never' : @fmt.dateTime(editedUser.lastLoginAt)}">Never</strong></div>
+                            <div><span>Created</span><strong th:text="${editedUser.createdAt == null ? 'Unknown' : @fmt.dateTime(editedUser.createdAt)}">Unknown</strong></div>
+                            <div><span>Status</span><strong th:text="${editedUser.enabled ? 'Active' : 'Disabled'}">Active</strong></div>
+                            <div><span>User ID</span><strong th:text="'#' + ${editedUser.id}">#1</strong></div>
+                        </div>
+                    </div>
+                </section>
+            </aside>
         </div>
 
-        <div class="form-actions"><button type="submit" class="btn btn-primary" th:text="${editing} ? 'Save changes' : 'Create user'">Create user</button></div>
+        <div class="settings-savebar user-savebar">
+            <div>
+                <strong th:text="${editing} ? 'Save account changes' : 'Create this account'">Save account changes</strong>
+                <span>Changes take effect immediately.</span>
+            </div>
+            <div class="settings-savebar-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing} ? 'Save changes' : 'Create user'">Create user</button>
+            </div>
+        </div>
     </form>
 
-    <div class="section" th:if="${editing}">
-        <div class="section-header"><h2>Reset password</h2></div>
-        <form th:action="@{/users/{id}/reset-password(id=${userForm.id})}" method="post" class="stack-form"
-              onsubmit="return confirm('Reset this user\'s password?')">
-            <div class="form-group"><label for="newPassword">New password</label><input id="newPassword" type="password" name="newPassword" required minlength="8" autocomplete="new-password"></div>
-            <label class="checkbox-row"><input type="checkbox" name="requireChange" value="true" checked> Require change at next login</label>
-            <button type="submit" class="btn btn-outline btn-sm">Reset password</button>
+    <section class="settings-card user-reset-card" th:if="${editing}">
+        <div class="settings-card-head">
+            <span class="settings-card-icon is-warning">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><path d="M12 16v2"></path></svg>
+            </span>
+            <div>
+                <h2>Reset password</h2>
+                <p>Immediately replace this user's password without changing their other details.</p>
+            </div>
+        </div>
+        <form th:action="@{/users/{id}/reset-password(id=${userForm.id})}" method="post"
+              class="settings-card-body stack-form user-reset-form"
+              th:attr="data-confirm=#{users.resetConfirm}">
+            <div class="form-group">
+                <label for="newPassword">New password</label>
+                <input id="newPassword" type="password" name="newPassword" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+            </div>
+            <label class="checkbox-row"><input type="checkbox" name="requireChange" value="true" checked> Require a password change at next login</label>
+            <button type="submit" class="btn btn-outline">Reset password</button>
         </form>
-    </div>
+    </section>
 </div>
 </body>
 </html>

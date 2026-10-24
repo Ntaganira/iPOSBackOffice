@@ -3,12 +3,12 @@
       th:replace="~{layout/sidebar :: html('My profile', ~{::content})}">
 <head><title>My profile - iPOS</title></head>
 <body>
-<div th:fragment="content">
+<div th:fragment="content" class="profile-page">
     <div class="page-header">
         <div>
             <div class="eyebrow">Account</div>
             <h1>My profile</h1>
-            <div class="subtitle">Manage your details and password.</div>
+            <div class="subtitle">Keep your details and password up to date.</div>
         </div>
     </div>
 
@@ -16,58 +16,169 @@
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
     <div th:if="${param.passwordChange != null}" class="alert alert-warning">Your password must be changed before you continue.</div>
 
-    <div class="detail-grid">
-        <div class="section">
-            <div class="section-header"><h2>Profile details</h2></div>
-            <form th:action="@{/profile}" method="post" enctype="multipart/form-data" class="stack-form">
-                <div class="profile-head">
-                    <span class="avatar avatar-lg">
-                        <img th:if="${profileUser.avatarPath != null}" th:src="@{/files/{path}(path=${profileUser.avatarPath})}" alt="">
-                        <span th:if="${profileUser.avatarPath == null}" th:text="${#strings.substring(profileUser.fullName, 0, 1)}">A</span>
+    <div class="profile-layout">
+        <section class="settings-card profile-main-card">
+            <form id="profile-form" th:action="@{/profile}" th:object="${profileUser}" method="post" enctype="multipart/form-data" class="profile-form">
+            <div class="profile-avatar-panel">
+                <label class="profile-avatar-trigger" for="avatar" title="Change profile photo">
+                    <span class="profile-avatar">
+                        <img id="profile-avatar-image" alt="Profile photo"
+                             th:attr="src=${profileUser.avatarPath != null ? '/files/' + profileUser.avatarPath : null}"
+                             th:hidden="${profileUser.avatarPath == null}">
+                        <span id="profile-avatar-initials" th:hidden="${profileUser.avatarPath != null}"
+                              th:text="${profileInitials}">A</span>
                     </span>
-                    <div>
-                        <strong th:text="${profileUser.username}">username</strong>
-                        <div class="muted" th:text="${profileUser.role}">CASHIER</div>
+                    <span class="profile-avatar-edit" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </span>
+                    <span class="sr-only">Change profile photo</span>
+                </label>
+                <div class="profile-avatar-copy">
+                    <div class="profile-role-row">
+                        <span class="profile-role-pill" th:text="${profileUser.role}">ADMIN</span>
+                        <span class="profile-active-pill"><span></span><th:block th:text="${profileUser.enabled ? 'Active' : 'Disabled'}">Active</th:block></span>
                     </div>
+                    <h2 th:text="${profileUser.fullName}">Administrator</h2>
+                    <p class="profile-username">@<span th:text="${profileUser.username}">admin</span></p>
+                    <div class="profile-photo-actions">
+                        <label class="btn btn-outline btn-sm" for="avatar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                            Upload photo
+                        </label>
+                        <button type="button" id="profile-avatar-remove" class="btn btn-outline btn-sm" th:hidden="${profileUser.avatarPath == null}">Remove</button>
+                        <input id="avatar" class="sr-only" type="file" name="avatar" accept="image/png,image/jpeg,image/webp">
+                    </div>
+                    <span id="profile-avatar-file" class="profile-avatar-file">JPG, PNG or WebP, square, up to 2 MB.</span>
                 </div>
-                <div class="form-grid">
-                    <div class="form-group"><label for="fullName">Full name</label><input id="fullName" name="fullName" th:value="${profileUser.fullName}" required maxlength="120"></div>
-                    <div class="form-group"><label for="email">Email</label><input id="email" type="email" name="email" th:value="${profileUser.email}" maxlength="160"></div>
-                    <div class="form-group"><label for="phone">Phone</label><input id="phone" name="phone" th:value="${profileUser.phone}" maxlength="40"></div>
-                    <div class="form-group"><label for="locale">Language</label>
+            </div>
+
+                <input type="hidden" id="removeAvatar" name="removeAvatar" value="false">
+                <div class="settings-card-body">
+                <div class="form-grid settings-fields">
+                    <div class="form-group">
+                        <label for="fullName">Full name</label>
+                        <input id="fullName" name="fullName" th:value="${profileUser.fullName}" required maxlength="120" autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input id="email" type="email" name="email" th:value="${profileUser.email}" maxlength="160" autocomplete="email" placeholder="you@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input id="phone" name="phone" th:value="${profileUser.phone}" maxlength="40" autocomplete="tel" placeholder="+250 7XX XXX XXX">
+                    </div>
+                    <div class="form-group">
+                        <label for="locale">Language</label>
                         <select id="locale" name="locale">
                             <option value="en" th:selected="${profileUser.locale == 'en'}">English</option>
                             <option value="fr" th:selected="${profileUser.locale == 'fr'}">Français</option>
                             <option value="rw" th:selected="${profileUser.locale == 'rw'}">Ikinyarwanda</option>
                         </select>
                     </div>
-                    <div class="form-group form-span"><label for="avatar">Profile photo</label><input id="avatar" type="file" name="avatar" accept="image/png,image/jpeg,image/webp"></div>
                 </div>
-                <div class="form-actions"><button type="submit" class="btn btn-primary">Save profile</button></div>
+                <div class="settings-savebar profile-savebar">
+                    <div>
+                        <strong>Save your details</strong>
+                        <span>Your name and contact information appear on your account.</span>
+                    </div>
+                    <div class="settings-savebar-actions">
+                        <button type="submit" class="btn btn-primary">Save profile</button>
+                    </div>
+                </div>
+                </div>
             </form>
-        </div>
+        </section>
 
-        <div class="detail-side">
-            <div class="section">
-                <div class="section-header"><h2>Change password</h2></div>
-                <form th:action="@{/profile/password}" method="post" class="stack-form">
+        <aside class="profile-stack">
+            <section class="settings-card">
+                <div class="settings-card-head">
+                    <span class="settings-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </span>
+                    <div>
+                        <h2>Change password</h2>
+                        <p>Use at least 8 characters with a letter and a digit.</p>
+                    </div>
+                </div>
+                <form th:action="@{/profile/password}" method="post" class="settings-card-body stack-form">
                     <div class="form-group"><label for="currentPassword">Current password</label><input id="currentPassword" type="password" name="currentPassword" required autocomplete="current-password"></div>
-                    <div class="form-group"><label for="newPassword">New password</label><input id="newPassword" type="password" name="newPassword" required minlength="8" autocomplete="new-password"><p class="hint">At least 8 characters with a letter and a digit.</p></div>
+                    <div class="form-group"><label for="newPassword">New password</label><input id="newPassword" type="password" name="newPassword" required minlength="8" autocomplete="new-password"></div>
                     <div class="form-group"><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" name="confirmPassword" required autocomplete="new-password"></div>
                     <button type="submit" class="btn btn-outline">Change password</button>
                 </form>
-            </div>
-            <div class="section">
-                <div class="section-header"><h2>Account</h2></div>
-                <div class="detail-list">
-                    <div><span>Username</span><strong th:text="${profileUser.username}">username</strong></div>
-                    <div><span>Role</span><strong th:text="${profileUser.role}">CASHIER</strong></div>
-                    <div><span>Last login</span><strong th:text="${profileUser.lastLoginAt == null ? 'Never' : @fmt.dateTime(profileUser.lastLoginAt)}">Never</strong></div>
-                    <div><span>Status</span><strong th:text="${profileUser.enabled ? 'Active' : 'Disabled'}">Active</strong></div>
+            </section>
+
+            <section class="settings-card">
+                <div class="settings-card-head">
+                    <span class="settings-card-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </span>
+                    <div>
+                        <h2>Account</h2>
+                        <p>Your sign-in and access details.</p>
+                    </div>
                 </div>
-            </div>
-        </div>
+                <div class="settings-card-body">
+                    <div class="profile-account-list">
+                        <div><span>Username</span><strong th:text="${profileUser.username}">admin</strong></div>
+                        <div><span>Role</span><strong th:text="${profileUser.role}">ADMIN</strong></div>
+                        <div><span>Last login</span><strong th:text="${profileUser.lastLoginAt == null ? 'Never' : @fmt.dateTime(profileUser.lastLoginAt)}">Never</strong></div>
+                        <div><span>Status</span><strong th:text="${profileUser.enabled ? 'Active' : 'Disabled'}">Active</strong></div>
+                    </div>
+                </div>
+            </section>
+        </aside>
     </div>
+
+    <script>
+        (function () {
+            var input = document.getElementById('avatar');
+            var image = document.getElementById('profile-avatar-image');
+            var initials = document.getElementById('profile-avatar-initials');
+            var remove = document.getElementById('profile-avatar-remove');
+            var removeFlag = document.getElementById('removeAvatar');
+            var fileName = document.getElementById('profile-avatar-file');
+            var objectUrl = null;
+
+            if (input) {
+                input.addEventListener('change', function () {
+                    var file = input.files && input.files[0];
+                    if (!file) return;
+                    var validType = ['image/png', 'image/jpeg', 'image/webp'].indexOf(file.type) !== -1;
+                    if (!validType) {
+                        if (window.showToast) window.showToast('Choose a PNG, JPG or WebP image.', 'error');
+                        input.value = '';
+                        return;
+                    }
+                    if (file.size > 2 * 1024 * 1024) {
+                        if (window.showToast) window.showToast('The profile photo must be 2 MB or smaller.', 'error');
+                        input.value = '';
+                        return;
+                    }
+                    if (objectUrl) URL.revokeObjectURL(objectUrl);
+                    objectUrl = URL.createObjectURL(file);
+                    image.src = objectUrl;
+                    image.hidden = false;
+                    initials.hidden = true;
+                    remove.hidden = false;
+                    removeFlag.value = 'false';
+                    fileName.textContent = file.name;
+                });
+            }
+
+            if (remove) {
+                remove.addEventListener('click', function () {
+                    if (input) input.value = '';
+                    image.hidden = true;
+                    image.removeAttribute('src');
+                    initials.hidden = false;
+                    remove.hidden = true;
+                    removeFlag.value = 'true';
+                    fileName.textContent = 'Your photo will be removed when you save.';
+                });
+            }
+        })();
+    </script>
 </div>
 </body>
 </html>

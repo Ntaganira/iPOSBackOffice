@@ -22,12 +22,13 @@ public class FileController {
 
     @GetMapping("/files/{*path}")
     public ResponseEntity<Resource> file(@PathVariable String path) {
-        Resource resource = storageService.load(path);
+        String relativePath = path.startsWith("/") ? path.substring(1) : path;
+        Resource resource = storageService.load(relativePath);
         if (resource == null) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(storageService.contentType(path)))
+                .contentType(MediaType.parseMediaType(storageService.contentType(relativePath)))
                 .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic())
                 .body(resource);
     }

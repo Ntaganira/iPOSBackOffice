@@ -15,11 +15,7 @@
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-    <div class="filter-bar settings-tabs">
-        <a class="btn btn-outline btn-sm" href="/settings/shop">Shop</a>
-        <a class="btn btn-primary btn-sm" href="/settings/email">Email</a>
-        <a class="btn btn-outline btn-sm" href="/settings/tax">Tax</a>
-    </div>
+    <div th:replace="~{settings/tabs :: tabs('email')}"></div>
 
     <div class="detail-grid">
         <form th:action="@{/settings/email}" th:object="${settings}" method="post" class="section stack-form">

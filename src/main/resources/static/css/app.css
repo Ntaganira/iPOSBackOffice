@@ -124,6 +124,17 @@ body {
   font-weight: 700;
 }
 
+.sidebar-brand .logo-image {
+  display: block;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #fff;
+  object-fit: contain;
+}
+
 .sidebar-brand h2 {
   color: white;
   font-size: 20px;
@@ -584,7 +595,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   right: 0;
   width: 320px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--gray-200);
   border-radius: 12px;
   box-shadow: var(--shadow-lg, 0 8px 24px rgba(0,0,0,.12));
   z-index: 200;
@@ -599,7 +610,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--gray-200);
   font-weight: 600;
   font-size: 13px;
   color: var(--gray-700);
@@ -630,7 +641,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   position: relative;
   padding: 12px 14px;
   text-decoration: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--gray-200);
   transition: var(--transition);
 }
 
@@ -671,6 +682,10 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   border-radius: 50%;
 }
 
+.notif-item-stock .notif-item-dot { background: var(--warning); }
+.notif-item-expenses .notif-item-dot { background: var(--info); }
+.notif-item-emails .notif-item-dot { background: var(--danger); }
+
 .notif-item-empty {
   padding: 24px 14px;
   text-align: center;
@@ -686,7 +701,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   font-weight: 600;
   color: var(--primary);
   text-decoration: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--gray-200);
   background: var(--gray-50, var(--gray-100));
 }
 
@@ -2169,6 +2184,13 @@ table tbody td .patient-cell .info .email {
   .dash-row { grid-template-columns: 1fr; }
   .module-stats { grid-template-columns: 1fr; }
   .header-right .search-box { width: 160px; }
+  .header-right .notif-panel {
+    position: fixed;
+    top: calc(var(--header-height) + 8px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
 }
 
 /* === Charts === */
@@ -2715,8 +2737,17 @@ table tbody td .patient-cell .info .email {
 .perm-child { margin-left: 22px; }
 
 .checkbox {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"],
+.checkbox-grid input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
   accent-color: var(--primary);
   cursor: pointer;
 }

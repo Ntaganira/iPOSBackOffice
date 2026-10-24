@@ -1,6 +1,14 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
+import com.ntaganira.heritier.ipos.backoffice.dto.CartRequest;
+import com.ntaganira.heritier.ipos.backoffice.entity.Product;
+import com.ntaganira.heritier.ipos.backoffice.entity.Sale;
+import com.ntaganira.heritier.ipos.backoffice.enums.PaymentMethod;
+import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.PermissionRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.ProductRepository;
+import com.ntaganira.heritier.ipos.backoffice.service.SaleService;
+import jakarta.servlet.RequestDispatcher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -11,8 +19,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
@@ -32,6 +42,15 @@ class WebPagesTest extends AbstractIntegrationTest {
 
     @Autowired
     private PermissionRepository permissionRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private AppUserRepository userRepository;
+
+    @Autowired
+    private SaleService saleService;
 
     @Test
     void loginPageRenders() throws Exception {
@@ -65,6 +84,95 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("dashboard"))
                 .andExpect(content().string(containsString("const trendLabels = [")));
+    }
+
+    @Test
+    void headerShowsLowStockNotification() throws Exception {
+        Product product = new Product();
+        product.setCode("NOTIF-" + UUID.randomUUID().toString().substring(0, 8));
+        product.setName("Notification test product");
+        product.setBuyingPrice(new BigDecimal("1.00"));
+        product.setSellingPrice(new BigDecimal("2.00"));
+        product.setReorderLevel(new BigDecimal("5"));
+        product.setStockQuantity(BigDecimal.ONE);
+        productRepository.save(product);
+
+        mockMvc.perform(get("/dashboard").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"notif-btn\"")))
+                .andExpect(content().string(containsString("id=\"notif-panel\"")))
+                .andExpect(content().string(containsString("notif-item-stock")))
+                .andExpect(content().string(containsString("Products at or below reorder level:")))
+                .andExpect(content().string(containsString("/stock#low-stock")));
+    }
+
+    @Test
+    void errorPagesUseAppShell() throws Exception {
+        mockMvc.perform(get("/403").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error/403"))
+                .andExpect(content().string(containsString("sidebar-brand")))
+                .andExpect(content().string(containsString("error-card")))
+                .andExpect(content().string(containsString("Back to dashboard")));
+    }
+
+    @Test
+    void notFoundPageUsesAppShell() throws Exception {
+        mockMvc.perform(get("/error")
+                        .accept(org.springframework.http.MediaType.TEXT_HTML)
+                        .requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 404)
+                        .requestAttr(RequestDispatcher.ERROR_REQUEST_URI, "/this-page-does-not-exist")
+                        .with(asAdmin()))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error/404"))
+                .andExpect(content().string(containsString("sidebar-brand")))
+                .andExpect(content().string(containsString("error-card")))
+                .andExpect(content().string(containsString("Page not found")));
+    }
+
+    @Test
+    void salesListShowsCheckoutWithoutDateFilter() throws Exception {
+        Product product = productRepository.findAll().stream()
+                .filter(item -> item.getStockQuantity().signum() > 0)
+                .findFirst().orElseThrow();
+
+        CartRequest cart = new CartRequest();
+        CartRequest.Item item = new CartRequest.Item();
+        item.setProductId(product.getId());
+        item.setQuantity(BigDecimal.ONE);
+        item.setDiscount(BigDecimal.ZERO);
+        cart.setItems(List.of(item));
+
+        CartRequest.Payment payment = new CartRequest.Payment();
+        payment.setMethod(PaymentMethod.CASH);
+        payment.setAmount(product.getSellingPrice());
+        cart.setPayments(List.of(payment));
+
+        Sale sale = saleService.completeSale(cart);
+
+        mockMvc.perform(get("/sales").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(sale.getReceiptNumber())));
+    }
+
+    @Test
+    void userEditFormRenders() throws Exception {
+        Long adminId = userRepository.findByUsername("admin").orElseThrow().getId();
+        mockMvc.perform(get("/users/" + adminId + "/edit").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("users/form"))
+                .andExpect(content().string(containsString("user-form-layout")))
+                .andExpect(content().string(containsString("user-reset-card")))
+                .andExpect(content().string(containsString("data-confirm=")));
+    }
+
+    @Test
+    void taxEditorRendersStyledInputs() throws Exception {
+        mockMvc.perform(get("/settings/tax").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("tax-input")))
+                .andExpect(content().string(containsString("tax-rate-field")))
+                .andExpect(content().string(containsString("switch-track")));
     }
 
     @Test

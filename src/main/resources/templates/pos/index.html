@@ -287,6 +287,7 @@
         (function () {
             const initialProducts = /*[[${products}]]*/ [];
             const initialCustomers = /*[[${customers}]]*/ [];
+            const autoPrint = /*[[${settings.autoPrint}]]*/ false;
             const csrfToken = document.querySelector('meta[name="_csrf"]').content;
             const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
             const money = (value) => 'RWF ' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -305,6 +306,26 @@
             const grid = el('product-grid');
             const cartLines = el('cart-lines');
             const customerSelect = el('customer-select');
+            const receiptFrame = el('receipt-frame');
+            let receiptReady = false;
+            let autoPrintPending = false;
+
+            function printReceiptFrame() {
+                if (!receiptFrame.contentWindow) return;
+                try {
+                    receiptFrame.contentWindow.focus();
+                    receiptFrame.contentWindow.print();
+                } catch (error) {
+                    window.open(receiptFrame.src, '_blank', 'noopener');
+                }
+            }
+            receiptFrame.addEventListener('load', () => {
+                if (!receiptFrame.contentWindow || receiptFrame.contentWindow.location.href === 'about:blank') return;
+                receiptReady = true;
+                if (!autoPrintPending) return;
+                autoPrintPending = false;
+                setTimeout(printReceiptFrame, 200);
+            });
 
             function openModal(id) {
                 const node = el(id);
@@ -519,6 +540,9 @@
                 el('checkout-email').checked = false;
                 renderCart();
                 closeModal('receipt-modal');
+                autoPrintPending = false;
+                receiptFrame.src = 'about:blank';
+                receiptReady = false;
                 el('product-search').value = '';
                 renderProducts();
                 el('product-search').focus();
@@ -731,7 +755,9 @@
                     });
                     closeModal('checkout-modal');
                     el('receipt-summary').textContent = sale.receiptNumber + ' · ' + money(sale.total) + (Number(sale.changeDue) > 0 ? ' · Change ' + money(sale.changeDue) : '');
-                    el('receipt-frame').src = sale.receiptUrl + '?embedded=1';
+                    receiptReady = false;
+                    autoPrintPending = autoPrint;
+                    receiptFrame.src = sale.receiptUrl + '?embedded=1';
                     openModal('receipt-modal');
                     state.products = await api('/pos/products');
                     renderProducts();
@@ -745,8 +771,11 @@
                 }
             });
             el('print-receipt-btn').addEventListener('click', () => {
-                const frame = el('receipt-frame');
-                if (frame && frame.contentWindow) frame.contentWindow.print();
+                if (receiptReady) {
+                    printReceiptFrame();
+                    return;
+                }
+                receiptFrame.addEventListener('load', printReceiptFrame, { once: true });
             });
 
             document.addEventListener('keydown', event => {

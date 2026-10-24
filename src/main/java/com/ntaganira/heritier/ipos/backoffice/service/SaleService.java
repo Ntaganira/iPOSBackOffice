@@ -299,7 +299,9 @@ public class SaleService {
     @Transactional(readOnly = true)
     public Page<Sale> search(Instant from, Instant to, Long cashierId, Long customerId,
                              SaleStatus status, SaleType type, String q, PaymentMethod method, Pageable pageable) {
-        return saleRepository.search(from, to, cashierId, customerId, status, type, like(q), method, pageable);
+        Instant rangeStart = from == null ? Instant.EPOCH : from;
+        Instant rangeEnd = to == null ? Instant.now().plusSeconds(1) : to;
+        return saleRepository.search(rangeStart, rangeEnd, cashierId, customerId, status, type, like(q), method, pageable);
     }
 
     @Transactional(readOnly = true)

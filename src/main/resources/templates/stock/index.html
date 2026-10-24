@@ -101,7 +101,7 @@
         </div>
 
         <div class="detail-side">
-            <div class="section">
+            <div class="section" id="low-stock">
                 <div class="section-header"><h2>Low stock</h2><span class="section-count" th:text="${#lists.size(lowStock)}">0</span></div>
                 <div class="alert-list">
                     <div class="alert-row" th:each="product : ${lowStock}">

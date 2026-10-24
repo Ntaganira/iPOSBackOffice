@@ -49,6 +49,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select p from Product p where p.active = true and p.stockQuantity <= p.reorderLevel order by p.stockQuantity asc")
     List<Product> findLowStock();
 
+    @Query("select count(p) from Product p where p.active = true and p.stockQuantity <= p.reorderLevel")
+    long countLowStock();
+
     long countByActiveTrueAndStockQuantityLessThanEqual(BigDecimal level);
 
     @Query("select coalesce(sum(p.stockQuantity), 0) from Product p where p.active = true")

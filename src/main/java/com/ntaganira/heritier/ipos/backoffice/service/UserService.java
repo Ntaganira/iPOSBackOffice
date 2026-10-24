@@ -149,7 +149,7 @@ public class UserService {
 
     @Transactional
     public AppUser updateProfile(Long id, String fullName, String email, String phone,
-                                 String locale, MultipartFile avatar) {
+                                 String locale, MultipartFile avatar, boolean removeAvatar) {
         AppUser user = get(id);
         if (!StringUtils.hasText(fullName)) {
             throw new BusinessException("Full name is required.");
@@ -167,6 +167,10 @@ public class UserService {
             if (oldAvatar != null) {
                 storageService.delete(oldAvatar);
             }
+        } else if (removeAvatar && oldAvatar != null) {
+            user.setAvatarPath(null);
+            user.setAvatarContentType(null);
+            storageService.delete(oldAvatar);
         }
         AppUser saved = userRepository.save(user);
         auditService.updated("User", saved.getId(), saved.getUsername(), before, snapshot(saved));

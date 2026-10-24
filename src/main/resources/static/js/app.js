@@ -173,6 +173,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Forms that need a confirmation before submitting
+    document.querySelectorAll('form[data-confirm]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            if (form.dataset.confirmed === 'true') return;
+            e.preventDefault();
+            confirmDialog.open({
+                message: form.getAttribute('data-confirm'),
+                danger: true,
+                onConfirm: function () {
+                    form.dataset.confirmed = 'true';
+                    form.requestSubmit();
+                }
+            });
+        });
+    });
+
     // Modals
     const modalOpen = function (id) {
         const overlay = document.getElementById(id);
@@ -259,19 +275,30 @@ document.addEventListener('DOMContentLoaded', function () {
     const notifBtn = document.getElementById('notif-btn');
     const notifPanel = document.getElementById('notif-panel');
     if (notifBtn && notifPanel) {
+        const closeNotifications = function () {
+            notifPanel.classList.remove('open');
+            notifBtn.classList.remove('active');
+            notifBtn.setAttribute('aria-expanded', 'false');
+        };
         notifBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             const open = notifPanel.classList.toggle('open');
             notifBtn.classList.toggle('active', open);
+            notifBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
         document.addEventListener('click', function (e) {
             if (!notifPanel.contains(e.target) && e.target !== notifBtn) {
-                notifPanel.classList.remove('open');
-                notifBtn.classList.remove('active');
+                closeNotifications();
             }
         });
         notifPanel.addEventListener('click', function (e) {
             e.stopPropagation();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && notifPanel.classList.contains('open')) {
+                closeNotifications();
+                notifBtn.focus();
+            }
         });
     }
 
