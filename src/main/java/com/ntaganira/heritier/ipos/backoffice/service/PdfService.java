@@ -69,11 +69,14 @@ public class PdfService {
             if (settings.getAddress() != null) {
                 document.add(centered(settings.getAddress(), tiny));
             }
-            if (settings.getPhone() != null || settings.getEmail() != null) {
-                String contact = (settings.getPhone() == null ? "" : settings.getPhone())
-                        + (settings.getPhone() != null && settings.getEmail() != null ? "  |  " : "")
-                        + (settings.getEmail() == null ? "" : settings.getEmail());
-                document.add(centered(contact, tiny));
+            if (settings.getPhone() != null || settings.getEmail() != null || settings.getWhatsappNumber() != null) {
+                StringBuilder contact = new StringBuilder();
+                appendContact(contact, settings.getPhone());
+                if (settings.getWhatsappNumber() != null) {
+                    appendContact(contact, "WhatsApp " + settings.getWhatsappNumber());
+                }
+                appendContact(contact, settings.getEmail());
+                document.add(centered(contact.toString(), tiny));
             }
             if (settings.getShopTin() != null) {
                 document.add(centered("TIN: " + settings.getShopTin(), small));
@@ -208,6 +211,16 @@ public class PdfService {
         Paragraph paragraph = new Paragraph(text == null ? "" : text, font);
         paragraph.setAlignment(Element.ALIGN_CENTER);
         return paragraph;
+    }
+
+    private void appendContact(StringBuilder contact, String value) {
+        if (value == null) {
+            return;
+        }
+        if (contact.length() > 0) {
+            contact.append("  |  ");
+        }
+        contact.append(value);
     }
 
     private void addHeader(PdfPTable table, String[] values, Font font) {

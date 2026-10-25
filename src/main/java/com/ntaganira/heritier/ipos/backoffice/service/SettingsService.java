@@ -7,6 +7,7 @@ import com.ntaganira.heritier.ipos.backoffice.enums.SmtpSecurity;
 import com.ntaganira.heritier.ipos.backoffice.repository.ShopSettingRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.TaxCategoryRepository;
 import com.ntaganira.heritier.ipos.backoffice.util.Money;
+import com.ntaganira.heritier.ipos.backoffice.util.WhatsApp;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -71,6 +72,7 @@ public class SettingsService {
         current.setShopTin(trimToNull(form.getShopTin()));
         current.setAddress(trimToNull(form.getAddress()));
         current.setPhone(trimToNull(form.getPhone()));
+        current.setWhatsappNumber(WhatsApp.normalize(form.getWhatsappNumber()));
         current.setEmail(trimToNull(form.getEmail()));
         current.setCurrency(trim(form.getCurrency(), "RWF").toUpperCase());
         current.setReceiptFooter(trimToNull(form.getReceiptFooter()));
@@ -122,6 +124,7 @@ public class SettingsService {
         current.setShopTin(trimToNull(form.getShopTin()));
         current.setAddress(trimToNull(form.getAddress()));
         current.setPhone(trimToNull(form.getPhone()));
+        current.setWhatsappNumber(WhatsApp.normalize(form.getWhatsappNumber()));
         current.setEmail(trimToNull(form.getEmail()));
         current.setCurrency(trim(form.getCurrency(), "RWF").toUpperCase());
         current.setReceiptFooter(trimToNull(form.getReceiptFooter()));
@@ -213,6 +216,7 @@ public class SettingsService {
         map.put("shopTin", settings.getShopTin());
         map.put("address", settings.getAddress());
         map.put("phone", settings.getPhone());
+        map.put("whatsappNumber", settings.getWhatsappNumber());
         map.put("email", settings.getEmail());
         map.put("currency", settings.getCurrency());
         map.put("receiptFooter", settings.getReceiptFooter());

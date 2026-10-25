@@ -71,6 +71,11 @@
                         <input id="phone" th:field="*{phone}" maxlength="40" autocomplete="tel" placeholder="+250 7XX XXX XXX">
                     </div>
                     <div class="form-group">
+                        <label for="whatsappNumber">WhatsApp number</label>
+                        <input id="whatsappNumber" th:field="*{whatsappNumber}" maxlength="40" autocomplete="tel" placeholder="+250 7XX XXX XXX">
+                        <span class="hint">Shown on invoices and used to send them over WhatsApp. Include the country code.</span>
+                    </div>
+                    <div class="form-group">
                         <label for="email">Email</label>
                         <input id="email" type="email" th:field="*{email}" maxlength="160" autocomplete="email" placeholder="shop@example.com">
                     </div>

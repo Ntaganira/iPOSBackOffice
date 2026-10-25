@@ -17,6 +17,7 @@
         <div class="page-actions">
             <a class="btn btn-outline" th:href="@{/sales/{id}/receipt(id=${sale.id})}" target="_blank" rel="noopener">Print preview</a>
             <a class="btn btn-outline" th:href="@{/sales/{id}/pdf(id=${sale.id},format='invoice')}">Download PDF</a>
+            <a class="btn btn-outline" th:href="@{/sales/{id}/whatsapp(id=${sale.id})}" target="_blank" rel="noopener">WhatsApp invoice</a>
             <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary">New sale</a>
         </div>
     </div>
@@ -128,6 +129,21 @@
                                th:value="${sale.customer != null ? sale.customer.email : ''}" placeholder="name@example.com">
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm">Send receipt</button>
+                </form>
+            </div>
+
+            <div class="section">
+                <div class="section-header"><h2>WhatsApp invoice</h2></div>
+                <form th:action="@{/sales/{id}/whatsapp(id=${sale.id})}" method="get" class="stack-form">
+                    <div class="form-group">
+                        <label for="whatsapp-phone">Recipient WhatsApp number</label>
+                        <input id="whatsapp-phone" name="phone" type="tel" maxlength="40"
+                               th:value="${sale.customer != null ? sale.customer.phone : ''}" placeholder="+250 7XX XXX XXX">
+                        <span class="hint" th:if="${settings.whatsappNumber != null}"
+                              th:text="'Buyers can reply to the shop on ' + ${settings.whatsappNumber} + '.'">Buyers can reply to the shop.</span>
+                        <span class="hint" th:if="${settings.whatsappNumber == null}">Add the shop WhatsApp number in Settings &gt; Shop to include it on invoices.</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Send invoice on WhatsApp</button>
                 </form>
             </div>
 

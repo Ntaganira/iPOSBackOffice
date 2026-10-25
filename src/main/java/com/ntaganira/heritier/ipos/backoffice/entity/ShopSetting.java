@@ -38,6 +38,9 @@ public class ShopSetting {
     @Column(length = 40)
     private String phone;
 
+    @Column(name = "whatsapp_number", length = 40)
+    private String whatsappNumber;
+
     @Column(length = 160)
     private String email;
 

@@ -12,10 +12,12 @@ import com.ntaganira.heritier.ipos.backoffice.service.ReceiptService;
 import com.ntaganira.heritier.ipos.backoffice.service.SaleService;
 import com.ntaganira.heritier.ipos.backoffice.service.SettingsService;
 import com.ntaganira.heritier.ipos.backoffice.service.UserService;
+import com.ntaganira.heritier.ipos.backoffice.service.WhatsAppService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -47,6 +50,7 @@ public class SalesController {
     private final UserService userService;
     private final SettingsService settingsService;
     private final AuditService auditService;
+    private final WhatsAppService whatsAppService;
 
     public SalesController(SaleService saleService,
                            ReceiptService receiptService,
@@ -54,7 +58,8 @@ public class SalesController {
                            EmailService emailService,
                            UserService userService,
                            SettingsService settingsService,
-                           AuditService auditService) {
+                           AuditService auditService,
+                           WhatsAppService whatsAppService) {
         this.saleService = saleService;
         this.receiptService = receiptService;
         this.pdfService = pdfService;
@@ -62,6 +67,7 @@ public class SalesController {
         this.userService = userService;
         this.settingsService = settingsService;
         this.auditService = auditService;
+        this.whatsAppService = whatsAppService;
     }
 
     @GetMapping("/sales")
@@ -157,6 +163,16 @@ public class SalesController {
         emailService.sendReceipt(id, recipient, null);
         redirect.addFlashAttribute("success", "Receipt email queued for " + recipient + ".");
         return "redirect:/sales/" + id;
+    }
+
+    @GetMapping("/sales/{id}/whatsapp")
+    public ResponseEntity<Void> whatsapp(@PathVariable Long id,
+                                         @RequestParam(required = false) String phone) {
+        Sale sale = saleService.sale(id);
+        String link = whatsAppService.invoiceLink(sale, phone);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(link))
+                .build();
     }
 
     private List<Map<String, Object>> taxLines(Sale sale) {

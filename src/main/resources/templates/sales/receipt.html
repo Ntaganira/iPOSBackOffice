@@ -20,6 +20,7 @@
         </div>
         <a class="toolbar-btn" th:href="@{/sales/{id}/pdf(id=${sale.id},format='receipt')}">Receipt PDF</a>
         <a class="toolbar-btn" th:href="@{/sales/{id}/pdf(id=${sale.id},format='invoice')}">Invoice PDF</a>
+        <a class="toolbar-btn" th:href="@{/sales/{id}/whatsapp(id=${sale.id})}" target="_blank" rel="noopener">WhatsApp</a>
         <button type="button" class="toolbar-btn primary" id="print-btn">Print</button>
         <button type="button" class="toolbar-btn" onclick="window.close()">Close</button>
     </div>
@@ -31,6 +32,7 @@
             <div class="shop-name" th:text="${shop.shopName}">iPOS Demo Shop</div>
             <div th:if="${shop.address}" th:text="${shop.address}">Kigali, Rwanda</div>
             <div th:if="${shop.phone}" th:text="'Tel: ' + ${shop.phone}">Tel: +250</div>
+            <div th:if="${shop.whatsappNumber}" th:text="'WhatsApp: ' + ${shop.whatsappNumber}">WhatsApp: +250</div>
             <div th:if="${shop.shopTin}" th:text="'TIN: ' + ${shop.shopTin}">TIN: 123</div>
         </div>
         <div class="receipt-type">
@@ -107,6 +109,7 @@
                     <h1 th:text="${shop.shopName}">iPOS Demo Shop</h1>
                     <p th:text="${shop.address ?: 'Kigali, Rwanda'}">Kigali, Rwanda</p>
                     <p th:text="(${shop.phone ?: ''} + (${shop.shopTin != null} ? ' · TIN ' + ${shop.shopTin} : ''))">Phone · TIN</p>
+                    <p th:if="${shop.whatsappNumber}" th:text="'WhatsApp: ' + ${shop.whatsappNumber}">WhatsApp: +250</p>
                 </div>
             </div>
             <div class="invoice-title">

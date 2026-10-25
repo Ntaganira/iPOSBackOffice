@@ -26,9 +26,11 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -153,6 +155,41 @@ class WebPagesTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/sales").with(asAdmin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(sale.getReceiptNumber())));
+    }
+
+    @Test
+    void shopSettingsExposeWhatsAppNumber() throws Exception {
+        mockMvc.perform(get("/settings/shop").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"whatsappNumber\"")))
+                .andExpect(content().string(containsString("WhatsApp number")));
+    }
+
+    @Test
+    void whatsappInvoiceRedirectsToClickToChat() throws Exception {
+        Product product = productRepository.findAll().stream()
+                .filter(item -> item.getStockQuantity().signum() > 0)
+                .findFirst().orElseThrow();
+
+        CartRequest cart = new CartRequest();
+        CartRequest.Item item = new CartRequest.Item();
+        item.setProductId(product.getId());
+        item.setQuantity(BigDecimal.ONE);
+        item.setDiscount(BigDecimal.ZERO);
+        cart.setItems(List.of(item));
+
+        CartRequest.Payment payment = new CartRequest.Payment();
+        payment.setMethod(PaymentMethod.CASH);
+        payment.setAmount(product.getSellingPrice());
+        cart.setPayments(List.of(payment));
+
+        Sale sale = saleService.completeSale(cart);
+
+        mockMvc.perform(get("/sales/" + sale.getId() + "/whatsapp")
+                        .param("phone", "0788 000 000")
+                        .with(asAdmin()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(header().string("Location", startsWith("https://wa.me/250788000000?text=")));
     }
 
     @Test
