@@ -188,6 +188,8 @@ public class PosController {
         map.put("taxRate", product.getTaxCategory() == null || product.getTaxCategory().isExempt()
                 ? BigDecimal.ZERO : product.getTaxCategory().getRate());
         map.put("category", product.getCategory() == null ? "" : product.getCategory().getName());
+        map.put("location", product.getLocation() == null ? "" : product.getLocation().getName());
+        map.put("locationColor", product.getLocation() == null ? "" : product.getLocation().getColorAccent());
         map.put("imagePath", product.getImagePath());
         return map;
     }

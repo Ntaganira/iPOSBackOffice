@@ -4,6 +4,7 @@ import com.ntaganira.heritier.ipos.backoffice.entity.Product;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
@@ -30,6 +31,9 @@ public class ProductForm {
     private Long unitId;
 
     private Long locationId;
+
+    @Pattern(regexp = "^$|^#[0-9a-fA-F]{6}$", message = "Location accent must be a hex value such as #268071.")
+    private String locationColor;
 
     @NotBlank(message = "Choose a tax category.")
     private String taxCategoryCode;
@@ -62,6 +66,7 @@ public class ProductForm {
         form.categoryId = product.getCategory() == null ? null : product.getCategory().getId();
         form.unitId = product.getUnit() == null ? null : product.getUnit().getId();
         form.locationId = product.getLocation() == null ? null : product.getLocation().getId();
+        form.locationColor = product.getLocation() == null ? null : product.getLocation().getColorAccent();
         form.taxCategoryCode = product.getTaxCategory() == null ? "A" : product.getTaxCategory().getCode();
         form.buyingPrice = product.getBuyingPrice();
         form.sellingPrice = product.getSellingPrice();
@@ -126,6 +131,14 @@ public class ProductForm {
 
     public void setLocationId(Long locationId) {
         this.locationId = locationId;
+    }
+
+    public String getLocationColor() {
+        return locationColor;
+    }
+
+    public void setLocationColor(String locationColor) {
+        this.locationColor = locationColor;
     }
 
     public String getTaxCategoryCode() {

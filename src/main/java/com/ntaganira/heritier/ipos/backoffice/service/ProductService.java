@@ -42,6 +42,7 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
     private final StorageLocationRepository locationRepository;
+    private final LocationService locationService;
     private final TaxCategoryRepository taxCategoryRepository;
     private final StockService stockService;
     private final SequenceService sequenceService;
@@ -53,6 +54,7 @@ public class ProductService {
                           CategoryRepository categoryRepository,
                           UnitRepository unitRepository,
                           StorageLocationRepository locationRepository,
+                          LocationService locationService,
                           TaxCategoryRepository taxCategoryRepository,
                           StockService stockService,
                           SequenceService sequenceService,
@@ -63,6 +65,7 @@ public class ProductService {
         this.categoryRepository = categoryRepository;
         this.unitRepository = unitRepository;
         this.locationRepository = locationRepository;
+        this.locationService = locationService;
         this.taxCategoryRepository = taxCategoryRepository;
         this.stockService = stockService;
         this.sequenceService = sequenceService;
@@ -387,8 +390,13 @@ public class ProductService {
         product.setBarcode(StringUtils.hasText(form.getBarcode()) ? form.getBarcode().trim() : null);
         product.setCategory(category);
         product.setUnit(unit);
-        product.setLocation(form.getLocationId() == null ? null : locationRepository.findById(form.getLocationId())
-                .orElseThrow(() -> new BusinessException("Choose a valid storage location.")));
+        StorageLocation location = form.getLocationId() == null ? null
+                : locationRepository.findById(form.getLocationId())
+                .orElseThrow(() -> new BusinessException("Choose a valid storage location."));
+        product.setLocation(location);
+        if (location != null && form.getLocationColor() != null) {
+            locationService.updateAccent(location.getId(), form.getLocationColor());
+        }
         product.setTaxCategory(tax);
         product.setBuyingPrice(Money.of(form.getBuyingPrice()));
         product.setSellingPrice(Money.of(form.getSellingPrice()));

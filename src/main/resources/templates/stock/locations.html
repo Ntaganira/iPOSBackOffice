@@ -39,7 +39,11 @@
                 </thead>
                 <tbody>
                 <tr th:each="row : ${rows}" th:with="location=${row.location}">
-                    <td class="mono" th:text="${location.code}">RACK-A1</td>
+                    <td class="mono">
+                        <span class="location-swatch" th:if="${location.colorAccent != null}"
+                              th:style="|background:${location.colorAccent}|"></span>
+                        <span th:text="${location.code}">RACK-A1</span>
+                    </td>
                     <td>
                         <div class="table-primary" th:text="${location.name}">Rack A1</div>
                         <div class="hint" th:if="${location.description != null}" th:text="${location.description}">Details</div>

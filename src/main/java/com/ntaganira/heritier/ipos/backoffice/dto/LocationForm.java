@@ -4,6 +4,7 @@ import com.ntaganira.heritier.ipos.backoffice.entity.StorageLocation;
 import com.ntaganira.heritier.ipos.backoffice.enums.LocationType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class LocationForm {
@@ -24,6 +25,9 @@ public class LocationForm {
     @Size(max = 255, message = "Description must be 255 characters or fewer.")
     private String description;
 
+    @Pattern(regexp = "^$|^#[0-9a-fA-F]{6}$", message = "Color accent must be a hex value such as #268071.")
+    private String colorAccent;
+
     private boolean active = true;
 
     public static LocationForm from(StorageLocation location) {
@@ -33,6 +37,7 @@ public class LocationForm {
         form.name = location.getName();
         form.type = location.getType();
         form.description = location.getDescription();
+        form.colorAccent = location.getColorAccent();
         form.active = location.isActive();
         return form;
     }
@@ -75,6 +80,14 @@ public class LocationForm {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getColorAccent() {
+        return colorAccent;
+    }
+
+    public void setColorAccent(String colorAccent) {
+        this.colorAccent = colorAccent;
     }
 
     public boolean isActive() {

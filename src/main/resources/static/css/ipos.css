@@ -285,6 +285,25 @@ kbd {
 }
 .product-card:hover { transform: translateY(-2px); border-color: var(--primary); box-shadow: var(--shadow-lg); }
 .product-card.is-out { opacity: .55; }
+.product-location {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  max-width: calc(100% - 24px);
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: .03em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(15,23,42,.2);
+  pointer-events: none;
+}
 .product-thumb {
   width: 100%;
   height: 62px;
@@ -672,4 +691,33 @@ td > input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--pri
   .error-icon svg { width: 26px; height: 26px; }
   .error-card h1 { font-size: 23px; }
   .error-actions .btn { flex: 1 1 150px; }
+}
+
+/* Location accent colors */
+.color-control { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.color-control input[type="color"] { flex: 0 0 46px; width: 46px; height: 42px; padding: 4px; border-radius: 8px; cursor: pointer; }
+.color-control input[data-color-text] { flex: 1 1 120px; min-width: 0; text-transform: uppercase; }
+.color-control input:disabled, .color-control button:disabled, .color-preset:disabled { opacity: .5; cursor: not-allowed; }
+.color-presets { display: flex; flex-wrap: wrap; gap: 7px; }
+.color-preset {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 0 1px var(--gray-200);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.color-preset:hover:not(:disabled) { transform: scale(1.12); box-shadow: 0 0 0 1px var(--gray-300); }
+.color-preset:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.location-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(15,23,42,.16);
+  vertical-align: middle;
 }

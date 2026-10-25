@@ -81,9 +81,29 @@
                     <select id="locationId" th:field="*{locationId}">
                         <option value="">Not assigned</option>
                         <option th:each="location : ${locations}" th:value="${location.id}"
+                                th:attr="data-color=${location.colorAccent}"
                                 th:text="${location.label() + (location.active ? '' : ' (inactive)')}"></option>
                     </select>
                     <div class="hint">Rack, drawer or room where the item is kept.</div>
+                </div>
+                <div class="form-group full-width" data-color-field data-location-source="#locationId">
+                    <label for="locationColor">Location accent</label>
+                    <div class="color-control">
+                        <input type="color" id="locationColorPicker" value="#268071" data-color-picker aria-label="Choose location accent">
+                        <input id="locationColor" th:field="*{locationColor}" maxlength="7" placeholder="#268071" class="mono" data-color-text>
+                        <button type="button" class="btn btn-outline btn-sm" data-color-clear>Clear</button>
+                    </div>
+                    <div class="color-presets">
+                        <button type="button" class="color-preset" style="--swatch:#268071" data-color-preset="#268071" title="Teal" aria-label="Teal"></button>
+                        <button type="button" class="color-preset" style="--swatch:#059669" data-color-preset="#059669" title="Emerald" aria-label="Emerald"></button>
+                        <button type="button" class="color-preset" style="--swatch:#2563eb" data-color-preset="#2563eb" title="Blue" aria-label="Blue"></button>
+                        <button type="button" class="color-preset" style="--swatch:#4f46e5" data-color-preset="#4f46e5" title="Indigo" aria-label="Indigo"></button>
+                        <button type="button" class="color-preset" style="--swatch:#d97706" data-color-preset="#d97706" title="Amber" aria-label="Amber"></button>
+                        <button type="button" class="color-preset" style="--swatch:#e11d48" data-color-preset="#e11d48" title="Rose" aria-label="Rose"></button>
+                        <button type="button" class="color-preset" style="--swatch:#475569" data-color-preset="#475569" title="Slate" aria-label="Slate"></button>
+                    </div>
+                    <div class="hint">Saved on the selected location and shared by all products kept there.</div>
+                    <div class="field-error" th:if="${#fields.hasErrors('locationColor')}" th:errors="*{locationColor}"></div>
                 </div>
                 <div class="form-group" th:if="${!editing}">
                     <label for="openingQuantity">Opening stock</label>

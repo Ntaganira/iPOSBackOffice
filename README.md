@@ -60,6 +60,10 @@ Common environment variables are documented in `.env.example`. Uploaded receipt 
 
 Sales receipts and invoices support browser printing and PDF download. Receipt PDFs can be shared to WhatsApp from the sale detail page, the receipt preview or the POS completion dialog. On devices that support the Web Share API, the PDF is attached to the message through the device share sheet; otherwise the PDF downloads and WhatsApp opens for manual attachment. SMTP credentials are configured in **Settings > Email**; SMTP settings are stored in the database and the password is encrypted with `IPOS_ENCRYPTION_KEY`. Email delivery failures are recorded in **Email log**, with a resend action. In development, Mailpit captures all messages. Email delivery is disabled until SMTP is configured.
 
+## Storage locations
+
+Products can be assigned a primary storage location from the product form. Each location can carry an optional accent color, set on the location form or while assigning a product; the color is stored on the location and shared by every product kept there. POS product cards show a small lowercase location badge using that accent, with automatic text contrast.
+
 ## Tests
 
 ```powershell

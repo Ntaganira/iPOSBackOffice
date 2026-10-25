@@ -37,6 +37,9 @@ public class StorageLocation extends AuditedEntity {
     @Column(length = 255)
     private String description;
 
+    @Column(name = "color_accent", length = 7)
+    private String colorAccent;
+
     @Column(nullable = false)
     private boolean active = true;
 

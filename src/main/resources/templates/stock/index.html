@@ -92,6 +92,8 @@
                         </td>
                         <td th:text="${product.category == null ? '—' : product.category.name}">Category</td>
                         <td>
+                            <span class="location-swatch" th:if="${product.location != null and product.location.colorAccent != null}"
+                                  th:style="|background:${product.location.colorAccent}|"></span>
                             <a th:if="${product.location != null}" class="table-link"
                                th:href="@{/stock(locationId=${product.location.id})}"
                                th:text="${product.location.code}"

@@ -27,9 +27,10 @@ This file records assumptions and choices made while building iPOS. Tax behaviou
 - Stock value on reports is quantity multiplied by the current buying price. There is no weighted-average or FIFO costing ledger.
 - Stock periods store closing quantity and value snapshots. A closed period is read-only and guards against later mutation of historical valuations.
 - Negative stock is blocked unless **Allow negative stock** is enabled in shop settings.
-- Storage locations are registry records for physical places (rack, drawer, shelf, room or other) with a unique code, name, type, description and active flag. A product has one optional primary location, chosen on the product form.
+- Storage locations are registry records for physical places (rack, drawer, shelf, room or other) with a unique code, name, type, description, optional color accent and active flag. A product has one optional primary location, chosen on the product form.
 - Stock remains a single on-hand quantity on the product. Mapping a product to a location does not split quantity by location or create a per-location ledger; if that becomes necessary, a separate stock-by-location table is the next step.
 - Deactivating a location keeps existing product assignments. The location remains visible in the product form with an `(inactive)` marker so mappings are not silently lost. The stock and product lists can be filtered by location, and the locations page shows mapped product and unit counts.
+- The color accent belongs to the location, not to individual products. It is stored as a nullable `#RRGGBB` value; the predefined names in the UI are shortcuts that fill that hex value. The product form can update the accent of the selected location, so the change applies to every product kept there. POS cards show a small lowercase location badge using the accent, with text switched between white and near-black by relative luminance for contrast. A neutral slate fallback is used when a location has no accent.
 
 ## Imports
 

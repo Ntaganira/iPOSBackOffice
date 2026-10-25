@@ -488,6 +488,78 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(content().string(containsString("already exists")));
     }
 
+    @Test
+    void locationAccentIsSavedAndShownOnPos() throws Exception {
+        Category category = categoryRepository.findAll().get(0);
+        Unit unit = unitRepository.findAll().get(0);
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String locationCode = "ACCENT-" + suffix;
+        String locationName = "Accent rack " + suffix;
+        String productCode = "ACCENT-P-" + suffix;
+
+        mockMvc.perform(post("/stock/locations").with(asAdmin()).with(csrf())
+                        .param("code", locationCode)
+                        .param("name", locationName)
+                        .param("type", "RACK")
+                        .param("colorAccent", "#1f7a5c")
+                        .param("active", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/stock/locations"));
+
+        StorageLocation location = storageLocationRepository.findAllByOrderByCodeAsc().stream()
+                .filter(item -> item.getCode().equals(locationCode))
+                .findFirst().orElseThrow();
+        assertEquals("#1F7A5C", location.getColorAccent());
+
+        mockMvc.perform(post("/products").with(asAdmin()).with(csrf())
+                        .param("code", productCode)
+                        .param("name", "Accent product " + suffix)
+                        .param("categoryId", category.getId().toString())
+                        .param("unitId", unit.getId().toString())
+                        .param("taxCategoryCode", "A")
+                        .param("buyingPrice", "100")
+                        .param("sellingPrice", "150")
+                        .param("reorderLevel", "5")
+                        .param("active", "true")
+                        .param("locationId", location.getId().toString())
+                        .param("locationColor", "#0ea5e9"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/products"));
+
+        Product product = productRepository.findByCodeIgnoreCase(productCode).orElseThrow();
+        assertEquals(location.getId(), product.getLocation().getId());
+        assertEquals("#0EA5E9", storageLocationRepository.findById(location.getId()).orElseThrow().getColorAccent());
+
+        mockMvc.perform(get("/pos/products").param("q", productCode).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].location").value(locationName))
+                .andExpect(jsonPath("$[0].locationColor").value("#0EA5E9"));
+
+        mockMvc.perform(get("/stock/locations").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("#0EA5E9")))
+                .andExpect(content().string(containsString("location-swatch")));
+
+        mockMvc.perform(get("/products").param("q", productCode).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("#0EA5E9")))
+                .andExpect(content().string(containsString("location-swatch")));
+    }
+
+    @Test
+    void invalidLocationAccentIsRejected() throws Exception {
+        String code = "BADCOLOR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        mockMvc.perform(post("/stock/locations").with(asAdmin()).with(csrf())
+                        .param("code", code)
+                        .param("name", "Bad color")
+                        .param("type", "RACK")
+                        .param("colorAccent", "emerald")
+                        .param("active", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("stock/location-form"))
+                .andExpect(content().string(containsString("Color accent must be a hex value")));
+    }
+
     private Customer savedLookupCustomer() {
         String tail = randomSixDigits();
         return savedLookupCustomer("0789" + tail, "9" + tail + "00");

@@ -423,6 +423,54 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Color accent fields
+    document.querySelectorAll('[data-color-field]').forEach(field => {
+        const text = field.querySelector('[data-color-text]');
+        const picker = field.querySelector('[data-color-picker]');
+        const clear = field.querySelector('[data-color-clear]');
+        const presets = field.querySelectorAll('[data-color-preset]');
+        if (!text || !picker) return;
+        const isHex = value => /^#[0-9a-f]{6}$/i.test(value || '');
+        const syncPicker = function () {
+            if (isHex(text.value)) picker.value = text.value;
+        };
+        const setValue = function (value) {
+            text.value = value || '';
+            if (isHex(text.value)) picker.value = text.value;
+        };
+        picker.addEventListener('input', function () { setValue(picker.value); });
+        text.addEventListener('input', syncPicker);
+        if (clear) {
+            clear.addEventListener('click', function () {
+                setValue('');
+                text.focus();
+            });
+        }
+        presets.forEach(button => {
+            button.addEventListener('click', function () {
+                setValue(button.getAttribute('data-color-preset'));
+                text.focus();
+            });
+        });
+        syncPicker();
+
+        const sourceSelector = field.getAttribute('data-location-source');
+        const source = sourceSelector ? document.querySelector(sourceSelector) : null;
+        if (!source) return;
+        const setDisabled = function () {
+            const disabled = !source.value;
+            field.querySelectorAll('input, button').forEach(control => {
+                control.disabled = disabled;
+            });
+        };
+        source.addEventListener('change', function () {
+            const option = source.selectedOptions[0];
+            setValue(option ? option.getAttribute('data-color') || '' : '');
+            setDisabled();
+        });
+        setDisabled();
+    });
+
     // Page-load skeleton on navigation
     window.showPageSkeleton = function () {
         const el = document.getElementById('page-skeleton');
