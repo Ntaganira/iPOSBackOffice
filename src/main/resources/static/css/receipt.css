@@ -82,6 +82,8 @@ body.embedded .preview-stage { padding: 8px; }
   color: #000;
 }
 .receipt-head { text-align: center; margin-bottom: 9px; }
+.receipt-logo { display: flex; justify-content: center; margin-bottom: 6px; }
+.receipt-logo img { max-width: 110px; max-height: 60px; object-fit: contain; }
 .shop-name { font-size: 15px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 2px; }
 .receipt-type { text-align: center; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0; margin: 7px 0; font-size: 12px; letter-spacing: .08em; }
 .receipt-type .copy-mark, .receipt-type .status-mark { display: inline-block; margin-left: 8px; padding: 1px 5px; border: 1px solid #000; font-size: 9px; vertical-align: middle; }
@@ -120,6 +122,7 @@ body.embedded .preview-stage { padding: 8px; }
 }
 .invoice-head { display: flex; justify-content: space-between; gap: 30px; border-bottom: 3px solid var(--brand); padding-bottom: 18px; }
 .invoice-brand { display: flex; gap: 14px; align-items: flex-start; }
+.invoice-logo { width: 64px; height: 64px; object-fit: contain; border-radius: 12px; background: #fff; }
 .invoice-mark {
   width: 50px;
   height: 50px;

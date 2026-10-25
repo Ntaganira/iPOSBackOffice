@@ -29,6 +29,9 @@
 <main class="preview-stage">
     <article class="paper receipt-paper" id="receipt-paper">
         <div class="receipt-head">
+            <div class="receipt-logo" th:if="${shop.logoPath}">
+                <img th:src="${'/files/' + shop.logoPath}" alt="Shop logo">
+            </div>
             <div class="shop-name" th:text="${shop.shopName}">iPOS Demo Shop</div>
             <div th:if="${shop.address}" th:text="${shop.address}">Kigali, Rwanda</div>
             <div th:if="${shop.phone}" th:text="'Tel: ' + ${shop.phone}">Tel: +250</div>
@@ -104,7 +107,8 @@
     <article class="paper invoice-paper" id="invoice-paper">
         <header class="invoice-head">
             <div class="invoice-brand">
-                <span class="invoice-mark">iP</span>
+                <img class="invoice-logo" th:if="${shop.logoPath}" th:src="${'/files/' + shop.logoPath}" alt="Shop logo">
+                <span class="invoice-mark" th:unless="${shop.logoPath}">iP</span>
                 <div>
                     <h1 th:text="${shop.shopName}">iPOS Demo Shop</h1>
                     <p th:text="${shop.address ?: 'Kigali, Rwanda'}">Kigali, Rwanda</p>

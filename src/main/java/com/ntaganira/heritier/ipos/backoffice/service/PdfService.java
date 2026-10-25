@@ -15,11 +15,15 @@ import com.ntaganira.heritier.ipos.backoffice.entity.Sale;
 import com.ntaganira.heritier.ipos.backoffice.entity.SaleLine;
 import com.ntaganira.heritier.ipos.backoffice.entity.SalePayment;
 import com.ntaganira.heritier.ipos.backoffice.entity.ShopSetting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,12 +32,18 @@ import java.util.TreeMap;
 @Service
 public class PdfService {
 
+    private static final Logger log = LoggerFactory.getLogger(PdfService.class);
+
     private final SettingsService settingsService;
     private final ReceiptService receiptService;
+    private final StorageService storageService;
 
-    public PdfService(SettingsService settingsService, ReceiptService receiptService) {
+    public PdfService(SettingsService settingsService,
+                      ReceiptService receiptService,
+                      StorageService storageService) {
         this.settingsService = settingsService;
         this.receiptService = receiptService;
+        this.storageService = storageService;
     }
 
     @Transactional(readOnly = true)
@@ -62,6 +72,8 @@ public class PdfService {
             Font shopFont = new Font(Font.HELVETICA, narrow ? 13 : 20, Font.BOLD);
             Font center = new Font(Font.HELVETICA, narrow ? 8 : 10);
             center.setColor(Color.DARK_GRAY);
+
+            addLogo(document, settings, narrow);
 
             Paragraph shop = new Paragraph(settings.getShopName(), shopFont);
             shop.setAlignment(Element.ALIGN_CENTER);
@@ -211,6 +223,29 @@ public class PdfService {
         Paragraph paragraph = new Paragraph(text == null ? "" : text, font);
         paragraph.setAlignment(Element.ALIGN_CENTER);
         return paragraph;
+    }
+
+    private void addLogo(Document document, ShopSetting settings, boolean narrow) {
+        if (settings.getLogoPath() == null) {
+            return;
+        }
+        try {
+            Resource resource = storageService.load(settings.getLogoPath());
+            if (resource == null || !resource.exists()) {
+                return;
+            }
+            byte[] bytes;
+            try (InputStream in = resource.getInputStream()) {
+                bytes = in.readAllBytes();
+            }
+            Image logo = Image.getInstance(bytes);
+            logo.scaleToFit(narrow ? 90 : 120, narrow ? 70 : 90);
+            logo.setAlignment(Element.ALIGN_CENTER);
+            document.add(logo);
+            document.add(new Paragraph(" "));
+        } catch (Exception ex) {
+            log.warn("Could not render the shop logo on the PDF: {}", ex.getMessage());
+        }
     }
 
     private void appendContact(StringBuilder contact, String value) {
