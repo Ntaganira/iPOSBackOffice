@@ -81,6 +81,19 @@ public class PosController {
         return customerService.forPos(q, 20).stream().map(this::customerJson).toList();
     }
 
+    @GetMapping("/pos/customers/lookup")
+    @ResponseBody
+    public Map<String, Object> lookupCustomer(@RequestParam(required = false) String phone,
+                                              @RequestParam(required = false) String tin) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("found", false);
+        customerService.lookup(phone, tin).ifPresent(customer -> {
+            result.put("found", true);
+            result.put("customer", customerJson(customer));
+        });
+        return result;
+    }
+
     @PostMapping("/pos/customers")
     @ResponseBody
     @PreAuthorize("hasAuthority('CUSTOMER_CREATE')")
@@ -186,6 +199,8 @@ public class PosController {
         map.put("phone", customer.getPhone());
         map.put("tin", customer.getTin());
         map.put("email", customer.getEmail());
+        map.put("address", customer.getAddress());
+        map.put("customerType", customer.getCustomerType());
         map.put("balance", customer.getBalance());
         map.put("creditLimit", customer.getCreditLimit());
         return map;

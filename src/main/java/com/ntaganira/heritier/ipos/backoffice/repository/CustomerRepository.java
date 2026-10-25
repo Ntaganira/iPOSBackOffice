@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
@@ -27,6 +28,22 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> searchForPos(@Param("q") String q, Pageable pageable);
 
     List<Customer> findByActiveTrueOrderByNameAsc();
+
+    @Query(value = """
+            select * from shop_customers
+            where active = true
+              and regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g') in (:phones)
+            limit 2
+            """, nativeQuery = true)
+    List<Customer> findActiveByNormalizedPhone(@Param("phones") Collection<String> phones);
+
+    @Query(value = """
+            select * from shop_customers
+            where active = true
+              and regexp_replace(lower(coalesce(tin, '')), '[^a-z0-9]', '', 'g') = :tin
+            limit 2
+            """, nativeQuery = true)
+    List<Customer> findActiveByNormalizedTin(@Param("tin") String tin);
 
     @Query("select c from Customer c where c.balance > 0 and c.active = true order by c.balance desc")
     List<Customer> findWithOutstandingBalance();

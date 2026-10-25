@@ -2,13 +2,16 @@ package com.ntaganira.heritier.ipos.backoffice;
 
 import com.ntaganira.heritier.ipos.backoffice.dto.CartRequest;
 import com.ntaganira.heritier.ipos.backoffice.entity.Category;
+import com.ntaganira.heritier.ipos.backoffice.entity.Customer;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;
 import com.ntaganira.heritier.ipos.backoffice.entity.Sale;
 import com.ntaganira.heritier.ipos.backoffice.entity.StorageLocation;
 import com.ntaganira.heritier.ipos.backoffice.entity.Unit;
+import com.ntaganira.heritier.ipos.backoffice.enums.CustomerType;
 import com.ntaganira.heritier.ipos.backoffice.enums.PaymentMethod;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.CategoryRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.CustomerRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.PermissionRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.ProductRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.StorageLocationRepository;
@@ -33,15 +36,18 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,6 +76,9 @@ class WebPagesTest extends AbstractIntegrationTest {
 
     @Autowired
     private StorageLocationRepository storageLocationRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
 
     @Autowired
     private SaleService saleService;
@@ -283,6 +292,73 @@ class WebPagesTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void posQuickCustomerStartsWithPhoneAndTin() throws Exception {
+        String html = mockMvc.perform(get("/pos").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"customer-lookup-status\"")))
+                .andReturn().getResponse().getContentAsString();
+
+        int phone = html.indexOf("id=\"qc-phone\"");
+        int tin = html.indexOf("id=\"qc-tin\"");
+        int name = html.indexOf("id=\"qc-name\"");
+        assertTrue(phone > 0 && tin > phone && name > tin,
+                "Phone and TIN should appear before the customer name field");
+    }
+
+    @Test
+    void posCustomerLookupFindsCustomerByFormattedPhone() throws Exception {
+        Customer customer = savedLookupCustomer();
+
+        mockMvc.perform(get("/pos/customers/lookup")
+                        .param("phone", "+250 " + customer.getPhone().substring(1))
+                        .with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.found", is(true)))
+                .andExpect(jsonPath("$.customer.id").value(customer.getId().intValue()))
+                .andExpect(jsonPath("$.customer.name").value(customer.getName()))
+                .andExpect(jsonPath("$.customer.phone").value(customer.getPhone()))
+                .andExpect(jsonPath("$.customer.tin").value(customer.getTin()))
+                .andExpect(jsonPath("$.customer.email").value(customer.getEmail()))
+                .andExpect(jsonPath("$.customer.address").value(customer.getAddress()))
+                .andExpect(jsonPath("$.customer.customerType").value("COMPANY"));
+    }
+
+    @Test
+    void posCustomerLookupFindsCustomerByFormattedTin() throws Exception {
+        Customer customer = savedLookupCustomer();
+
+        mockMvc.perform(get("/pos/customers/lookup")
+                        .param("tin", customer.getTin().substring(0, 3) + " " + customer.getTin().substring(3))
+                        .with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.found", is(true)))
+                .andExpect(jsonPath("$.customer.id").value(customer.getId().intValue()));
+    }
+
+    @Test
+    void posCustomerLookupReturnsNoMatchForUnknownIdentifier() throws Exception {
+        mockMvc.perform(get("/pos/customers/lookup")
+                        .param("tin", "ZZ" + randomSixDigits() + "ZZ")
+                        .with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.found", is(false)))
+                .andExpect(jsonPath("$.customer").doesNotExist());
+    }
+
+    @Test
+    void posCustomerLookupRejectsAmbiguousPhone() throws Exception {
+        String phone = "0789" + randomSixDigits();
+        savedLookupCustomer(phone, "9" + randomSixDigits() + "00");
+        savedLookupCustomer(phone, "9" + randomSixDigits() + "00");
+
+        mockMvc.perform(get("/pos/customers/lookup")
+                        .param("phone", phone)
+                        .with(asAdmin()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", containsString("More than one customer")));
+    }
+
+    @Test
     void userEditFormRenders() throws Exception {
         Long adminId = userRepository.findByUsername("admin").orElseThrow().getId();
         mockMvc.perform(get("/users/" + adminId + "/edit").with(asAdmin()))
@@ -410,6 +486,28 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("stock/location-form"))
                 .andExpect(content().string(containsString("already exists")));
+    }
+
+    private Customer savedLookupCustomer() {
+        String tail = randomSixDigits();
+        return savedLookupCustomer("0789" + tail, "9" + tail + "00");
+    }
+
+    private Customer savedLookupCustomer(String phone, String tin) {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        Customer customer = new Customer();
+        customer.setName("Lookup Customer " + suffix);
+        customer.setPhone(phone);
+        customer.setTin(tin);
+        customer.setEmail("lookup-" + suffix + "@example.rw");
+        customer.setAddress("KG 1 Ave, Kigali");
+        customer.setCustomerType(CustomerType.COMPANY);
+        customer.setActive(true);
+        return customerRepository.save(customer);
+    }
+
+    private String randomSixDigits() {
+        return String.format("%06d", (UUID.randomUUID().getLeastSignificantBits() & Long.MAX_VALUE) % 1_000_000);
     }
 
     private Sale completedSale() {

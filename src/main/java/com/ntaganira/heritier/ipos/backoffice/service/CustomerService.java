@@ -20,9 +20,13 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class CustomerService {
@@ -58,6 +62,28 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<Customer> active() {
         return customerRepository.findByActiveTrueOrderByNameAsc();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Customer> lookup(String phone, String tin) {
+        List<String> phones = phoneVariants(phone);
+        String normalizedTin = normalizeTin(tin);
+        if (phones.isEmpty() && normalizedTin == null) {
+            return Optional.empty();
+        }
+        Map<Long, Customer> matches = new LinkedHashMap<>();
+        if (!phones.isEmpty()) {
+            customerRepository.findActiveByNormalizedPhone(phones)
+                    .forEach(customer -> matches.put(customer.getId(), customer));
+        }
+        if (normalizedTin != null) {
+            customerRepository.findActiveByNormalizedTin(normalizedTin)
+                    .forEach(customer -> matches.put(customer.getId(), customer));
+        }
+        if (matches.size() > 1) {
+            throw new BusinessException("More than one customer matches this phone or TIN. Search for the customer instead.");
+        }
+        return matches.values().stream().findFirst();
     }
 
     @Transactional(readOnly = true)
@@ -188,6 +214,37 @@ public class CustomerService {
         map.put("creditLimit", customer.getCreditLimit());
         map.put("active", customer.isActive());
         return map;
+    }
+
+    private List<String> phoneVariants(String phone) {
+        if (!StringUtils.hasText(phone)) {
+            return List.of();
+        }
+        String digits = phone.replaceAll("[^0-9]", "");
+        if (digits.isEmpty()) {
+            return List.of();
+        }
+        LinkedHashSet<String> variants = new LinkedHashSet<>();
+        variants.add(digits);
+        if (digits.length() == 9) {
+            variants.add("0" + digits);
+            variants.add("250" + digits);
+        } else if (digits.length() == 10 && digits.startsWith("0")) {
+            variants.add(digits.substring(1));
+            variants.add("250" + digits.substring(1));
+        } else if (digits.length() == 12 && digits.startsWith("250")) {
+            variants.add("0" + digits.substring(3));
+            variants.add(digits.substring(3));
+        }
+        return new ArrayList<>(variants);
+    }
+
+    private String normalizeTin(String tin) {
+        if (!StringUtils.hasText(tin)) {
+            return null;
+        }
+        String normalized = tin.replaceAll("[^A-Za-z0-9]", "").toLowerCase(Locale.ROOT);
+        return normalized.isEmpty() ? null : normalized;
     }
 
     private String trimToNull(String value) {

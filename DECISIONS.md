@@ -19,6 +19,7 @@ This file records assumptions and choices made while building iPOS. Tax behaviou
 - Sale totals are recalculated server-side from the product catalogue; browser-supplied totals are ignored.
 - A sale can have multiple payments (split payment). Non-cash payments cannot exceed the amount due; cash can be tendered above the total and produces change.
 - Credit sales require a customer and are rejected when they exceed that customer's available credit limit. Payments reduce the customer balance.
+- The POS quick-add customer form looks up an active customer by normalized phone or TIN once at least nine digits or alphanumeric characters are entered. A unique match fills all fields and saving selects that customer instead of creating a duplicate; no match leaves the fields for a new registration; multiple matches are rejected as ambiguous.
 - Held sales are labelled through a POS modal instead of a browser prompt. The POS requires a label; the API still falls back to a generated timestamp label for non-UI callers.
 - Refunds are new linked sales with type `REFUND`; the original sale becomes `REFUNDED`. Stock is restored, and the original receipt can still be reprinted. Sales are never hard-deleted; voiding is represented by status.
 - A refund does not record a separate refund-payment ledger. The daily cash summary attributes a refund to cash in proportion to the original sale's cash payment (the full original cash portion, capped only by its original amount).

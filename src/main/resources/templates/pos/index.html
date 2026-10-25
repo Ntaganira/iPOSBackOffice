@@ -108,17 +108,18 @@
             <form id="customer-form">
                 <div class="modal-body">
                     <div class="form-grid">
-                        <div class="form-group full-width">
-                            <label for="qc-name">Name <span class="required">*</span></label>
-                            <input id="qc-name" name="name" required maxlength="160" placeholder="Customer or company name">
-                        </div>
                         <div class="form-group">
                             <label for="qc-phone">Phone</label>
-                            <input id="qc-phone" name="phone" maxlength="40" placeholder="+250 7xx xxx xxx">
+                            <input id="qc-phone" name="phone" maxlength="40" placeholder="+250 7xx xxx xxx"
+                                   inputmode="tel" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="qc-tin">TIN</label>
-                            <input id="qc-tin" name="tin" maxlength="40" placeholder="Optional">
+                            <input id="qc-tin" name="tin" maxlength="40" placeholder="Optional" autocomplete="off">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="qc-name">Name <span class="required">*</span></label>
+                            <input id="qc-name" name="name" required maxlength="160" placeholder="Customer or company name">
                         </div>
                         <div class="form-group">
                             <label for="qc-type">Type</label>
@@ -135,6 +136,7 @@
                             <input id="qc-address" name="address" maxlength="255" placeholder="Street, sector, district">
                         </div>
                     </div>
+                    <div class="customer-lookup-status" id="customer-lookup-status" role="status" aria-live="polite" hidden></div>
                     <div class="form-error" id="customer-form-error" hidden></div>
                 </div>
                 <div class="modal-footer">
@@ -326,6 +328,15 @@
                 customerId: null,
                 items: [],
                 notes: ''
+            };
+
+            const customerLookup = {
+                timer: null,
+                sequence: 0,
+                pending: false,
+                matchedId: null,
+                matchedCustomer: null,
+                autoFilled: {}
             };
 
             const el = (id) => document.getElementById(id);
@@ -658,27 +669,188 @@
             }
             el('held-btn').addEventListener('click', () => { refreshHeld(); openModal('held-modal'); });
 
-            el('quick-customer-btn').addEventListener('click', () => openModal('customer-modal'));
+            function selectCustomer(customer) {
+                let option = Array.from(customerSelect.options)
+                    .find(candidate => Number(candidate.value) === customer.id);
+                if (!option) {
+                    option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = customer.name + (customer.phone ? ' \u2014 ' + customer.phone : '');
+                    customerSelect.appendChild(option);
+                    if (!state.customers.some(candidate => candidate.id === customer.id)) {
+                        state.customers.push(customer);
+                    }
+                }
+                customerSelect.value = String(customer.id);
+                customerSelect.dispatchEvent(new Event('change'));
+            }
+
+            function setCustomerLookupStatus(message, type) {
+                const node = el('customer-lookup-status');
+                node.textContent = message || '';
+                node.className = 'customer-lookup-status' + (type ? ' ' + type : '');
+                node.hidden = !message;
+            }
+
+            function setCustomerLookupPending(pending) {
+                customerLookup.pending = pending;
+                el('customer-save-btn').disabled = pending;
+            }
+
+            function setCustomerDetailFieldsLocked(locked) {
+                ['qc-name', 'qc-email', 'qc-address'].forEach(id => {
+                    el(id).readOnly = locked;
+                });
+                el('qc-type').disabled = locked;
+                el('customer-form').classList.toggle('has-existing-customer', locked);
+            }
+
+            function clearAutoFilledCustomerFields(preserveField) {
+                const autoFilled = customerLookup.autoFilled;
+                ['phone', 'tin', 'name', 'email', 'address'].forEach(field => {
+                    if (field === preserveField || !(field in autoFilled)) return;
+                    const node = el('qc-' + field);
+                    if (node.value === autoFilled[field]) node.value = '';
+                });
+                if ('customerType' in autoFilled && el('qc-type').value === autoFilled.customerType) {
+                    el('qc-type').selectedIndex = 0;
+                }
+                customerLookup.autoFilled = {};
+            }
+
+            function clearCustomerMatch(preserveField) {
+                clearAutoFilledCustomerFields(preserveField);
+                customerLookup.matchedId = null;
+                customerLookup.matchedCustomer = null;
+                setCustomerDetailFieldsLocked(false);
+                el('customer-save-btn').textContent = 'Save customer';
+            }
+
+            function resetCustomerLookup() {
+                clearTimeout(customerLookup.timer);
+                customerLookup.timer = null;
+                customerLookup.sequence++;
+                setCustomerLookupPending(false);
+                clearCustomerMatch();
+                setCustomerLookupStatus('');
+                el('customer-form-error').hidden = true;
+            }
+
+            function applyCustomerMatch(customer) {
+                customerLookup.matchedId = customer.id;
+                customerLookup.matchedCustomer = customer;
+                customerLookup.autoFilled = {
+                    phone: customer.phone || '',
+                    tin: customer.tin || '',
+                    name: customer.name || '',
+                    customerType: customer.customerType || 'INDIVIDUAL',
+                    email: customer.email || '',
+                    address: customer.address || ''
+                };
+                el('qc-phone').value = customerLookup.autoFilled.phone;
+                el('qc-tin').value = customerLookup.autoFilled.tin;
+                el('qc-name').value = customerLookup.autoFilled.name;
+                el('qc-type').value = customerLookup.autoFilled.customerType;
+                el('qc-email').value = customerLookup.autoFilled.email;
+                el('qc-address').value = customerLookup.autoFilled.address;
+                setCustomerDetailFieldsLocked(true);
+                el('customer-save-btn').textContent = 'Use customer';
+                setCustomerLookupStatus(customer.name + ' already exists. Saving will select this customer.', 'is-found');
+            }
+
+            function phoneDigits(value) {
+                return (value || '').replace(/\D/g, '');
+            }
+
+            function tinKey(value) {
+                return (value || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+            }
+
+            function lookupValue(field) {
+                return field === 'phone' ? el('qc-phone').value : el('qc-tin').value;
+            }
+
+            function lookupReady(field, value) {
+                return field === 'phone' ? phoneDigits(value).length >= 9 : tinKey(value).length >= 9;
+            }
+
+            async function runCustomerLookup(field, value, sequence) {
+                const params = new URLSearchParams();
+                params.set(field, value);
+                try {
+                    const result = await api('/pos/customers/lookup?' + params.toString());
+                    if (sequence !== customerLookup.sequence) return;
+                    setCustomerLookupPending(false);
+                    if (result && result.found && result.customer) {
+                        applyCustomerMatch(result.customer);
+                    } else {
+                        clearCustomerMatch(field);
+                        setCustomerLookupStatus('No existing customer found. Enter details to create a new customer.');
+                    }
+                } catch (error) {
+                    if (sequence !== customerLookup.sequence) return;
+                    setCustomerLookupPending(false);
+                    clearCustomerMatch(field);
+                    setCustomerLookupStatus(error.message || 'Could not search for an existing customer.', 'is-error');
+                }
+            }
+
+            function scheduleCustomerLookup(field) {
+                clearTimeout(customerLookup.timer);
+                const value = lookupValue(field);
+                const sequence = ++customerLookup.sequence;
+                if (!lookupReady(field, value)) {
+                    setCustomerLookupPending(false);
+                    clearCustomerMatch(field);
+                    setCustomerLookupStatus('');
+                    return;
+                }
+                setCustomerLookupPending(true);
+                setCustomerLookupStatus('Searching existing customers...');
+                customerLookup.timer = setTimeout(() => runCustomerLookup(field, value, sequence), 300);
+            }
+
+            ['qc-phone', 'qc-tin'].forEach(id => {
+                el(id).addEventListener('input', () => scheduleCustomerLookup(id === 'qc-phone' ? 'phone' : 'tin'));
+            });
+
+            el('quick-customer-btn').addEventListener('click', () => {
+                el('customer-form').reset();
+                resetCustomerLookup();
+                openModal('customer-modal');
+                setTimeout(() => el('qc-phone').focus(), 50);
+            });
+
             el('customer-form').addEventListener('submit', async (event) => {
                 event.preventDefault();
+                const box = el('customer-form-error');
+                box.hidden = true;
+                if (customerLookup.pending) {
+                    setCustomerLookupStatus('Checking for an existing customer. Wait a moment and try again.');
+                    return;
+                }
+                if (customerLookup.matchedId && customerLookup.matchedCustomer) {
+                    selectCustomer(customerLookup.matchedCustomer);
+                    closeModal('customer-modal');
+                    event.target.reset();
+                    resetCustomerLookup();
+                    window.showToast('Existing customer selected.', 'success');
+                    el('product-search').focus();
+                    return;
+                }
                 const form = new FormData(event.target);
                 const payload = Object.fromEntries(form.entries());
                 payload.creditLimit = 0;
                 payload.active = true;
                 try {
                     const customer = await api('/pos/customers', { method: 'POST', body: JSON.stringify(payload) });
-                    state.customers.push(customer);
-                    const option = document.createElement('option');
-                    option.value = customer.id;
-                    option.textContent = customer.name + (customer.phone ? ' — ' + customer.phone : '');
-                    customerSelect.appendChild(option);
-                    customerSelect.value = customer.id;
-                    state.customerId = customer.id;
+                    selectCustomer(customer);
                     closeModal('customer-modal');
                     event.target.reset();
+                    resetCustomerLookup();
                     window.showToast('Customer added and selected.', 'success');
+                    el('product-search').focus();
                 } catch (error) {
-                    const box = el('customer-form-error');
                     box.hidden = false;
                     box.textContent = error.message + (error.fields ? ' ' + Object.values(error.fields).join(' ') : '');
                 }

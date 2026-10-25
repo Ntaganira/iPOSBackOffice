@@ -143,6 +143,20 @@
   font-size: 13px;
   line-height: 1.5;
 }
+.customer-lookup-status {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gray-500);
+}
+.customer-lookup-status.is-found { color: var(--success); font-weight: 600; }
+.customer-lookup-status.is-error { color: var(--danger); font-weight: 600; }
+#customer-form.has-existing-customer input[readonly],
+#customer-form.has-existing-customer select:disabled {
+  background: var(--gray-50);
+  color: var(--gray-600);
+  cursor: default;
+}
 .checkbox-row {
   display: flex;
   align-items: center;
