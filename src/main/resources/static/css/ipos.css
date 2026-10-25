@@ -314,7 +314,7 @@ kbd {
 .pos-customer { padding: 0 18px 12px; }
 .pos-customer-row { display: flex; gap: 8px; }
 .pos-customer-row select {
-  padding: 10px 14px;
+  padding: 10px 30px;
   border: 1.5px solid var(--gray-200);
   border-radius: 9px;
   font-size: 13px;

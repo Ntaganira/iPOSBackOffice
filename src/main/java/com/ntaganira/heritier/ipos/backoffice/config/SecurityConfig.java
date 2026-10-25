@@ -69,7 +69,7 @@ public class SecurityConfig {
                 .exceptionHandling(exceptions -> exceptions
                         .accessDeniedHandler(accessDeniedHandler()))
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.deny())
+                        .frameOptions(frame -> frame.sameOrigin())
                         .contentTypeOptions(contentType -> {
                         })
                         .httpStrictTransportSecurity(hsts -> hsts

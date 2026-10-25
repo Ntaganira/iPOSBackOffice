@@ -107,6 +107,7 @@ public class SalesController {
         model.addAttribute("sale", sale);
         model.addAttribute("verified", saleService.verifySignature(sale));
         model.addAttribute("settings", settingsService.get());
+        model.addAttribute("whatsappMessage", whatsAppService.invoiceMessage(sale));
         return "sales/detail";
     }
 
@@ -130,6 +131,7 @@ public class SalesController {
         model.addAttribute("embedded", embedded);
         model.addAttribute("defaultFormat", settingsService.get().getDefaultPrintFormat().name());
         model.addAttribute("taxLines", taxLines(sale));
+        model.addAttribute("whatsappMessage", whatsAppService.invoiceMessage(sale));
         return "sales/receipt";
     }
 

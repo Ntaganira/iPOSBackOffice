@@ -58,6 +58,11 @@ body.embedded { background: #fff; }
 }
 .toolbar-btn:hover { border-color: var(--brand); color: var(--brand); }
 .toolbar-btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.toolbar-btn:disabled { opacity: .65; cursor: wait; }
+.toolbar-status { font-size: 11px; color: var(--muted); }
+.toolbar-status[data-type="success"] { color: var(--brand); }
+.toolbar-status[data-type="warning"] { color: #b45309; }
+.toolbar-status[data-type="error"] { color: #b91c1c; }
 
 .preview-stage {
   display: flex;

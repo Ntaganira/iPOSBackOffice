@@ -17,7 +17,14 @@
         <div class="page-actions">
             <a class="btn btn-outline" th:href="@{/sales/{id}/receipt(id=${sale.id})}" target="_blank" rel="noopener">Print preview</a>
             <a class="btn btn-outline" th:href="@{/sales/{id}/pdf(id=${sale.id},format='invoice')}">Download PDF</a>
-            <a class="btn btn-outline" th:href="@{/sales/{id}/whatsapp(id=${sale.id})}" target="_blank" rel="noopener">WhatsApp invoice</a>
+            <button type="button" class="btn btn-outline"
+                    data-whatsapp-pdf
+                    data-busy-text="Preparing PDF..."
+                    th:attr="data-pdf-url=@{/sales/{id}/pdf(id=${sale.id},format='receipt')},
+                             data-file-name=${'Receipt-' + sale.receiptNumber + '.pdf'},
+                             data-share-title=${'Receipt ' + sale.receiptNumber},
+                             data-share-text=${whatsappMessage},
+                             data-whatsapp-url=@{/sales/{id}/whatsapp(id=${sale.id})}">WhatsApp PDF</button>
             <a sec:authorize="hasAnyAuthority('POS_USE','SALE_CREATE')" href="/pos" class="btn btn-primary">New sale</a>
         </div>
     </div>
@@ -133,7 +140,7 @@
             </div>
 
             <div class="section">
-                <div class="section-header"><h2>WhatsApp invoice</h2></div>
+                <div class="section-header"><h2>WhatsApp receipt</h2></div>
                 <form th:action="@{/sales/{id}/whatsapp(id=${sale.id})}" method="get" class="stack-form">
                     <div class="form-group">
                         <label for="whatsapp-phone">Recipient WhatsApp number</label>
@@ -143,7 +150,19 @@
                               th:text="'Buyers can reply to the shop on ' + ${settings.whatsappNumber} + '.'">Buyers can reply to the shop.</span>
                         <span class="hint" th:if="${settings.whatsappNumber == null}">Add the shop WhatsApp number in Settings &gt; Shop to include it on invoices.</span>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-sm">Send invoice on WhatsApp</button>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary btn-sm"
+                                data-whatsapp-pdf
+                                data-busy-text="Preparing PDF..."
+                                data-whatsapp-phone="#whatsapp-phone"
+                                th:attr="data-pdf-url=@{/sales/{id}/pdf(id=${sale.id},format='receipt')},
+                                         data-file-name=${'Receipt-' + sale.receiptNumber + '.pdf'},
+                                         data-share-title=${'Receipt ' + sale.receiptNumber},
+                                         data-share-text=${whatsappMessage},
+                                         data-whatsapp-endpoint=@{/sales/{id}/whatsapp(id=${sale.id})}">Share receipt PDF</button>
+                        <button type="submit" class="btn btn-outline btn-sm">Send text summary</button>
+                    </div>
+                    <p class="hint">The PDF opens in your device's share sheet so you can attach it to a WhatsApp message. If file sharing is unavailable, the PDF downloads and WhatsApp opens for manual attachment.</p>
                 </form>
             </div>
 

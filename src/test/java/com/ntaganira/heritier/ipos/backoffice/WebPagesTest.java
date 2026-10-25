@@ -20,6 +20,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
@@ -32,6 +33,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -211,6 +213,76 @@ class WebPagesTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void saleDetailOffersWhatsAppPdfShare() throws Exception {
+        Sale sale = completedSale();
+
+        mockMvc.perform(get("/sales/" + sale.getId()).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-whatsapp-pdf")))
+                .andExpect(content().string(containsString("Share receipt PDF")))
+                .andExpect(content().string(containsString(
+                        "data-pdf-url=\"/sales/" + sale.getId() + "/pdf?format=receipt\"")))
+                .andExpect(content().string(containsString(
+                        "Receipt-" + sale.getReceiptNumber() + ".pdf")));
+    }
+
+    @Test
+    void receiptPreviewOffersWhatsAppPdfShare() throws Exception {
+        Sale sale = completedSale();
+
+        mockMvc.perform(get("/sales/" + sale.getId() + "/receipt").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("WhatsApp PDF")))
+                .andExpect(content().string(containsString("data-whatsapp-status")))
+                .andExpect(content().string(containsString("/js/whatsapp-share.js")));
+    }
+
+    @Test
+    void embeddedReceiptCanRenderInsidePosPreview() throws Exception {
+        Sale sale = completedSale();
+
+        mockMvc.perform(get("/sales/" + sale.getId() + "/receipt")
+                        .param("embedded", "true")
+                        .with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Frame-Options", "SAMEORIGIN"))
+                .andExpect(content().string(containsString("receipt-paper")))
+                .andExpect(content().string(not(containsString("print-toolbar no-print"))));
+    }
+
+    @Test
+    void receiptPdfIsDownloadableAsAnAttachment() throws Exception {
+        Sale sale = completedSale();
+
+        mockMvc.perform(get("/sales/" + sale.getId() + "/pdf")
+                        .param("format", "receipt")
+                        .with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PDF))
+                .andExpect(header().string("Content-Disposition", containsString(
+                        "Receipt-" + sale.getReceiptNumber() + ".pdf")));
+    }
+
+    @Test
+    void posReceiptDialogOffersWhatsAppPdfShare() throws Exception {
+        mockMvc.perform(get("/pos").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"share-receipt-btn\"")))
+                .andExpect(content().string(containsString("data-whatsapp-pdf")));
+    }
+
+    @Test
+    void heldSaleUsesModalInsteadOfBrowserPrompt() throws Exception {
+        mockMvc.perform(get("/pos").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"hold-modal\"")))
+                .andExpect(content().string(containsString("id=\"hold-form\"")))
+                .andExpect(content().string(containsString("id=\"hold-label\"")))
+                .andExpect(content().string(containsString("id=\"hold-save-btn\"")))
+                .andExpect(content().string(not(containsString("window.prompt"))));
+    }
+
+    @Test
     void userEditFormRenders() throws Exception {
         Long adminId = userRepository.findByUsername("admin").orElseThrow().getId();
         mockMvc.perform(get("/users/" + adminId + "/edit").with(asAdmin()))
@@ -338,6 +410,26 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("stock/location-form"))
                 .andExpect(content().string(containsString("already exists")));
+    }
+
+    private Sale completedSale() {
+        Product product = productRepository.findAll().stream()
+                .filter(item -> item.getStockQuantity().signum() > 0)
+                .findFirst().orElseThrow();
+
+        CartRequest cart = new CartRequest();
+        CartRequest.Item item = new CartRequest.Item();
+        item.setProductId(product.getId());
+        item.setQuantity(BigDecimal.ONE);
+        item.setDiscount(BigDecimal.ZERO);
+        cart.setItems(List.of(item));
+
+        CartRequest.Payment payment = new CartRequest.Payment();
+        payment.setMethod(PaymentMethod.CASH);
+        payment.setAmount(product.getSellingPrice());
+        cart.setPayments(List.of(payment));
+
+        return saleService.completeSale(cart);
     }
 
     private RequestPostProcessor asAdmin() {

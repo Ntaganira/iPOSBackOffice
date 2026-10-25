@@ -56,9 +56,9 @@ Flyway creates and upgrades the schema automatically. No manual SQL is required.
 
 Common environment variables are documented in `.env.example`. Uploaded receipt attachments and product images are written to `IPOS_UPLOAD_DIR`.
 
-## Receipts and email
+## Receipts, email and WhatsApp
 
-Sales receipts and invoices support browser printing and PDF download. SMTP credentials are configured in **Settings > Email**; SMTP settings are stored in the database and the password is encrypted with `IPOS_ENCRYPTION_KEY`. Email delivery failures are recorded in **Email log**, with a resend action. In development, Mailpit captures all messages. Email delivery is disabled until SMTP is configured.
+Sales receipts and invoices support browser printing and PDF download. Receipt PDFs can be shared to WhatsApp from the sale detail page, the receipt preview or the POS completion dialog. On devices that support the Web Share API, the PDF is attached to the message through the device share sheet; otherwise the PDF downloads and WhatsApp opens for manual attachment. SMTP credentials are configured in **Settings > Email**; SMTP settings are stored in the database and the password is encrypted with `IPOS_ENCRYPTION_KEY`. Email delivery failures are recorded in **Email log**, with a resend action. In development, Mailpit captures all messages. Email delivery is disabled until SMTP is configured.
 
 ## Tests
 

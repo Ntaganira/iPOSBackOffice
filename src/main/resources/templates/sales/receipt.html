@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="'Receipt ' + ${sale.receiptNumber} + ' - iPOS'">Receipt - iPOS</title>
     <link rel="stylesheet" href="/css/receipt.css">
+    <script defer src="/js/whatsapp-share.js"></script>
 </head>
 <body th:classappend="${embedded} ? 'embedded' : ''" th:attr="data-default-format=${defaultFormat}">
 <div class="print-toolbar no-print" th:if="${!embedded}">
@@ -20,7 +21,15 @@
         </div>
         <a class="toolbar-btn" th:href="@{/sales/{id}/pdf(id=${sale.id},format='receipt')}">Receipt PDF</a>
         <a class="toolbar-btn" th:href="@{/sales/{id}/pdf(id=${sale.id},format='invoice')}">Invoice PDF</a>
-        <a class="toolbar-btn" th:href="@{/sales/{id}/whatsapp(id=${sale.id})}" target="_blank" rel="noopener">WhatsApp</a>
+        <button type="button" class="toolbar-btn"
+                data-whatsapp-pdf
+                data-busy-text="Preparing PDF..."
+                th:attr="data-pdf-url=@{/sales/{id}/pdf(id=${sale.id},format='receipt')},
+                         data-file-name=${'Receipt-' + sale.receiptNumber + '.pdf'},
+                         data-share-title=${'Receipt ' + sale.receiptNumber},
+                         data-share-text=${whatsappMessage},
+                         data-whatsapp-url=@{/sales/{id}/whatsapp(id=${sale.id},phone=${sale.customer != null ? sale.customer.phone : ''})}">WhatsApp PDF</button>
+        <span class="toolbar-status" data-whatsapp-status role="status" hidden></span>
         <button type="button" class="toolbar-btn primary" id="print-btn">Print</button>
         <button type="button" class="toolbar-btn" onclick="window.close()">Close</button>
     </div>
