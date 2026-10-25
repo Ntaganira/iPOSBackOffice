@@ -28,14 +28,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("""
             select p from Product p
             left join p.category c
+            left join p.location loc
             where (:q = '' or lower(p.name) like :q or lower(p.code) like :q
                    or lower(coalesce(p.barcode, '')) like :q)
               and (:categoryId is null or c.id = :categoryId)
               and (:active is null or p.active = :active)
+              and (:locationId is null or loc.id = :locationId)
             order by p.name asc
             """)
     Page<Product> search(@Param("q") String q, @Param("categoryId") Long categoryId,
-                         @Param("active") Boolean active, Pageable pageable);
+                         @Param("active") Boolean active, @Param("locationId") Long locationId,
+                         Pageable pageable);
 
     @Query("""
             select p from Product p
@@ -60,7 +63,25 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("select coalesce(sum(p.stockQuantity * p.buyingPrice), 0) from Product p where p.active = true")
     BigDecimal sumStockValue();
 
+    @Query("""
+            select p.location.id as locationId, count(p) as productCount,
+                   coalesce(sum(p.stockQuantity), 0) as totalQuantity
+            from Product p
+            where p.location is not null
+            group by p.location.id
+            """)
+    List<LocationUsage> locationUsage();
+
     List<Product> findByActiveTrueOrderByNameAsc();
 
     long countByActiveTrue();
+
+    interface LocationUsage {
+
+        Long getLocationId();
+
+        long getProductCount();
+
+        BigDecimal getTotalQuantity();
+    }
 }

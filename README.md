@@ -1,6 +1,6 @@
 # iPOS
 
-iPOS is a point-of-sale and stock management web application for a small shop in Rwanda. It covers the till, receipts and invoices in the RRA EBM style, products, customers, suppliers, purchases, imports, expenses, stock periods, reports, users, settings and audit logging.
+iPOS is a point-of-sale and stock management web application for a small shop in Rwanda. It covers the till, receipts and invoices in the RRA EBM style, products, storage locations, customers, suppliers, purchases, imports, expenses, stock periods, reports, users, settings and audit logging.
 
 ## Stack
 

@@ -35,6 +35,11 @@
                 <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"
                         th:selected="${categoryId != null and categoryId == category.id}"></option>
             </select>
+            <select name="locationId">
+                <option value="">All locations</option>
+                <option th:each="location : ${locations}" th:value="${location.id}" th:text="${location.label()}"
+                        th:selected="${locationId != null and locationId == location.id}"></option>
+            </select>
             <select name="active">
                 <option value="">All statuses</option>
                 <option value="true" th:selected="${active != null and active}">Active</option>
@@ -56,6 +61,7 @@
                     <th>Product</th>
                     <th>Category</th>
                     <th>Unit</th>
+                    <th>Location</th>
                     <th class="text-right">Stock</th>
                     <th class="text-right">Buying</th>
                     <th class="text-right">Selling</th>
@@ -78,6 +84,13 @@
                     </td>
                     <td th:text="${product.category == null ? '—' : product.category.name}">Category</td>
                     <td th:text="${product.unit == null ? '—' : product.unit.code}">PCS</td>
+                    <td>
+                        <a th:if="${product.location != null}" class="table-link"
+                           th:href="@{/products(locationId=${product.location.id})}"
+                           th:text="${product.location.code}"
+                           th:title="${product.location.name}">RACK</a>
+                        <span th:unless="${product.location != null}" class="hint">Not assigned</span>
+                    </td>
                     <td class="text-right">
                         <strong th:classappend="${product.lowStock} ? 'text-danger' : ''"
                                 th:text="${@fmt.qty(product.stockQuantity)}">0</strong>
@@ -102,7 +115,7 @@
                     </td>
                 </tr>
                 <tr th:if="${products.totalElements == 0}">
-                    <td colspan="9">
+                    <td colspan="10">
                         <div class="empty-state">
                             <h3>No products found</h3>
                             <p>Create a product or adjust the filters.</p>
@@ -118,9 +131,9 @@
             <span class="hint">Page <strong th:text="${products.number + 1}">1</strong> of <strong th:text="${products.totalPages}">1</strong> · <span th:text="${products.totalElements}">0</span> products</span>
             <div class="btn-group">
                 <a class="btn btn-outline btn-sm" th:classappend="${products.first} ? 'disabled'"
-                   th:href="@{/products(page=${products.number - 1}, size=${products.size}, q=${q}, categoryId=${categoryId}, active=${active})}">Previous</a>
+                   th:href="@{/products(page=${products.number - 1}, size=${products.size}, q=${q}, categoryId=${categoryId}, locationId=${locationId}, active=${active})}">Previous</a>
                 <a class="btn btn-outline btn-sm" th:classappend="${products.last} ? 'disabled'"
-                   th:href="@{/products(page=${products.number + 1}, size=${products.size}, q=${q}, categoryId=${categoryId}, active=${active})}">Next</a>
+                   th:href="@{/products(page=${products.number + 1}, size=${products.size}, q=${q}, categoryId=${categoryId}, locationId=${locationId}, active=${active})}">Next</a>
             </div>
         </div>
     </div>

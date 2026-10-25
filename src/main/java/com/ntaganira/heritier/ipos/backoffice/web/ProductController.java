@@ -35,17 +35,20 @@ public class ProductController {
     @GetMapping("/products")
     public String products(@RequestParam(required = false) String q,
                            @RequestParam(required = false) Long categoryId,
+                           @RequestParam(required = false) Long locationId,
                            @RequestParam(required = false) Boolean active,
                            @RequestParam(defaultValue = "0") int page,
                            @RequestParam(defaultValue = "25") int size,
                            Model model) {
-        Page<Product> products = productService.search(q, categoryId, active,
+        Page<Product> products = productService.search(q, categoryId, active, locationId,
                 PageRequest.of(Math.max(0, page), Math.min(100, Math.max(5, size)),
                         Sort.by(Sort.Direction.ASC, "name")));
         model.addAttribute("products", products);
         model.addAttribute("categories", productService.categories());
+        model.addAttribute("locations", productService.locations());
         model.addAttribute("q", q);
         model.addAttribute("categoryId", categoryId);
+        model.addAttribute("locationId", locationId);
         model.addAttribute("active", active);
         return "products/list";
     }
@@ -182,6 +185,7 @@ public class ProductController {
     private void formOptions(Model model) {
         model.addAttribute("categories", productService.activeCategories());
         model.addAttribute("units", productService.activeUnits());
+        model.addAttribute("locations", productService.locations());
         model.addAttribute("taxCategories", productService.taxCategories());
     }
 }

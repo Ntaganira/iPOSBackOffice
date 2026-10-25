@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html(#{nav.locations}, ~{::content})}">
+<head><title>Storage locations - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/stock" class="subtle-link">Inventory</a> / Locations</div>
+            <h1>Storage locations</h1>
+            <div class="subtitle">Register racks, drawers, shelves and rooms so every product has a known home.</div>
+        </div>
+        <div class="page-actions">
+            <a href="/stock" class="btn btn-outline">Back to stock</a>
+            <a sec:authorize="hasAuthority('LOCATION_MANAGE')" href="/stock/locations/new" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New location
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="section">
+        <div class="section-header"><h2>All locations</h2><span class="section-count" th:text="${#lists.size(rows)}">0</span></div>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th class="text-right">Products</th>
+                    <th class="text-right">Units</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row : ${rows}" th:with="location=${row.location}">
+                    <td class="mono" th:text="${location.code}">RACK-A1</td>
+                    <td>
+                        <div class="table-primary" th:text="${location.name}">Rack A1</div>
+                        <div class="hint" th:if="${location.description != null}" th:text="${location.description}">Details</div>
+                    </td>
+                    <td><span class="badge badge-secondary" th:text="${location.type.label()}">Rack</span></td>
+                    <td class="text-right">
+                        <a th:if="${row.productCount > 0}" class="table-link"
+                           th:href="@{/stock(locationId=${location.id})}" th:text="${row.productCount}">0</a>
+                        <span th:unless="${row.productCount > 0}" class="hint">0</span>
+                    </td>
+                    <td class="text-right" th:text="${@fmt.qty(row.totalQuantity)}">0</td>
+                    <td>
+                        <span class="badge" th:classappend="${location.active} ? 'badge-success' : 'badge-secondary'"
+                              th:text="${location.active ? 'Active' : 'Inactive'}">Active</span>
+                    </td>
+                    <td class="text-right">
+                        <div class="btn-group" style="justify-content:flex-end">
+                            <a sec:authorize="hasAuthority('LOCATION_MANAGE')" class="btn btn-outline btn-sm"
+                               th:href="@{/stock/locations/{id}/edit(id=${location.id})}">Edit</a>
+                            <form sec:authorize="hasAuthority('LOCATION_MANAGE')" th:action="@{/stock/locations/{id}/toggle(id=${location.id})}"
+                                  method="post" style="display:inline"
+                                  th:attr="data-confirm=${location.active ? 'Deactivate this location? Products keep their assignment.' : null}">
+                                <button type="submit" class="btn btn-outline btn-sm" th:text="${location.active ? 'Deactivate' : 'Activate'}">Deactivate</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(rows)}">
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <h3>No storage locations yet</h3>
+                            <p>Register the first rack, drawer or room to start mapping products.</p>
+                            <a sec:authorize="hasAuthority('LOCATION_MANAGE')" href="/stock/locations/new" class="btn btn-primary btn-sm">New location</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

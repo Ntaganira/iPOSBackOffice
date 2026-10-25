@@ -39,16 +39,19 @@ public class StockController {
 
     @GetMapping("/stock")
     public String stock(@RequestParam(required = false) String q,
+                        @RequestParam(required = false) Long locationId,
                         @RequestParam(defaultValue = "0") int page,
                         @RequestParam(defaultValue = "30") int size,
                         Model model) {
-        Page<Product> products = productService.search(q, null, true,
+        Page<Product> products = productService.search(q, null, true, locationId,
                 PageRequest.of(Math.max(0, page), Math.min(100, Math.max(5, size)),
                         Sort.by(Sort.Direction.ASC, "name")));
         LocalDate today = LocalDate.now();
         ReportService.StockReport report = reportService.stock(today, today);
         model.addAttribute("products", products);
+        model.addAttribute("locations", productService.locations());
         model.addAttribute("q", q);
+        model.addAttribute("locationId", locationId);
         model.addAttribute("stockValue", report.stockValue());
         model.addAttribute("stockQuantity", report.stockQuantity());
         model.addAttribute("lowStock", stockService.lowStock());

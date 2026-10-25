@@ -25,6 +25,9 @@ This file records assumptions and choices made while building iPOS. Tax behaviou
 - Stock value on reports is quantity multiplied by the current buying price. There is no weighted-average or FIFO costing ledger.
 - Stock periods store closing quantity and value snapshots. A closed period is read-only and guards against later mutation of historical valuations.
 - Negative stock is blocked unless **Allow negative stock** is enabled in shop settings.
+- Storage locations are registry records for physical places (rack, drawer, shelf, room or other) with a unique code, name, type, description and active flag. A product has one optional primary location, chosen on the product form.
+- Stock remains a single on-hand quantity on the product. Mapping a product to a location does not split quantity by location or create a per-location ledger; if that becomes necessary, a separate stock-by-location table is the next step.
+- Deactivating a location keeps existing product assignments. The location remains visible in the product form with an `(inactive)` marker so mappings are not silently lost. The stock and product lists can be filtered by location, and the locations page shows mapped product and unit counts.
 
 ## Imports
 

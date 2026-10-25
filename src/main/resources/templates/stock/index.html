@@ -11,6 +11,7 @@
             <div class="subtitle">On-hand quantities, valuation and replenishment signals.</div>
         </div>
         <div class="page-actions">
+            <a href="/stock/locations" class="btn btn-outline">Locations</a>
             <a href="/stock/movements" class="btn btn-outline">Movements</a>
             <a href="/stock/periods" class="btn btn-outline">Stock periods</a>
         </div>
@@ -66,14 +67,23 @@
         <div class="section">
             <div class="section-header">
                 <h2>Products</h2>
-                <form method="get" action="/stock" class="toolbar-search" style="max-width:280px">
+            </div>
+            <form method="get" action="/stock" class="filter-bar">
+                <div class="search-box">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     <input type="search" name="q" th:value="${q}" placeholder="Search product…">
-                </form>
-            </div>
+                </div>
+                <select name="locationId">
+                    <option value="">All locations</option>
+                    <option th:each="location : ${locations}" th:value="${location.id}" th:text="${location.label()}"
+                            th:selected="${locationId != null and locationId == location.id}"></option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="/stock" class="btn btn-outline btn-sm">Reset</a>
+            </form>
             <div class="table-container table-flush">
                 <table>
-                    <thead><tr><th>Product</th><th>Category</th><th class="text-right">On hand</th><th class="text-right">Reorder at</th><th class="text-right">Value</th></tr></thead>
+                    <thead><tr><th>Product</th><th>Category</th><th>Location</th><th class="text-right">On hand</th><th class="text-right">Reorder at</th><th class="text-right">Value</th></tr></thead>
                     <tbody>
                     <tr th:each="product : ${products.content}">
                         <td>
@@ -81,6 +91,13 @@
                             <div class="hint mono" th:text="${product.code}">CODE</div>
                         </td>
                         <td th:text="${product.category == null ? '—' : product.category.name}">Category</td>
+                        <td>
+                            <a th:if="${product.location != null}" class="table-link"
+                               th:href="@{/stock(locationId=${product.location.id})}"
+                               th:text="${product.location.code}"
+                               th:title="${product.location.name}">RACK</a>
+                            <span th:unless="${product.location != null}" class="hint">Not assigned</span>
+                        </td>
                         <td class="text-right">
                             <strong th:classappend="${product.lowStock} ? 'text-danger' : ''" th:text="${@fmt.qty(product.stockQuantity)}">0</strong>
                             <span class="badge badge-danger" th:if="${product.lowStock}" style="margin-left:5px">LOW</span>
@@ -94,8 +111,8 @@
             <div class="pagination-bar" th:if="${products.totalPages > 1}">
                 <span class="hint">Page <strong th:text="${products.number + 1}">1</strong> of <strong th:text="${products.totalPages}">1</strong></span>
                 <div class="btn-group">
-                    <a class="btn btn-outline btn-sm" th:classappend="${products.first} ? 'disabled'" th:href="@{/stock(page=${products.number - 1}, size=${products.size}, q=${q})}">Previous</a>
-                    <a class="btn btn-outline btn-sm" th:classappend="${products.last} ? 'disabled'" th:href="@{/stock(page=${products.number + 1}, size=${products.size}, q=${q})}">Next</a>
+                    <a class="btn btn-outline btn-sm" th:classappend="${products.first} ? 'disabled'" th:href="@{/stock(page=${products.number - 1}, size=${products.size}, q=${q}, locationId=${locationId})}">Previous</a>
+                    <a class="btn btn-outline btn-sm" th:classappend="${products.last} ? 'disabled'" th:href="@{/stock(page=${products.number + 1}, size=${products.size}, q=${q}, locationId=${locationId})}">Next</a>
                 </div>
             </div>
         </div>

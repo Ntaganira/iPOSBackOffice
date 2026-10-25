@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.locations}, ~{::content})}">
+<head><title>Storage location form - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow"><a href="/stock/locations" class="subtle-link">Storage locations</a> / <span th:text="${editing ? 'Edit' : 'New'}">New</span></div>
+            <h1 th:text="${editing ? 'Edit storage location' : 'New storage location'}">New storage location</h1>
+            <div class="subtitle">Give the place a short code that staff can write on labels and shelf edges.</div>
+        </div>
+        <div class="page-actions">
+            <a href="/stock/locations" class="btn btn-outline">Cancel</a>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="${editing} ? @{/stock/locations/{id}(id=${locationForm.id})} : @{/stock/locations}"
+          th:object="${locationForm}" method="post" class="form-layout">
+        <div class="section">
+            <div class="section-header"><h2>Location details</h2></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="code">Code *</label>
+                    <input id="code" th:field="*{code}" required maxlength="40" placeholder="RACK-A1" class="mono">
+                    <div class="hint">A short, unique label such as RACK-A1 or DRAWER-03.</div>
+                    <div class="field-error" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type *</label>
+                    <select id="type" th:field="*{type}" required>
+                        <option th:each="type : ${types}" th:value="${type}" th:text="${type.label()}"></option>
+                    </select>
+                    <div class="field-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="name">Name *</label>
+                    <input id="name" th:field="*{name}" required maxlength="120" placeholder="Rack A, shelf 1">
+                    <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <input id="description" th:field="*{description}" maxlength="255" placeholder="Near the back door, second row">
+                    <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <label class="checkbox-row"><input type="checkbox" th:field="*{active}"> Active and available for mapping</label>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" th:text="${editing ? 'Save changes' : 'Create location'}">Create location</button>
+                <a href="/stock/locations" class="btn btn-outline">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

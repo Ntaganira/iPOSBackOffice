@@ -3,11 +3,13 @@ package com.ntaganira.heritier.ipos.backoffice.service;
 import com.ntaganira.heritier.ipos.backoffice.dto.ProductForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.Category;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;
+import com.ntaganira.heritier.ipos.backoffice.entity.StorageLocation;
 import com.ntaganira.heritier.ipos.backoffice.entity.TaxCategory;
 import com.ntaganira.heritier.ipos.backoffice.entity.Unit;
 import com.ntaganira.heritier.ipos.backoffice.enums.MovementType;
 import com.ntaganira.heritier.ipos.backoffice.repository.CategoryRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.ProductRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.StorageLocationRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.TaxCategoryRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.UnitRepository;
 import com.ntaganira.heritier.ipos.backoffice.util.CsvUtils;
@@ -39,6 +41,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final UnitRepository unitRepository;
+    private final StorageLocationRepository locationRepository;
     private final TaxCategoryRepository taxCategoryRepository;
     private final StockService stockService;
     private final SequenceService sequenceService;
@@ -49,6 +52,7 @@ public class ProductService {
     public ProductService(ProductRepository productRepository,
                           CategoryRepository categoryRepository,
                           UnitRepository unitRepository,
+                          StorageLocationRepository locationRepository,
                           TaxCategoryRepository taxCategoryRepository,
                           StockService stockService,
                           SequenceService sequenceService,
@@ -58,6 +62,7 @@ public class ProductService {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.unitRepository = unitRepository;
+        this.locationRepository = locationRepository;
         this.taxCategoryRepository = taxCategoryRepository;
         this.stockService = stockService;
         this.sequenceService = sequenceService;
@@ -68,7 +73,12 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<Product> search(String q, Long categoryId, Boolean active, Pageable pageable) {
-        return productRepository.search(like(q), categoryId, active, pageable);
+        return search(q, categoryId, active, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Product> search(String q, Long categoryId, Boolean active, Long locationId, Pageable pageable) {
+        return productRepository.search(like(q), categoryId, active, locationId, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -173,6 +183,11 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<StorageLocation> locations() {
+        return locationRepository.findAllByOrderByCodeAsc();
+    }
+
+    @Transactional(readOnly = true)
     public List<TaxCategory> taxCategories() {
         return taxCategoryRepository.findAllByOrderBySortOrderAsc();
     }
@@ -236,7 +251,7 @@ public class ProductService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             out.write('\uFEFF');
-            out.write(("code,barcode,name,category,unit,buying_price,selling_price,tax_category,"
+            out.write(("code,barcode,name,category,unit,location,buying_price,selling_price,tax_category,"
                     + "reorder_level,stock,active\r\n").getBytes(StandardCharsets.UTF_8));
             for (Product product : productRepository.findAll()) {
                 out.write(CsvUtils.line(
@@ -245,6 +260,7 @@ public class ProductService {
                         product.getName(),
                         product.getCategory() == null ? "" : product.getCategory().getName(),
                         product.getUnit() == null ? "" : product.getUnit().getName(),
+                        product.getLocation() == null ? "" : product.getLocation().label(),
                         product.getBuyingPrice(),
                         product.getSellingPrice(),
                         product.getTaxCategory() == null ? "" : product.getTaxCategory().getCode(),
@@ -371,6 +387,8 @@ public class ProductService {
         product.setBarcode(StringUtils.hasText(form.getBarcode()) ? form.getBarcode().trim() : null);
         product.setCategory(category);
         product.setUnit(unit);
+        product.setLocation(form.getLocationId() == null ? null : locationRepository.findById(form.getLocationId())
+                .orElseThrow(() -> new BusinessException("Choose a valid storage location.")));
         product.setTaxCategory(tax);
         product.setBuyingPrice(Money.of(form.getBuyingPrice()));
         product.setSellingPrice(Money.of(form.getSellingPrice()));
@@ -385,6 +403,7 @@ public class ProductService {
         map.put("name", product.getName());
         map.put("category", product.getCategory() == null ? null : product.getCategory().getName());
         map.put("unit", product.getUnit() == null ? null : product.getUnit().getName());
+        map.put("location", product.getLocation() == null ? null : product.getLocation().label());
         map.put("taxCategory", product.getTaxCategory() == null ? null : product.getTaxCategory().getCode());
         map.put("buyingPrice", product.getBuyingPrice());
         map.put("sellingPrice", product.getSellingPrice());

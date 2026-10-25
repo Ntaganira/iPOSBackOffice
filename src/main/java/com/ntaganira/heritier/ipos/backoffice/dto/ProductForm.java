@@ -29,6 +29,8 @@ public class ProductForm {
     @NotNull(message = "Choose a unit.")
     private Long unitId;
 
+    private Long locationId;
+
     @NotBlank(message = "Choose a tax category.")
     private String taxCategoryCode;
 
@@ -59,6 +61,7 @@ public class ProductForm {
         form.name = product.getName();
         form.categoryId = product.getCategory() == null ? null : product.getCategory().getId();
         form.unitId = product.getUnit() == null ? null : product.getUnit().getId();
+        form.locationId = product.getLocation() == null ? null : product.getLocation().getId();
         form.taxCategoryCode = product.getTaxCategory() == null ? "A" : product.getTaxCategory().getCode();
         form.buyingPrice = product.getBuyingPrice();
         form.sellingPrice = product.getSellingPrice();
@@ -115,6 +118,14 @@ public class ProductForm {
 
     public void setUnitId(Long unitId) {
         this.unitId = unitId;
+    }
+
+    public Long getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(Long locationId) {
+        this.locationId = locationId;
     }
 
     public String getTaxCategoryCode() {

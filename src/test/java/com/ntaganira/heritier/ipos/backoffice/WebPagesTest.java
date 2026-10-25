@@ -1,12 +1,18 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
 import com.ntaganira.heritier.ipos.backoffice.dto.CartRequest;
+import com.ntaganira.heritier.ipos.backoffice.entity.Category;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;
 import com.ntaganira.heritier.ipos.backoffice.entity.Sale;
+import com.ntaganira.heritier.ipos.backoffice.entity.StorageLocation;
+import com.ntaganira.heritier.ipos.backoffice.entity.Unit;
 import com.ntaganira.heritier.ipos.backoffice.enums.PaymentMethod;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.CategoryRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.PermissionRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.ProductRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.StorageLocationRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.UnitRepository;
 import com.ntaganira.heritier.ipos.backoffice.service.SaleService;
 import jakarta.servlet.RequestDispatcher;
 import org.junit.jupiter.api.Test;
@@ -27,8 +33,11 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -50,6 +59,15 @@ class WebPagesTest extends AbstractIntegrationTest {
 
     @Autowired
     private AppUserRepository userRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private UnitRepository unitRepository;
+
+    @Autowired
+    private StorageLocationRepository storageLocationRepository;
 
     @Autowired
     private SaleService saleService;
@@ -248,6 +266,80 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(redirectedUrl("/403"));
     }
 
+    @Test
+    void storageLocationsMapProductsAndFilterStock() throws Exception {
+        Category category = categoryRepository.findAll().get(0);
+        Unit unit = unitRepository.findAll().get(0);
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String locationCode = "RACK-" + suffix;
+        String productCode = "LOC-" + suffix;
+
+        mockMvc.perform(post("/stock/locations").with(asAdmin()).with(csrf())
+                        .param("code", locationCode)
+                        .param("name", "Rack " + suffix)
+                        .param("type", "RACK")
+                        .param("description", "Aisle 2")
+                        .param("active", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/stock/locations"));
+
+        StorageLocation location = storageLocationRepository.findAllByOrderByCodeAsc().stream()
+                .filter(item -> item.getCode().equals(locationCode))
+                .findFirst().orElseThrow();
+
+        mockMvc.perform(post("/products").with(asAdmin()).with(csrf())
+                        .param("code", productCode)
+                        .param("name", "Mapped product " + suffix)
+                        .param("categoryId", category.getId().toString())
+                        .param("unitId", unit.getId().toString())
+                        .param("taxCategoryCode", "A")
+                        .param("buyingPrice", "100")
+                        .param("sellingPrice", "150")
+                        .param("reorderLevel", "5")
+                        .param("active", "true")
+                        .param("locationId", location.getId().toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/products"));
+
+        Product product = productRepository.findByCodeIgnoreCase(productCode).orElseThrow();
+        assertEquals(location.getId(), product.getLocation().getId());
+
+        mockMvc.perform(get("/products").param("locationId", location.getId().toString()).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(product.getName())))
+                .andExpect(content().string(containsString(locationCode)));
+
+        mockMvc.perform(get("/stock").param("locationId", location.getId().toString()).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(product.getName())))
+                .andExpect(content().string(containsString(locationCode)));
+
+        mockMvc.perform(get("/stock/locations").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(locationCode)))
+                .andExpect(content().string(containsString("Aisle 2")));
+    }
+
+    @Test
+    void duplicateStorageLocationCodeIsRejected() throws Exception {
+        String code = "DRAWER-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        mockMvc.perform(post("/stock/locations").with(asAdmin()).with(csrf())
+                        .param("code", code)
+                        .param("name", "Drawer test")
+                        .param("type", "DRAWER")
+                        .param("active", "true"))
+                .andExpect(status().is3xxRedirection());
+
+        mockMvc.perform(post("/stock/locations").with(asAdmin()).with(csrf())
+                        .param("code", code.toLowerCase())
+                        .param("name", "Drawer duplicate")
+                        .param("type", "DRAWER")
+                        .param("active", "true"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("stock/location-form"))
+                .andExpect(content().string(containsString("already exists")));
+    }
+
     private RequestPostProcessor asAdmin() {
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
@@ -274,6 +366,8 @@ class WebPagesTest extends AbstractIntegrationTest {
                 "/imports",
                 "/imports/new",
                 "/stock",
+                "/stock/locations",
+                "/stock/locations/new",
                 "/stock/movements",
                 "/stock/periods",
                 "/expenses",

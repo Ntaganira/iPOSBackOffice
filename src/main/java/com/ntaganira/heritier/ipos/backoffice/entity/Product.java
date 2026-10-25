@@ -44,6 +44,10 @@ public class Product extends AuditedEntity {
     @JoinColumn(name = "unit_id")
     private Unit unit;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private StorageLocation location;
+
     @Column(name = "buying_price", nullable = false)
     private BigDecimal buyingPrice = BigDecimal.ZERO;
 
