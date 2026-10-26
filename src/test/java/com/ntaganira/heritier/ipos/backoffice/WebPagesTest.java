@@ -245,6 +245,7 @@ class WebPagesTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/sales/" + sale.getId()).with(asAdmin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-whatsapp-pdf")))
+                .andExpect(content().string(containsString("whatsapp-icon")))
                 .andExpect(content().string(containsString("Share receipt PDF")))
                 .andExpect(content().string(containsString(
                         "data-pdf-url=\"/sales/" + sale.getId() + "/pdf?format=receipt\"")))
@@ -259,6 +260,7 @@ class WebPagesTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/sales/" + sale.getId() + "/receipt").with(asAdmin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("WhatsApp PDF")))
+                .andExpect(content().string(containsString("whatsapp-icon")))
                 .andExpect(content().string(containsString("data-whatsapp-status")))
                 .andExpect(content().string(containsString("/js/whatsapp-share.js")));
     }
@@ -294,7 +296,8 @@ class WebPagesTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/pos").with(asAdmin()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"share-receipt-btn\"")))
-                .andExpect(content().string(containsString("data-whatsapp-pdf")));
+                .andExpect(content().string(containsString("data-whatsapp-pdf")))
+                .andExpect(content().string(containsString("whatsapp-icon")));
     }
 
     @Test

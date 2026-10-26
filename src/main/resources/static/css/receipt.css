@@ -54,6 +54,9 @@ body.embedded { background: #fff; }
 }
 .format-toggle button.active { background: var(--brand); color: #fff; }
 .toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 7px;
@@ -65,6 +68,7 @@ body.embedded { background: #fff; }
   cursor: pointer;
   text-decoration: none;
 }
+.toolbar-btn svg { width: 14px; height: 14px; flex: none; }
 .toolbar-btn:hover { border-color: var(--brand); color: var(--brand); }
 .toolbar-btn.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
 .toolbar-btn:disabled { opacity: .65; cursor: wait; }

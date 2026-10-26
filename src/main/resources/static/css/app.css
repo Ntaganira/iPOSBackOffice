@@ -1196,6 +1196,7 @@ table tbody td .patient-cell .info .email {
 .btn svg {
   width: 16px;
   height: 16px;
+  flex: none;
   stroke: currentColor;
   fill: none;
   stroke-width: 2.2;
