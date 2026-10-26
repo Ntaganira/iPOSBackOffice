@@ -33,19 +33,49 @@
             <table>
                 <thead><tr><th>When</th><th>User</th><th>Action</th><th>Entity</th><th>Changes</th><th>IP</th></tr></thead>
                 <tbody>
-                <tr th:each="log : ${logs.content}">
-                    <td class="nowrap" th:text="${@fmt.dateTime(log.occurredAt)}">When</td>
-                    <td><strong th:text="${log.username}">user</strong><div class="muted" th:text="${log.role}">ADMIN</div></td>
-                    <td><span class="badge badge-secondary" th:text="${log.action}">SALE_CREATE</span></td>
-                    <td><div th:text="${log.entityType}">Sale</div><div class="muted" th:text="${log.entityLabel}">NS-0001</div></td>
+                <tr th:each="entry : ${logs.content}">
+                    <td class="nowrap" th:text="${@fmt.dateTime(entry.occurredAt)}">When</td>
+                    <td><strong th:text="${entry.username}">user</strong><div class="muted" th:text="${entry.role}">ADMIN</div></td>
+                    <td><span class="badge badge-secondary" th:text="${entry.action}">SALE_CREATE</span></td>
+                    <td><div th:text="${entry.entityType}">Sale</div><div class="muted" th:text="${entry.entityLabel}">NS-0001</div></td>
                     <td>
-                        <details th:if="${log.changesJson != null}">
-                            <summary>View</summary>
-                            <pre class="audit-json" th:text="${log.changesJson}">{}</pre>
+                        <details class="audit-diff" th:if="${not #lists.isEmpty(entry.changes)}">
+                            <summary>
+                                <span>View changes</span>
+                                <span class="audit-diff-count" th:text="${#lists.size(entry.changes)}">1</span>
+                            </summary>
+                            <div class="audit-diff-panel">
+                                <div class="audit-diff-head">
+                                    <span>Property</span>
+                                    <span>Old value</span>
+                                    <span>New value</span>
+                                </div>
+                                <div class="audit-diff-row" th:each="change : ${entry.changes}">
+                                    <div class="audit-diff-property" th:text="${change.label}">Property</div>
+                                    <div class="audit-diff-value audit-diff-old"
+                                         th:classappend="${change.beforeEmpty} ? 'is-empty' : ''">
+                                        <span class="audit-color-swatch" th:if="${change.beforeColor}"
+                                              th:style="|background:${change.beforeText}|"></span>
+                                        <span class="audit-value-text" th:if="${not change.beforeEmpty}"
+                                              th:classappend="${change.beforeStructured} ? 'is-structured' : ''"
+                                              th:text="${change.beforeText}">Old</span>
+                                        <span class="audit-empty" th:if="${change.beforeEmpty}">-</span>
+                                    </div>
+                                    <div class="audit-diff-value audit-diff-new"
+                                         th:classappend="${change.afterEmpty} ? 'is-empty' : ''">
+                                        <span class="audit-color-swatch" th:if="${change.afterColor}"
+                                              th:style="|background:${change.afterText}|"></span>
+                                        <span class="audit-value-text" th:if="${not change.afterEmpty}"
+                                              th:classappend="${change.afterStructured} ? 'is-structured' : ''"
+                                              th:text="${change.afterText}">New</span>
+                                        <span class="audit-empty" th:if="${change.afterEmpty}">-</span>
+                                    </div>
+                                </div>
+                            </div>
                         </details>
-                        <span th:if="${log.changesJson == null}" class="muted">—</span>
+                        <span th:if="${#lists.isEmpty(entry.changes)}" class="muted">&mdash;</span>
                     </td>
-                    <td class="mono muted" th:text="${log.ipAddress}">127.0.0.1</td>
+                    <td class="mono muted" th:text="${entry.ipAddress}">127.0.0.1</td>
                 </tr>
                 <tr th:if="${logs.empty}"><td colspan="6"><div class="empty-state"><h3>No audit entries</h3><p>Adjust the date range or filters.</p></div></td></tr>
                 </tbody>

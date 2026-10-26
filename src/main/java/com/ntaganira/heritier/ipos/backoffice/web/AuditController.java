@@ -1,7 +1,8 @@
 package com.ntaganira.heritier.ipos.backoffice.web;
 
-import com.ntaganira.heritier.ipos.backoffice.entity.AuditLog;
+import com.ntaganira.heritier.ipos.backoffice.dto.AuditLogView;
 import com.ntaganira.heritier.ipos.backoffice.repository.AuditLogRepository;
+import com.ntaganira.heritier.ipos.backoffice.service.AuditDiffService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,9 +20,11 @@ import java.time.ZoneId;
 public class AuditController {
 
     private final AuditLogRepository auditLogRepository;
+    private final AuditDiffService auditDiffService;
 
-    public AuditController(AuditLogRepository auditLogRepository) {
+    public AuditController(AuditLogRepository auditLogRepository, AuditDiffService auditDiffService) {
         this.auditLogRepository = auditLogRepository;
+        this.auditDiffService = auditDiffService;
     }
 
     @GetMapping("/audit")
@@ -41,11 +44,12 @@ public class AuditController {
         String actionFilter = action == null ? "" : action;
         String entityFilter = entityType == null ? "" : entityType;
         String query = q == null || q.isBlank() ? "" : "%" + q.trim().toLowerCase() + "%";
-        Page<AuditLog> logs = auditLogRepository.search(
+        Page<AuditLogView> logs = auditLogRepository.search(
                 start.atStartOfDay(zone).toInstant(),
                 end.plusDays(1).atStartOfDay(zone).toInstant(),
                 usernameFilter, actionFilter, entityFilter, query,
-                PageRequest.of(Math.max(0, page), Math.min(200, Math.max(10, size))));
+                PageRequest.of(Math.max(0, page), Math.min(200, Math.max(10, size))))
+                .map(auditDiffService::view);
         model.addAttribute("logs", logs);
         model.addAttribute("from", start);
         model.addAttribute("to", end);

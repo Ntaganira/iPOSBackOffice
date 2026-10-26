@@ -1,6 +1,7 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
 import com.ntaganira.heritier.ipos.backoffice.dto.CartRequest;
+import com.ntaganira.heritier.ipos.backoffice.entity.AuditLog;
 import com.ntaganira.heritier.ipos.backoffice.entity.Category;
 import com.ntaganira.heritier.ipos.backoffice.entity.Customer;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;
@@ -16,6 +17,7 @@ import com.ntaganira.heritier.ipos.backoffice.repository.PermissionRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.ProductRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.StorageLocationRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.UnitRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.AuditLogRepository;
 import com.ntaganira.heritier.ipos.backoffice.service.SaleService;
 import jakarta.servlet.RequestDispatcher;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -76,6 +79,9 @@ class WebPagesTest extends AbstractIntegrationTest {
 
     @Autowired
     private StorageLocationRepository storageLocationRepository;
+
+    @Autowired
+    private AuditLogRepository auditLogRepository;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -558,6 +564,31 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("stock/location-form"))
                 .andExpect(content().string(containsString("Color accent must be a hex value")));
+    }
+
+    @Test
+    void auditLogShowsReadableDiffInsteadOfRawJson() throws Exception {
+        AuditLog log = new AuditLog();
+        log.setOccurredAt(Instant.now());
+        log.setUsername("admin");
+        log.setRole("ADMIN");
+        log.setAction("UPDATE");
+        log.setEntityType("StorageLocation");
+        log.setEntityLabel("Diff test");
+        log.setChangesJson("{\"colorAccent\":{\"before\":\"#2563EB\",\"after\":\"#16A34A\"},\"notes\":{\"before\":null,\"after\":\"added\"}}");
+        log.setIpAddress("127.0.0.1");
+        auditLogRepository.save(log);
+
+        mockMvc.perform(get("/audit").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Color Accent")))
+                .andExpect(content().string(containsString("Notes")))
+                .andExpect(content().string(containsString("audit-diff-old")))
+                .andExpect(content().string(containsString("audit-diff-new")))
+                .andExpect(content().string(containsString("audit-color-swatch")))
+                .andExpect(content().string(containsString("#2563EB")))
+                .andExpect(content().string(containsString("added")))
+                .andExpect(content().string(not(containsString("{\"colorAccent\""))));
     }
 
     private Customer savedLookupCustomer() {
