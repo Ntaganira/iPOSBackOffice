@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.web;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.web
+ * - File      : EmailLogController.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Web controller for email log.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.EmailLog;
 import com.ntaganira.heritier.ipos.backoffice.enums.EmailStatus;
 import com.ntaganira.heritier.ipos.backoffice.service.BusinessException;

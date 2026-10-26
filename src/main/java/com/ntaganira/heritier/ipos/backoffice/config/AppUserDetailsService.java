@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.config
+ * - File      : AppUserDetailsService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Loads back-office users for Spring Security.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
 import com.ntaganira.heritier.ipos.backoffice.service.RoleService;
 import org.springframework.security.core.GrantedAuthority;

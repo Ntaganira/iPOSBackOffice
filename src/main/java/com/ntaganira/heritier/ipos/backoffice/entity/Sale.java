@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.entity;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.entity
+ * - File      : Sale.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : JPA entity representing sale.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.enums.PaymentStatus;
 import com.ntaganira.heritier.ipos.backoffice.enums.SaleStatus;
 import com.ntaganira.heritier.ipos.backoffice.enums.SaleType;

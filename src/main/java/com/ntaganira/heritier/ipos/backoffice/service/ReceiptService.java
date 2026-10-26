@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : ReceiptService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for receipt.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.Sale;
 import com.ntaganira.heritier.ipos.backoffice.entity.ShopSetting;
 import org.springframework.stereotype.Service;

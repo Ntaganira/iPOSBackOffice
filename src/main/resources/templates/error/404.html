@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : templates.error
+  - File      : 404.html
+  - Date      : 2026. 10. 26.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Thymeleaf error page for HTTP 404.
+-->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/sidebar :: html(#{error.404.title}, ~{::content})}">
 <head><title th:text="#{error.404.title}">Page not found - iPOS</title></head>

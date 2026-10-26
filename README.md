@@ -1,3 +1,12 @@
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : project
+  - File      : README.md
+  - Date      : 2026. 10. 26.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Project overview, setup and usage guide.
+-->
+
 # iPOS
 
 iPOS is a point-of-sale and stock management web application for a small shop in Rwanda. It covers the till, receipts and invoices in the RRA EBM style, products, storage locations, customers, suppliers, purchases, imports, expenses, stock periods, reports, users, settings and audit logging.

@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : SupplierService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for supplier.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.SupplierForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.Purchase;
 import com.ntaganira.heritier.ipos.backoffice.entity.Supplier;

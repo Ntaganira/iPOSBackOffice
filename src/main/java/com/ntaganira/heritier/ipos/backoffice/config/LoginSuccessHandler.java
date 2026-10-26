@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.config
+ * - File      : LoginSuccessHandler.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Authentication handler for successful logins.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.enums.UserRole;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;

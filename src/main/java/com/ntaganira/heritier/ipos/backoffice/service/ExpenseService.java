@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : ExpenseService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for expense.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.ExpenseForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.Expense;
 import com.ntaganira.heritier.ipos.backoffice.entity.ExpenseCategory;

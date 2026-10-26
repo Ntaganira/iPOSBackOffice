@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.web;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.web
+ * - File      : FileController.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Web controller for file.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.service.StorageService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;

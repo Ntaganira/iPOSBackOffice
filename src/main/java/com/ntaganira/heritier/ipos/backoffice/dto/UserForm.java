@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.dto;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.dto
+ * - File      : UserForm.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Data transfer object for user.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.enums.UserRole;
 import jakarta.validation.constraints.Email;

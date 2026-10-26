@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice
+ * - File      : ImportFlowTest.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Integration tests for product import processing.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.ImportForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.ImportBatch;
 import com.ntaganira.heritier.ipos.backoffice.entity.InventoryMovement;

@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.config
+ * - File      : SecurityConfig.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Spring Security rules, login flow and access control.
+ * </pre>
+ */
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

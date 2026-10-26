@@ -1,4 +1,13 @@
-﻿// WeCare Dashboard JS
+﻿/*
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : static.js
+ * - File      : app.js
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Shared client-side interactions for the back office.
+ */
+
+// WeCare Dashboard JS
 
 document.addEventListener('DOMContentLoaded', function () {
     // Toasts (flash messages & JS-triggered notices)

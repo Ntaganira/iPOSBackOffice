@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : DashboardService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for dashboard.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.StockMovementRow;
 import com.ntaganira.heritier.ipos.backoffice.entity.Customer;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;

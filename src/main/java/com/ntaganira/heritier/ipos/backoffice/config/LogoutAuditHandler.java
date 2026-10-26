@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.config
+ * - File      : LogoutAuditHandler.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Audit handler for user logout events.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.service.AuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

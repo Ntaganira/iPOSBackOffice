@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.config
+ * - File      : DemoDataSeeder.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Seeds optional demo catalogue and customer data.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.Category;
 import com.ntaganira.heritier.ipos.backoffice.entity.Customer;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;

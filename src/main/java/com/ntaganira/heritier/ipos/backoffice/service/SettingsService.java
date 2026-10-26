@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : SettingsService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for settings.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.ShopSetting;
 import com.ntaganira.heritier.ipos.backoffice.entity.TaxCategory;
 import com.ntaganira.heritier.ipos.backoffice.enums.PrintFormat;

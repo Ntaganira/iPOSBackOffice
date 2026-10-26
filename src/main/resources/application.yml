@@ -1,3 +1,12 @@
+#
+# - Project   : iPOS - Point of Sale, Stock and Back-Office
+# - Package   : resources
+# - File      : application.yml
+# - Date      : 2026. 10. 26.
+# - User      : Heritier NTAGANIRA
+# - Desc      : Shared Spring Boot application configuration.
+#
+
 server:
   port: ${IPOS_SERVER_PORT:8081}
   compression:

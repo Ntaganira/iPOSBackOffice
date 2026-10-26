@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.web;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.web
+ * - File      : ProfileController.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Web controller for profile.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.service.BusinessException;
 import com.ntaganira.heritier.ipos.backoffice.service.CurrentUserService;

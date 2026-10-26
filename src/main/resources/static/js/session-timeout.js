@@ -1,3 +1,12 @@
+/*
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : static.js
+ * - File      : session-timeout.js
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Session timeout warning and redirect behavior.
+ */
+
 // iPOS session idle timeout (native JS, no dependencies).
 // Redirects to /login?timeout=true after 30 minutes of inactivity, matching
 // server.servlet.session.timeout so shared back-office workstations lock.

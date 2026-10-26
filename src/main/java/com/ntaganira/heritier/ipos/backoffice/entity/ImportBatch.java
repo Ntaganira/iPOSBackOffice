@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.entity;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.entity
+ * - File      : ImportBatch.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : JPA entity representing import batch.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.enums.ImportStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

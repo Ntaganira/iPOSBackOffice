@@ -1,3 +1,12 @@
+#
+# - Project   : iPOS - Point of Sale, Stock and Back-Office
+# - Package   : resources
+# - File      : application-prod.yml
+# - Date      : 2026. 10. 26.
+# - User      : Heritier NTAGANIRA
+# - Desc      : Production profile configuration.
+#
+
 spring:
   thymeleaf:
     cache: true

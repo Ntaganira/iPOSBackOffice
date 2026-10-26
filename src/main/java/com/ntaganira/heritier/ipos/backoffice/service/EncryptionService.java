@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : EncryptionService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Encrypts sensitive configuration values.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.config.AppProperties;
 import org.springframework.stereotype.Service;
 

@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice
+ * - File      : AbstractIntegrationTest.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Shared Spring Boot and Testcontainers test base.
+ * </pre>
+ */
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;

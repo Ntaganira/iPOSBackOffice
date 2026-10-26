@@ -1,3 +1,12 @@
+#
+# - Project   : iPOS - Point of Sale, Stock and Back-Office
+# - Package   : static
+# - File      : openapi.yaml
+# - Date      : 2026. 10. 26.
+# - User      : Heritier NTAGANIRA
+# - Desc      : OpenAPI contract for the POS API.
+#
+
 openapi: 3.0.3
 info:
   title: iPOS Back Office Sync API

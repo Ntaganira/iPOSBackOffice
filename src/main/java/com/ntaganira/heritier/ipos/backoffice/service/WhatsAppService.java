@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : WhatsAppService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Sends receipts and notifications through WhatsApp.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.config.AppProperties;
 import com.ntaganira.heritier.ipos.backoffice.entity.Sale;
 import com.ntaganira.heritier.ipos.backoffice.entity.SaleLine;

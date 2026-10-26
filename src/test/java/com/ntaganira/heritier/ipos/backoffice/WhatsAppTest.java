@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice
+ * - File      : WhatsAppTest.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Unit tests for WhatsApp message helpers.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.util.WhatsApp;
 import org.junit.jupiter.api.Test;
 

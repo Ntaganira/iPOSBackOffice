@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice
+ * - File      : WebPagesTest.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : MockMvc integration tests for back-office pages.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.CartRequest;
 import com.ntaganira.heritier.ipos.backoffice.entity.AuditLog;
 import com.ntaganira.heritier.ipos.backoffice.entity.Category;

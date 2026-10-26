@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.dto;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.dto
+ * - File      : CartRequest.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Data transfer object for cart.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.enums.PaymentMethod;
 
 import java.math.BigDecimal;

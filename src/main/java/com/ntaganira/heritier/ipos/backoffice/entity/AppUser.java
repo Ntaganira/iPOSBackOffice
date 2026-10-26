@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.entity;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.entity
+ * - File      : AppUser.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : JPA entity representing app user.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.enums.UserRole;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.web;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.web
+ * - File      : DashboardController.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Web controller for dashboard.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.service.DashboardService;
 import com.ntaganira.heritier.ipos.backoffice.service.ReportService;
 import org.springframework.stereotype.Controller;

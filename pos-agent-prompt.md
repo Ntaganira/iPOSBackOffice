@@ -1,3 +1,12 @@
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : project
+  - File      : pos-agent-prompt.md
+  - Date      : 2026. 10. 26.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Prompt describing the iPOS agent integration.
+-->
+
 # Agent Prompt: Build iPOS, a Small-Shop POS (EBM Rwanda style)
 
 You are a senior Java engineer working autonomously. Build **iPOS**, a complete, fully working Point of Sale (POS) and stock management web application for a small shop in Rwanda, with receipts that follow the Rwanda Revenue Authority (RRA) EBM (Electronic Billing Machine) receipt style. Work continuously until every requirement below is implemented, the app runs, and the tests pass. Do not stop to ask questions; when something is ambiguous, choose the most reasonable option, record it in `DECISIONS.md`, and keep going.

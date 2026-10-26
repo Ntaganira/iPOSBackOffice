@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.security;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.security
+ * - File      : Permissions.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Permission code constants used across the application.
+ * </pre>
+ */
+
 public final class Permissions {
 
     public static final String POS_USE = "POS_USE";

@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.dto;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.dto
+ * - File      : LocationForm.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Data transfer object for location.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.StorageLocation;
 import com.ntaganira.heritier.ipos.backoffice.enums.LocationType;
 import jakarta.validation.constraints.NotBlank;

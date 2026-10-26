@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice
+ * - File      : AvatarFlowTest.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Integration tests for the user avatar flow.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
 import org.junit.jupiter.api.Test;

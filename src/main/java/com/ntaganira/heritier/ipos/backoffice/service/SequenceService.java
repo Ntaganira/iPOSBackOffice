@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : SequenceService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Allocates document numbers for sales and purchases.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.DocumentSequence;
 import com.ntaganira.heritier.ipos.backoffice.repository.DocumentSequenceRepository;
 import org.springframework.stereotype.Service;

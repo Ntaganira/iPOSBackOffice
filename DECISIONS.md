@@ -1,3 +1,12 @@
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : project
+  - File      : DECISIONS.md
+  - Date      : 2026. 10. 26.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Architecture and product decisions log.
+-->
+
 # iPOS design decisions
 
 This file records assumptions and choices made while building iPOS. Tax behaviour and receipt content must be checked against current RRA EBM guidance before production use.

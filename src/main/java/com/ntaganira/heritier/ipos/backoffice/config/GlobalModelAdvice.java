@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.config;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.config
+ * - File      : GlobalModelAdvice.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Global model attributes shared by Thymeleaf views.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.NotificationItem;
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;

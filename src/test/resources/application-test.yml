@@ -1,3 +1,12 @@
+#
+# - Project   : iPOS - Point of Sale, Stock and Back-Office
+# - Package   : test.resources
+# - File      : application-test.yml
+# - Date      : 2026. 10. 26.
+# - User      : Heritier NTAGANIRA
+# - Desc      : Integration test profile configuration.
+#
+
 spring:
   jpa:
     open-in-view: true

@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.web;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.web
+ * - File      : SupplierController.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Web controller for supplier.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.SupplierForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.Supplier;
 import com.ntaganira.heritier.ipos.backoffice.enums.PaymentMethod;

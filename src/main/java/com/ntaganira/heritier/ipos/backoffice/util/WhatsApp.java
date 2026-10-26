@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.util;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.util
+ * - File      : WhatsApp.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : WhatsApp phone number and message helpers.
+ * </pre>
+ */
+
 import org.springframework.util.StringUtils;
 
 import java.net.URLEncoder;

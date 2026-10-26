@@ -1,3 +1,12 @@
+/*
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : static.js
+ * - File      : whatsapp-share.js
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Client-side WhatsApp sharing for receipts.
+ */
+
 (function () {
     'use strict';
 

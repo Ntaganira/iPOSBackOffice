@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.repository;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.repository
+ * - File      : ExpenseRepository.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Spring Data repository for expense.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.Expense;
 import com.ntaganira.heritier.ipos.backoffice.enums.ExpenseStatus;
 import com.ntaganira.heritier.ipos.backoffice.enums.PaymentMethod;

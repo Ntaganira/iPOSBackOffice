@@ -1,3 +1,12 @@
+#
+# - Project   : iPOS - Point of Sale, Stock and Back-Office
+# - Package   : project
+# - File      : docker-compose.yml
+# - Date      : 2026. 10. 26.
+# - User      : Heritier NTAGANIRA
+# - Desc      : Docker Compose services for PostgreSQL and Mailpit.
+#
+
 services:
   postgres:
     image: postgres:16-alpine

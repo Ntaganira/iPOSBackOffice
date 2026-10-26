@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.util;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.util
+ * - File      : CsvUtils.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : CSV parsing and escaping helpers.
+ * </pre>
+ */
+
 import java.util.ArrayList;
 import java.util.List;
 

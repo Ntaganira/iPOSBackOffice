@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : RoleService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for role.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.entity.Permission;
 import com.ntaganira.heritier.ipos.backoffice.entity.Role;
 import com.ntaganira.heritier.ipos.backoffice.entity.RolePermission;

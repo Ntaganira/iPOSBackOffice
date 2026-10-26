@@ -1,5 +1,16 @@
 package com.ntaganira.heritier.ipos.backoffice.service;
 
+/**
+ * <pre>
+ * - Project   : iPOS - Point of Sale, Stock and Back-Office
+ * - Package   : com.ntaganira.heritier.ipos.backoffice.service
+ * - File      : LocationService.java
+ * - Date      : 2026. 10. 26.
+ * - User      : Heritier NTAGANIRA
+ * - Desc      : Application service for location.
+ * </pre>
+ */
+
 import com.ntaganira.heritier.ipos.backoffice.dto.LocationForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.StorageLocation;
 import com.ntaganira.heritier.ipos.backoffice.enums.LocationType;
