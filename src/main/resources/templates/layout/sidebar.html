@@ -27,6 +27,46 @@
     </script>
     <link rel="stylesheet" href="/css/app.css">
     <link rel="stylesheet" href="/css/ipos.css">
+    <style th:inline="css">
+        :root {
+            --primary-color: [(${colorPrimary})];
+            --secondary-color: [(${colorSecondary})];
+            --background-color: [(${colorBackground})];
+            --surface-color: [(${colorSurface})];
+        }
+    </style>
+    <style th:inline="css" th:if="${themePalette != null}">
+        :root {
+            --primary-ink: [(${themePalette.primaryInk})];
+            --secondary-ink: [(${themePalette.secondaryInk})];
+            --brand-ink: [(${themePalette.brandInk})];
+        }
+        html:not([data-theme="dark"]) {
+            --bg: [(${themePalette.background})];
+            --surface: [(${themePalette.surface})];
+            --header-bg: color-mix(in srgb, var(--surface) 94%, transparent);
+            --background-ink: [(${themePalette.backgroundInk})];
+            --background-muted: [(${themePalette.backgroundMuted})];
+            --surface-ink: [(${themePalette.surfaceInk})];
+            --surface-muted: [(${themePalette.surfaceMuted})];
+            --surface-subtle: [(${themePalette.surfaceSubtle})];
+            --dark: var(--surface-ink);
+            --gray-900: var(--surface-ink);
+            --gray-800: var(--surface-ink);
+            --gray-700: color-mix(in srgb, var(--surface-ink) 84%, var(--surface));
+            --gray-600: color-mix(in srgb, var(--surface-ink) 72%, var(--surface));
+            --gray-500: var(--surface-muted);
+            --gray-400: var(--surface-subtle);
+            --gray-300: color-mix(in srgb, var(--surface-ink) 28%, var(--surface));
+            --gray-200: color-mix(in srgb, var(--surface-ink) 15%, var(--surface));
+            --gray-100: color-mix(in srgb, var(--surface-ink) 8%, var(--surface));
+            --gray-50: color-mix(in srgb, var(--surface-ink) 4%, var(--surface));
+            --primary-light: color-mix(in srgb, var(--primary) 14%, var(--surface));
+            --primary-soft: [(${themePalette.surfaceAccent})];
+            --accent: [(${themePalette.surfaceAccent})];
+            --accent-on-bg: [(${themePalette.backgroundAccent})];
+        }
+    </style>
     <script th:inline="javascript">
         window.iposMessages = {
             confirmDelete: /*[[#{common.confirmDelete}]]*/ 'Are you sure you want to delete this item?',

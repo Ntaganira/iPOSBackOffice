@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : templates.admin
+  - File      : layout.html
+  - Date      : 2026. 11. 04.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Standalone platform administration layout.
+-->
+
+<html xmlns:th="http://www.thymeleaf.org"
+      th:fragment="html(title, content)" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${title} + ' - iPOS platform'">iPOS platform</title>
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/ipos.css">
+    <style>
+        .admin-shell { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+        .admin-side { background: #12211f; color: #d9efea; padding: 24px 18px; }
+        .admin-brand { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; margin-bottom: 30px; }
+        .admin-brand span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: #268071; font-weight: 800; }
+        .admin-side nav { display: grid; gap: 5px; }
+        .admin-side nav a { color: #b7d7d0; text-decoration: none; padding: 10px 12px; border-radius: 8px; }
+        .admin-side nav a:hover, .admin-side nav a.active { background: #1d3934; color: #fff; }
+        .admin-side .admin-label { margin: 20px 12px 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #7fa69e; }
+        .admin-main { background: #f4f7f6; min-width: 0; }
+        .admin-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 28px; background: #fff; border-bottom: 1px solid #e4ece9; }
+        .admin-top h1 { margin: 0; font-size: 20px; }
+        .admin-content { padding: 28px; }
+        .admin-user { display: flex; align-items: center; gap: 10px; color: #52645f; font-size: 13px; }
+        .admin-user strong { color: #1b2e2a; }
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+        .admin-card { background: #fff; border: 1px solid #e4ece9; border-radius: 12px; padding: 18px; }
+        .admin-card .metric { font-size: 28px; font-weight: 700; color: #1b2e2a; }
+        .admin-card .label { color: #687d77; font-size: 13px; }
+        .admin-card h2 { font-size: 16px; margin: 0 0 12px; }
+        .admin-table { width: 100%; border-collapse: collapse; background: #fff; }
+        .admin-table th, .admin-table td { padding: 11px 12px; border-bottom: 1px solid #e8efed; text-align: left; vertical-align: top; }
+        .admin-table th { font-size: 12px; color: #687d77; text-transform: uppercase; letter-spacing: .04em; }
+        .admin-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; background: #e8f5f1; color: #1e705f; }
+        .admin-badge.off { background: #fbeaea; color: #a13a3a; }
+        .admin-form { display: grid; gap: 14px; max-width: 720px; }
+        .admin-form label { display: grid; gap: 5px; font-size: 13px; color: #52645f; }
+        .admin-form input, .admin-form select { padding: 10px 12px; border: 1px solid #cfded9; border-radius: 8px; font: inherit; }
+        .admin-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .admin-flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; }
+        .admin-flash.success { background: #e8f5f1; color: #1e705f; }
+        .admin-flash.error { background: #fbeaea; color: #a13a3a; }
+        .admin-muted { color: #687d77; font-size: 13px; }
+        @media (max-width: 800px) { .admin-shell { grid-template-columns: 1fr; } .admin-side { display: none; } .admin-content { padding: 18px; } .admin-form .row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="admin-shell">
+    <aside class="admin-side">
+        <a class="admin-brand" href="/admin"><span>iP</span><strong>Platform</strong></a>
+        <nav>
+            <a href="/admin" th:classappend="${requestURI == '/admin'} ? 'active'">Overview</a>
+            <div class="admin-label">Tenants</div>
+            <a href="/admin/tenants" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/admin/tenants')} ? 'active'">All tenants</a>
+            <a href="/admin/tenants/new" th:classappend="${requestURI == '/admin/tenants/new'} ? 'active'">Create tenant</a>
+            <div class="admin-label">Platform</div>
+            <a href="/admin/audit" th:classappend="${requestURI != null and #strings.startsWith(requestURI, '/admin/audit')} ? 'active'">Global audit</a>
+            <a href="/admin/tax" th:classappend="${requestURI == '/admin/tax'} ? 'active'">Tax categories</a>
+            <a href="/admin/profile" th:classappend="${requestURI == '/admin/profile'} ? 'active'">My account</a>
+        </nav>
+    </aside>
+    <div class="admin-main">
+        <header class="admin-top">
+            <h1 th:text="${title}">Platform</h1>
+            <div class="admin-user">
+                <span th:if="${principal != null}">
+                    <strong th:text="${principal.fullName}">Platform Administrator</strong>
+                    <span th:text="' · ' + ${principal.email}"></span>
+                </span>
+                <form th:action="@{/logout}" method="post" style="margin:0">
+                    <button type="submit" class="btn btn-outline btn-sm">Log out</button>
+                </form>
+            </div>
+        </header>
+        <main class="admin-content">
+            <div th:if="${success}" class="admin-flash success" th:text="${success}"></div>
+            <div th:if="${error}" class="admin-flash error" th:text="${error}"></div>
+            <th:block th:replace="${content}"></th:block>
+        </main>
+    </div>
+</div>
+</body>
+</html>

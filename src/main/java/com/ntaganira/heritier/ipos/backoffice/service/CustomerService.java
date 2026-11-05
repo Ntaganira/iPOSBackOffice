@@ -21,6 +21,7 @@ import com.ntaganira.heritier.ipos.backoffice.enums.PaymentStatus;
 import com.ntaganira.heritier.ipos.backoffice.repository.CustomerPaymentRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.CustomerRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.SaleRepository;
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
 import com.ntaganira.heritier.ipos.backoffice.util.Money;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -84,11 +85,11 @@ public class CustomerService {
         }
         Map<Long, Customer> matches = new LinkedHashMap<>();
         if (!phones.isEmpty()) {
-            customerRepository.findActiveByNormalizedPhone(phones)
+            customerRepository.findActiveByNormalizedPhone(phones, TenantContext.require())
                     .forEach(customer -> matches.put(customer.getId(), customer));
         }
         if (normalizedTin != null) {
-            customerRepository.findActiveByNormalizedTin(normalizedTin)
+            customerRepository.findActiveByNormalizedTin(normalizedTin, TenantContext.require())
                     .forEach(customer -> matches.put(customer.getId(), customer));
         }
         if (matches.size() > 1) {

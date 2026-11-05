@@ -22,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,14 +33,20 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "app_users")
-public class AppUser {
+@Table(
+        name = "app_users",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_app_users_tenant_username",
+                columnNames = {"tenant_id", "username"}
+        )
+)
+public class AppUser extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String username;
 
     @Column(name = "password_hash", nullable = false, length = 100)
@@ -48,7 +55,7 @@ public class AppUser {
     @Column(name = "full_name", nullable = false, length = 120)
     private String fullName;
 
-    @Column(length = 160)
+    @Column(nullable = false, length = 160)
     private String email;
 
     @Column(length = 40)

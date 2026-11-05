@@ -11,11 +11,16 @@ package com.ntaganira.heritier.ipos.backoffice.config;
  * </pre>
  */
 
+import com.ntaganira.heritier.ipos.backoffice.entity.Tenant;
+import com.ntaganira.heritier.ipos.backoffice.enums.UserRole;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
+import com.ntaganira.heritier.ipos.backoffice.repository.TenantRepository;
+import com.ntaganira.heritier.ipos.backoffice.security.IposUserPrincipal;
 import com.ntaganira.heritier.ipos.backoffice.service.RoleService;
+import com.ntaganira.heritier.ipos.backoffice.service.TenantStatusService;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -28,29 +33,51 @@ import java.util.List;
 public class AppUserDetailsService implements UserDetailsService {
 
     private final AppUserRepository userRepository;
+    private final TenantRepository tenantRepository;
+    private final TenantStatusService tenantStatusService;
     private final RoleService roleService;
 
-    public AppUserDetailsService(AppUserRepository userRepository, RoleService roleService) {
+    public AppUserDetailsService(AppUserRepository userRepository,
+                                 TenantRepository tenantRepository,
+                                 TenantStatusService tenantStatusService,
+                                 RoleService roleService) {
         this.userRepository = userRepository;
+        this.tenantRepository = tenantRepository;
+        this.tenantStatusService = tenantStatusService;
         this.roleService = roleService;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+        return userRepository.findGlobalByEmail(username)
                 .map(user -> {
+                    if (!tenantStatusService.isActive(user.getTenantId())) {
+                        throw new DisabledException("Tenant is disabled.");
+                    }
                     List<GrantedAuthority> authorities = new ArrayList<>();
                     authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
-                    for (String permission : roleService.permissionCodes(user.getRole())) {
-                        authorities.add(new SimpleGrantedAuthority(permission));
+                    if (user.getRole() != UserRole.SUPER_ADMIN) {
+                        for (String permission : roleService.permissionCodes(user.getRole())) {
+                            authorities.add(new SimpleGrantedAuthority(permission));
+                        }
                     }
-                    return User.withUsername(user.getUsername())
-                            .password(user.getPasswordHash())
-                            .authorities(authorities)
-                            .disabled(!user.isEnabled())
-                            .accountLocked(user.isLocked())
-                            .build();
+                    String tenantName = tenantRepository.findById(user.getTenantId())
+                            .map(Tenant::getName)
+                            .orElse("System");
+                    return new IposUserPrincipal(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getEmail(),
+                            user.getPasswordHash(),
+                            user.getFullName(),
+                            user.getRole(),
+                            user.getTenantId(),
+                            tenantName,
+                            user.isEnabled(),
+                            user.isLocked(),
+                            user.isPasswordChangeRequired(),
+                            authorities);
                 })
-                .orElseThrow(() -> new UsernameNotFoundException("Unknown user."));
+                .orElseThrow(() -> new UsernameNotFoundException("Unknown email."));
     }
 }

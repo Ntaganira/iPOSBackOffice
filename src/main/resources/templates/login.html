@@ -176,18 +176,24 @@
                 <p th:text="#{login.subtitle}">Sign in to your iPOS back office account.</p>
             </header>
 
+            <div class="login-alert" th:if="${param.error}" th:text="#{login.error}">Invalid email or password.</div>
+            <div class="login-alert" th:if="${param.tenantDisabled}" th:text="#{login.tenantDisabled}">This account is not active.</div>
+            <div class="login-alert ok" th:if="${param.logout}" th:text="#{login.logout}">You have been logged out.</div>
+            <div class="login-alert" th:if="${param.timeout}" th:text="#{login.timeout}">Your session expired.</div>
+            <div class="login-alert" th:if="${param.expired}" th:text="#{login.expired}">Your session expired.</div>
+
             <form th:action="@{/login}" method="post" class="login-form">
                 <div class="login-field">
-                    <label class="sr-only" for="username" th:text="#{login.username}">Username</label>
+                    <label class="sr-only" for="username" th:text="#{login.username}">Email</label>
                     <span class="field-icon">
                         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="8" r="4"></circle>
                             <path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"></path>
                         </svg>
                     </span>
-                    <input type="text" id="username" name="username"
+                    <input type="email" id="username" name="username"
                            th:placeholder="#{login.usernamePh}" required autofocus
-                           autocomplete="username">
+                           autocomplete="email">
                 </div>
 
                 <div class="login-field">

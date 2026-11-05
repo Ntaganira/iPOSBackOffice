@@ -11,10 +11,11 @@ package com.ntaganira.heritier.ipos.backoffice.config;
  * </pre>
  */
 
-import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.enums.UserRole;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
+import com.ntaganira.heritier.ipos.backoffice.security.IposUserPrincipal;
 import com.ntaganira.heritier.ipos.backoffice.service.AuditService;
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,7 +45,29 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
             HttpServletResponse response,
             Authentication authentication
     ) throws ServletException, IOException {
-        userRepository.findByUsername(authentication.getName()).ifPresent(user -> {
+        if (authentication.getPrincipal() instanceof IposUserPrincipal principal) {
+            if (principal.isSuperAdmin()) {
+                TenantContext.runAsSystem(() -> recordLogin(principal));
+                String target = principal.passwordChangeRequired()
+                        ? "/admin/profile?passwordChange=required"
+                        : "/admin";
+                response.sendRedirect(request.getContextPath() + target);
+                return;
+            }
+            TenantContext.runAs(principal.tenantId(), () -> recordLogin(principal));
+            if (principal.role() == UserRole.CASHIER) {
+                setDefaultTargetUrl("/pos");
+            } else if (principal.role() == UserRole.STOREKEEPER) {
+                setDefaultTargetUrl("/stock");
+            } else {
+                setDefaultTargetUrl("/dashboard");
+            }
+        }
+        super.onAuthenticationSuccess(request, response, authentication);
+    }
+
+    private void recordLogin(IposUserPrincipal principal) {
+        userRepository.findById(principal.id()).ifPresent(user -> {
             user.setLastLoginAt(Instant.now());
             user.setFailedLoginAttempts(0);
             userRepository.save(user);
@@ -52,14 +75,7 @@ public class LoginSuccessHandler extends SavedRequestAwareAuthenticationSuccessH
                     "LOGIN", "Session", null, user.getUsername(), Map.of("success", true));
             if (user.isPasswordChangeRequired()) {
                 setDefaultTargetUrl("/profile?passwordChange=required");
-            } else if (user.getRole() == UserRole.CASHIER) {
-                setDefaultTargetUrl("/pos");
-            } else if (user.getRole() == UserRole.STOREKEEPER) {
-                setDefaultTargetUrl("/stock");
-            } else {
-                setDefaultTargetUrl("/dashboard");
             }
         });
-        super.onAuthenticationSuccess(request, response, authentication);
     }
 }

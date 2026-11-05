@@ -35,7 +35,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Entity
 @Table(name = "inventory_movements")
-public class InventoryMovement {
+public class InventoryMovement extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

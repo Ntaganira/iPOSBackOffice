@@ -31,7 +31,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Entity
 @Table(name = "purchase_lines")
-public class PurchaseLine {
+public class PurchaseLine extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

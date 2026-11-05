@@ -26,13 +26,15 @@ import com.ntaganira.heritier.ipos.backoffice.repository.SupplierRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.TaxCategoryRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.UnitRepository;
 import com.ntaganira.heritier.ipos.backoffice.service.StockService;
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
 import com.ntaganira.heritier.ipos.backoffice.util.Money;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -53,6 +55,7 @@ public class DemoDataSeeder implements ApplicationRunner {
     private final CustomerRepository customerRepository;
     private final SupplierRepository supplierRepository;
     private final StockService stockService;
+    private final TransactionTemplate transactionTemplate;
 
     public DemoDataSeeder(AppProperties properties,
                           ProductRepository productRepository,
@@ -61,7 +64,8 @@ public class DemoDataSeeder implements ApplicationRunner {
                           TaxCategoryRepository taxCategoryRepository,
                           CustomerRepository customerRepository,
                           SupplierRepository supplierRepository,
-                          StockService stockService) {
+                          StockService stockService,
+                          PlatformTransactionManager transactionManager) {
         this.properties = properties;
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
@@ -70,14 +74,19 @@ public class DemoDataSeeder implements ApplicationRunner {
         this.customerRepository = customerRepository;
         this.supplierRepository = supplierRepository;
         this.stockService = stockService;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
         if (!properties.demo().enabled()) {
             return;
         }
+        TenantContext.runAs(TenantContext.DEFAULT_TENANT_ID,
+                () -> transactionTemplate.executeWithoutResult(status -> seed()));
+    }
+
+    private void seed() {
         if (productRepository.count() > 0) {
             return;
         }

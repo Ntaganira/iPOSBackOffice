@@ -168,7 +168,7 @@ public class UserService {
         validateEmail(email, id);
         Map<String, Object> before = snapshot(user);
         user.setFullName(fullName.trim());
-        user.setEmail(trimToNull(email));
+        user.setEmail(normalizeEmail(email));
         user.setPhone(trimToNull(phone));
         user.setLocale(StringUtils.hasText(locale) ? locale.trim() : "en");
         String oldAvatar = user.getAvatarPath();
@@ -195,23 +195,29 @@ public class UserService {
 
     private void applyForm(AppUser user, UserForm form, boolean allowRole) {
         user.setFullName(form.getFullName().trim());
-        user.setEmail(trimToNull(form.getEmail()));
+        user.setEmail(normalizeEmail(form.getEmail()));
         user.setPhone(trimToNull(form.getPhone()));
         user.setEnabled(form.isEnabled());
-        if (allowRole && form.getRole() != null) {
+        if (allowRole && form.getRole() != null && form.getRole() != UserRole.SUPER_ADMIN) {
             user.setRole(form.getRole());
         }
     }
 
     private void validateEmail(String email, Long id) {
         if (!StringUtils.hasText(email)) {
-            return;
+            throw new BusinessException("Email is required.");
         }
-        userRepository.findByEmailIgnoreCase(email.trim()).ifPresent(existing -> {
-            if (id == null || !existing.getId().equals(id)) {
-                throw new BusinessException("This email address is already used by another user.");
-            }
-        });
+        String normalized = email.trim().toLowerCase(Locale.ROOT);
+        long matches = id == null
+                ? userRepository.countGlobalByEmail(normalized)
+                : userRepository.countGlobalByEmailExceptId(normalized, id);
+        if (matches > 0) {
+            throw new BusinessException("This email address is already used by another user.");
+        }
+    }
+
+    private String normalizeEmail(String email) {
+        return StringUtils.hasText(email) ? email.trim().toLowerCase(Locale.ROOT) : null;
     }
 
     private void validatePassword(String password, String confirm) {

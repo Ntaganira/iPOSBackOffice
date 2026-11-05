@@ -11,6 +11,7 @@ package com.ntaganira.heritier.ipos.backoffice.config;
  * </pre>
  */
 
+import com.ntaganira.heritier.ipos.backoffice.service.TenantStatusService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
@@ -33,8 +35,10 @@ public class SecurityConfig {
             LoginSuccessHandler loginSuccessHandler,
             LoginFailureHandler loginFailureHandler,
             LogoutAuditHandler logoutAuditHandler,
+            TenantStatusService tenantStatusService,
             @Value("${app.security.remember-me-key}") String rememberMeKey
     ) throws Exception {
+        TenantContextFilter tenantContextFilter = new TenantContextFilter(tenantStatusService);
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -46,12 +50,17 @@ public class SecurityConfig {
                                 "/login",
                                 "/favicon.ico",
                                 "/actuator/health",
-                                "/error"
+                                "/error",
+                                "/403"
                         ).permitAll()
                         .requestMatchers("/sync/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/devices/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(tenantContextFilter, AuthorizationFilter.class)
+                .addFilterAfter(new SuperAdminRedirectFilter(), TenantContextFilter.class)
+                .addFilterAfter(new PasswordChangeFilter(), SuperAdminRedirectFilter.class)
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/sync/**"))
                 .formLogin(form -> form
                         .loginPage("/login")

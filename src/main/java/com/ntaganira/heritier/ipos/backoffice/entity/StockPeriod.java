@@ -36,7 +36,7 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "stock_periods")
-public class StockPeriod {
+public class StockPeriod extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

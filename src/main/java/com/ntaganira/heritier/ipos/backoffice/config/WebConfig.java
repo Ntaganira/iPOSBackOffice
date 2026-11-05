@@ -25,6 +25,12 @@ import java.util.Locale;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    private final ThemeInterceptor themeInterceptor;
+
+    public WebConfig(ThemeInterceptor themeInterceptor) {
+        this.themeInterceptor = themeInterceptor;
+    }
+
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/login").setViewName("login");
@@ -43,5 +49,17 @@ public class WebConfig implements WebMvcConfigurer {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("lang");
         registry.addInterceptor(interceptor);
+        registry.addInterceptor(themeInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns(
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/files/**",
+                        "/vendor/**",
+                        "/favicon.ico",
+                        "/actuator/**",
+                        "/sync/**",
+                        "/error");
     }
 }

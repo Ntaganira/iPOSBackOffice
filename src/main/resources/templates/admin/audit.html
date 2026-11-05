@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html('Global audit', ~{::content})}">
+<head><title>Global audit</title></head>
+<body>
+<div th:fragment="content">
+    <form method="get" action="/admin/audit" class="admin-card" style="display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-bottom:18px;">
+        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">From
+            <input type="date" name="from" th:value="${from}">
+        </label>
+        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">To
+            <input type="date" name="to" th:value="${to}">
+        </label>
+        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">Tenant
+            <select name="tenant">
+                <option value="">All tenants</option>
+                <option th:each="t : ${tenants}" th:value="${t.code}" th:text="${t.name}"
+                        th:selected="${tenant == t.code}"></option>
+            </select>
+        </label>
+        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">Search
+            <input type="search" name="q" th:value="${q}" placeholder="actor, action, entity">
+        </label>
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        <a href="/admin/audit" class="btn btn-outline btn-sm">Reset</a>
+    </form>
+
+    <div class="admin-card">
+        <div class="admin-muted" style="margin-bottom:10px;"
+             th:text="${logs.totalElements} + ' entries'">0 entries</div>
+        <table class="admin-table">
+            <thead><tr><th>When</th><th>Tenant</th><th>Actor</th><th>Action</th><th>Entity</th><th>Changes</th></tr></thead>
+            <tbody>
+            <tr th:each="log : ${logs.content}">
+                <td class="admin-muted" th:text="${#temporals.format(log.occurredAt, 'dd MMM yyyy HH:mm')}">—</td>
+                <td th:text="${log.tenantName ?: 'System'}">System</td>
+                <td>
+                    <div th:text="${log.username ?: '—'}">—</div>
+                    <div class="admin-muted" th:text="${log.role ?: ''}"></div>
+                </td>
+                <td><span class="admin-badge" th:text="${log.action}">UPDATE</span></td>
+                <td>
+                    <div th:text="${log.entityLabel ?: log.entityType}">Entity</div>
+                    <div class="admin-muted" th:text="${log.entityType}">Type</div>
+                </td>
+                <td class="admin-muted" th:text="${#lists.size(log.changes)} + ' fields'">0 fields</td>
+            </tr>
+            <tr th:if="${logs.totalElements == 0}">
+                <td colspan="6" class="admin-muted">No audit entries match these filters.</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+            <a class="btn btn-outline btn-sm" th:if="${logs.hasPrevious()}"
+               th:href="@{/admin/audit(from=${from},to=${to},q=${q},tenant=${tenant},page=${logs.number - 1})}">Previous</a>
+            <span class="admin-muted" th:text="|Page ${logs.number + 1} of ${logs.totalPages}|">Page 1 of 1</span>
+            <a class="btn btn-outline btn-sm" th:if="${logs.hasNext()}"
+               th:href="@{/admin/audit(from=${from},to=${to},q=${q},tenant=${tenant},page=${logs.number + 1})}">Next</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

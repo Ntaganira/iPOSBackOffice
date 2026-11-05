@@ -11,6 +11,9 @@ package com.ntaganira.heritier.ipos.backoffice;
  * </pre>
  */
 
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +27,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public abstract class AbstractIntegrationTest {
 
     private static final Logger log = LoggerFactory.getLogger(AbstractIntegrationTest.class);
+
+    @BeforeEach
+    void bindDefaultTenant() {
+        TenantContext.set(TenantContext.DEFAULT_TENANT_ID);
+    }
+
+    @AfterEach
+    void clearTenant() {
+        TenantContext.clear();
+    }
 
     private static final PostgreSQLContainer<?> POSTGRES;
     private static final boolean USING_CONTAINER;

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : templates.settings
+  - File      : theme.html
+  - Date      : 2026. 10. 26.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Thymeleaf settings page for shop theme selection.
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/sidebar :: html(#{nav.settings}, ~{::content})}">
+<head><title>Theme settings - iPOS</title></head>
+<body>
+<div th:fragment="content" class="settings-page theme-page">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Settings</div>
+            <h1>Shop Theme Selection</h1>
+            <div class="subtitle">Choose a ready-made palette or mix your own. Your colors apply to every page and terminal.</div>
+        </div>
+        <span class="settings-saved-badge">
+            <span class="settings-saved-dot"></span>
+            Live across the back office
+        </span>
+    </div>
+
+    <div th:replace="~{settings/tabs :: tabs('theme')}"></div>
+
+    <form id="theme-settings-form" th:action="@{/settings/theme}" method="post" class="settings-form">
+        <div class="theme-layout">
+            <div class="theme-stack">
+                <section class="settings-card">
+                    <div class="settings-card-head">
+                        <span class="settings-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.6-.7 1.6-1.6 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.7-1.6 1.6-1.6H16c3.3 0 6-2.7 6-6 0-4.9-4.5-8.6-10-8.6z"></path></svg>
+                        </span>
+                        <div>
+                            <h2>Shop Theme Selection</h2>
+                            <p>Every palette pairs an action color, an accent, a canvas and a surface.</p>
+                        </div>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="theme-preset-grid" role="group" aria-label="Theme presets">
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#BE5103" data-secondary="#FFCE1B" data-background="#069494" data-surface="#B7410E"
+                                    aria-pressed="false" aria-label="Use the Retro sunset palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#BE5103"></span><span style="background:#FFCE1B"></span>
+                                    <span style="background:#069494"></span><span style="background:#B7410E"></span>
+                                </span>
+                                <span class="theme-preset-name">Retro sunset</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#D4AF37" data-secondary="#BDB76B" data-background="#FDFBD4" data-surface="#CE8946"
+                                    aria-pressed="false" aria-label="Use the Golden taupe palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#D4AF37"></span><span style="background:#BDB76B"></span>
+                                    <span style="background:#FDFBD4"></span><span style="background:#CE8946"></span>
+                                </span>
+                                <span class="theme-preset-name">Golden taupe</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#FDFBD4" data-secondary="#D47E30" data-background="#8D5A2B" data-surface="#825E34"
+                                    aria-pressed="false" aria-label="Use the Spiced chai palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#FDFBD4"></span><span style="background:#D47E30"></span>
+                                    <span style="background:#8D5A2B"></span><span style="background:#825E34"></span>
+                                </span>
+                                <span class="theme-preset-name">Spiced chai</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#FFFF66" data-secondary="#FFE566" data-background="#D6D58B" data-surface="#B3B347"
+                                    aria-pressed="false" aria-label="Use the Zesty lemon palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#FFFF66"></span><span style="background:#FFE566"></span>
+                                    <span style="background:#D6D58B"></span><span style="background:#B3B347"></span>
+                                </span>
+                                <span class="theme-preset-name">Zesty lemon</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#BE5103" data-secondary="#8C4C1F" data-background="#544823" data-surface="#332216"
+                                    aria-pressed="false" aria-label="Use the Pumpkin spice season palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#BE5103"></span><span style="background:#8C4C1F"></span>
+                                    <span style="background:#544823"></span><span style="background:#332216"></span>
+                                </span>
+                                <span class="theme-preset-name">Pumpkin spice season</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#89F336" data-secondary="#FFFC30" data-background="#4FE0CB" data-surface="#00BF33"
+                                    aria-pressed="false" aria-label="Use the Spring energy palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#89F336"></span><span style="background:#FFFC30"></span>
+                                    <span style="background:#4FE0CB"></span><span style="background:#00BF33"></span>
+                                </span>
+                                <span class="theme-preset-name">Spring energy</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#B8E3E9" data-secondary="#93B1B5" data-background="#4F7C82" data-surface="#0B2E33"
+                                    aria-pressed="false" aria-label="Use the Winter chill palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#B8E3E9"></span><span style="background:#93B1B5"></span>
+                                    <span style="background:#4F7C82"></span><span style="background:#0B2E33"></span>
+                                </span>
+                                <span class="theme-preset-name">Winter chill</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#FFDBBB" data-secondary="#BADDFF" data-background="#BAFFF5" data-surface="#496580"
+                                    aria-pressed="false" aria-label="Use the Peach skyline palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#FFDBBB"></span><span style="background:#BADDFF"></span>
+                                    <span style="background:#BAFFF5"></span><span style="background:#496580"></span>
+                                </span>
+                                <span class="theme-preset-name">Peach skyline</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#CBBD93" data-secondary="#FFF5B8" data-background="#FFB16E" data-surface="#CCA25A"
+                                    aria-pressed="false" aria-label="Use the Siltstone palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#CBBD93"></span><span style="background:#FFF5B8"></span>
+                                    <span style="background:#FFB16E"></span><span style="background:#CCA25A"></span>
+                                </span>
+                                <span class="theme-preset-name">Siltstone</span>
+                            </button>
+                            <button type="button" class="theme-preset" data-theme-preset
+                                    data-primary="#B298E7" data-secondary="#B8E3E9" data-background="#F5B8D5" data-surface="#F9BEDD"
+                                    aria-pressed="false" aria-label="Use the Cotton candy skies palette">
+                                <span class="theme-preset-swatches" aria-hidden="true">
+                                    <span style="background:#B298E7"></span><span style="background:#B8E3E9"></span>
+                                    <span style="background:#F5B8D5"></span><span style="background:#F9BEDD"></span>
+                                </span>
+                                <span class="theme-preset-name">Cotton candy skies</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="theme-custom-card" class="settings-card theme-custom-card">
+                    <div class="settings-card-head">
+                        <span class="settings-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 1 1 9-9c0 1.7-1.3 3-3 3h-2.3A2.7 2.7 0 0 0 13 17.7c0 .8.3 1.5.8 2.1.3.4.2 1.2-.4 1.2z"></path><circle cx="7.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="12" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="16.5" cy="10.5" r=".5" fill="currentColor"></circle></svg>
+                        </span>
+                        <div>
+                            <h2>Custom theme</h2>
+                            <p>Fine-tune the four color tokens. Use the pickers or enter an exact hex value.</p>
+                        </div>
+                        <span class="theme-custom-badge" id="theme-custom-badge" hidden>Current</span>
+                    </div>
+                    <div class="settings-card-body">
+                        <div class="theme-color-grid">
+                            <label class="theme-color-field" for="theme-primary-picker">
+                                <span class="theme-color-bubble">
+                                    <input type="color" id="theme-primary-picker" value="#268071" data-theme-color="primary" aria-label="Choose the primary color">
+                                </span>
+                                <span class="theme-color-copy">
+                                    <strong>Primary</strong>
+                                    <span>Actions, links and highlights</span>
+                                    <small data-theme-value="primary" th:text="${settings.themePrimary}">#268071</small>
+                                </span>
+                            </label>
+                            <label class="theme-color-field" for="theme-secondary-picker">
+                                <span class="theme-color-bubble">
+                                    <input type="color" id="theme-secondary-picker" value="#4FB8A8" data-theme-color="secondary" aria-label="Choose the secondary color">
+                                </span>
+                                <span class="theme-color-copy">
+                                    <strong>Secondary</strong>
+                                    <span>Supporting badges and details</span>
+                                    <small data-theme-value="secondary" th:text="${settings.themeSecondary}">#4FB8A8</small>
+                                </span>
+                            </label>
+                            <label class="theme-color-field" for="theme-background-picker">
+                                <span class="theme-color-bubble">
+                                    <input type="color" id="theme-background-picker" value="#FFFFFF" data-theme-color="background" aria-label="Choose the page background color">
+                                </span>
+                                <span class="theme-color-copy">
+                                    <strong>Background</strong>
+                                    <span>The canvas behind every page</span>
+                                    <small data-theme-value="background" th:text="${settings.themeBackground}">#FFFFFF</small>
+                                </span>
+                            </label>
+                            <label class="theme-color-field" for="theme-surface-picker">
+                                <span class="theme-color-bubble">
+                                    <input type="color" id="theme-surface-picker" value="#FFFFFF" data-theme-color="surface" aria-label="Choose the card surface color">
+                                </span>
+                                <span class="theme-color-copy">
+                                    <strong>Surface</strong>
+                                    <span>Cards, panels and tables</span>
+                                    <small data-theme-value="surface" th:text="${settings.themeSurface}">#FFFFFF</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <input type="hidden" name="themePrimary" id="themePrimary" th:value="${settings.themePrimary}" data-theme-input="primary">
+                <input type="hidden" name="themeSecondary" id="themeSecondary" th:value="${settings.themeSecondary}" data-theme-input="secondary">
+                <input type="hidden" name="themeBackground" id="themeBackground" th:value="${settings.themeBackground}" data-theme-input="background">
+                <input type="hidden" name="themeSurface" id="themeSurface" th:value="${settings.themeSurface}" data-theme-input="surface">
+            </div>
+
+            <aside class="theme-preview-panel" aria-label="Live POS preview">
+                <div class="settings-card">
+                    <div class="theme-preview-head">
+                        <div>
+                            <strong>POS live preview</strong>
+                            <span>Hover or select a palette to try it on.</span>
+                        </div>
+                        <span class="theme-preview-live"><i></i>Live</span>
+                    </div>
+                    <div class="theme-preview-body">
+                        <div id="theme-preview" class="pos-mock"
+                             th:style="|--preview-primary: ${settings.themePrimary}; --preview-secondary: ${settings.themeSecondary}; --preview-background: ${settings.themeBackground}; --preview-surface: ${settings.themeSurface};|">
+                            <div class="pos-mock-top">
+                                <span class="pos-mock-brand"><i>iP</i> POS</span>
+                                <span class="pos-mock-search">Search products</span>
+                                <span class="pos-mock-avatar">AN</span>
+                            </div>
+                            <div class="pos-mock-cats">
+                                <span class="is-active">All</span><span>Coffee</span><span>Bakery</span>
+                            </div>
+                            <div class="pos-mock-products">
+                                <div class="pos-mock-product">
+                                    <span class="pos-mock-thumb">E</span>
+                                    <strong>Espresso</strong>
+                                    <small>RWF 2,000</small>
+                                </div>
+                                <div class="pos-mock-product">
+                                    <span class="pos-mock-thumb">C</span>
+                                    <strong>Croissant</strong>
+                                    <small>RWF 2,500</small>
+                                </div>
+                            </div>
+                            <div class="pos-mock-cart">
+                                <div class="pos-mock-cart-head"><span>Current order</span><span>3 items</span></div>
+                                <div class="pos-mock-line"><span>Espresso x2</span><strong>4,000</strong></div>
+                                <div class="pos-mock-line"><span>Croissant</span><strong>2,500</strong></div>
+                                <div class="pos-mock-total"><span>Total</span><strong>RWF 6,500</strong></div>
+                                <button type="button" class="pos-mock-pay">Charge RWF 6,500</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <div class="settings-savebar">
+            <div>
+                <strong>Ready to paint the shop?</strong>
+                <span>Applying a palette updates every signed-in terminal on its next page load.</span>
+            </div>
+            <div class="settings-savebar-actions">
+                <a class="btn btn-outline" th:href="@{/settings/theme}">Discard changes</a>
+                <button type="submit" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    Save theme
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <script defer src="/js/theme-settings.js"></script>
+</div>
+</body>
+</html>

@@ -12,6 +12,7 @@ package com.ntaganira.heritier.ipos.backoffice.enums;
  */
 
 public enum UserRole {
+    SUPER_ADMIN,
     ADMIN,
     MANAGER,
     CASHIER,

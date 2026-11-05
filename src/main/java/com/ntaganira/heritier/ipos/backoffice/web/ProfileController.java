@@ -12,9 +12,13 @@ package com.ntaganira.heritier.ipos.backoffice.web;
  */
 
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
+import com.ntaganira.heritier.ipos.backoffice.security.IposUserPrincipal;
 import com.ntaganira.heritier.ipos.backoffice.service.BusinessException;
 import com.ntaganira.heritier.ipos.backoffice.service.CurrentUserService;
 import com.ntaganira.heritier.ipos.backoffice.service.UserService;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,9 +67,15 @@ public class ProfileController {
     public String changePassword(@RequestParam String currentPassword,
                                  @RequestParam String newPassword,
                                  @RequestParam String confirmPassword,
+                                 Authentication authentication,
                                  RedirectAttributes redirect) {
         try {
             userService.changePassword(currentUser.requireUser().getId(), currentPassword, newPassword, confirmPassword);
+            if (authentication != null && authentication.getPrincipal() instanceof IposUserPrincipal principal) {
+                IposUserPrincipal updated = principal.passwordChanged();
+                SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                        updated, updated.password(), updated.getAuthorities()));
+            }
             redirect.addFlashAttribute("success", "Password changed.");
         } catch (BusinessException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());

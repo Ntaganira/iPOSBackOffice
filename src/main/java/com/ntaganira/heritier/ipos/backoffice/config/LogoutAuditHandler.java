@@ -11,7 +11,9 @@ package com.ntaganira.heritier.ipos.backoffice.config;
  * </pre>
  */
 
+import com.ntaganira.heritier.ipos.backoffice.security.IposUserPrincipal;
 import com.ntaganira.heritier.ipos.backoffice.service.AuditService;
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
@@ -31,9 +33,17 @@ public class LogoutAuditHandler implements LogoutHandler {
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            auditService.recordAs(null, authentication.getName(), "", "LOGOUT", "Session", null,
-                    authentication.getName(), Map.of("success", true));
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return;
         }
+        if (authentication.getPrincipal() instanceof IposUserPrincipal principal) {
+            TenantContext.runAs(principal.tenantId(), () -> auditService.recordAs(
+                    principal.id(), principal.email(), principal.role().name(), "LOGOUT", "Session", null,
+                    principal.email(), Map.of("success", true)));
+            return;
+        }
+        TenantContext.runAsSystem(() -> auditService.recordAs(
+                null, authentication.getName(), "", "LOGOUT", "Session", null,
+                authentication.getName(), Map.of("success", true)));
     }
 }

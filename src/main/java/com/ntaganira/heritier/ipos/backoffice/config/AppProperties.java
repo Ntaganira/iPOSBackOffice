@@ -24,6 +24,7 @@ public record AppProperties(
         @Valid Encryption encryption,
         @Valid Security security,
         @Valid Admin admin,
+        @Valid SuperAdmin superAdmin,
         @Valid Sync sync,
         @Valid Email email,
         @Valid Demo demo
@@ -43,6 +44,14 @@ public record AppProperties(
             @NotBlank String password,
             @NotBlank String fullName,
             String email
+    ) {
+    }
+
+    public record SuperAdmin(
+            @NotBlank String username,
+            @NotBlank String password,
+            @NotBlank String fullName,
+            @NotBlank String email
     ) {
     }
 

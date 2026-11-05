@@ -42,19 +42,21 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     @Query(value = """
             select * from shop_customers
-            where active = true
+            where tenant_id = :tenantId
+              and active = true
               and regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g') in (:phones)
             limit 2
             """, nativeQuery = true)
-    List<Customer> findActiveByNormalizedPhone(@Param("phones") Collection<String> phones);
+    List<Customer> findActiveByNormalizedPhone(@Param("phones") Collection<String> phones, @Param("tenantId") long tenantId);
 
     @Query(value = """
             select * from shop_customers
-            where active = true
+            where tenant_id = :tenantId
+              and active = true
               and regexp_replace(lower(coalesce(tin, '')), '[^a-z0-9]', '', 'g') = :tin
             limit 2
             """, nativeQuery = true)
-    List<Customer> findActiveByNormalizedTin(@Param("tin") String tin);
+    List<Customer> findActiveByNormalizedTin(@Param("tin") String tin, @Param("tenantId") long tenantId);
 
     @Query("select c from Customer c where c.balance > 0 and c.active = true order by c.balance desc")
     List<Customer> findWithOutstandingBalance();

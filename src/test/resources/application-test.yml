@@ -29,6 +29,11 @@ app:
     password: admin123
     full-name: Administrator
     email: admin@example.com
+  super-admin:
+    username: superadmin
+    password: superadmin123
+    full-name: Platform Administrator
+    email: superadmin@ipos.local
   encryption:
     key: test-encryption-key-long-enough
   security:

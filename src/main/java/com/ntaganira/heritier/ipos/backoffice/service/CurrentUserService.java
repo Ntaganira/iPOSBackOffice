@@ -13,6 +13,8 @@ package com.ntaganira.heritier.ipos.backoffice.service;
 
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
+import com.ntaganira.heritier.ipos.backoffice.security.IposUserPrincipal;
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -39,6 +41,9 @@ public class CurrentUserService {
                 || authentication instanceof AnonymousAuthenticationToken) {
             return Optional.empty();
         }
+        if (authentication.getPrincipal() instanceof IposUserPrincipal principal) {
+            return userRepository.findById(principal.id());
+        }
         return userRepository.findByUsername(authentication.getName());
     }
 
@@ -52,6 +57,21 @@ public class CurrentUserService {
 
     public String role() {
         return user().map(u -> u.getRole().name()).orElse("");
+    }
+
+    public Long tenantId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof IposUserPrincipal principal) {
+            return principal.tenantId();
+        }
+        return TenantContext.get();
+    }
+
+    public boolean isSuperAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication != null
+                && authentication.getPrincipal() instanceof IposUserPrincipal principal
+                && principal.isSuperAdmin();
     }
 
     public boolean has(String permission) {

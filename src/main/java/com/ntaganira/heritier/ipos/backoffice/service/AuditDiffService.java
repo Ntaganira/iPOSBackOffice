@@ -47,7 +47,7 @@ public class AuditDiffService {
                 changes(log.getChangesJson()));
     }
 
-    private List<AuditChangeView> changes(String json) {
+    public List<AuditChangeView> changes(String json) {
         if (!StringUtils.hasText(json)) {
             return List.of();
         }

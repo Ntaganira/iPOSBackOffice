@@ -17,9 +17,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,11 +34,15 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "shop_settings")
-public class ShopSetting {
+@Table(
+        name = "shop_settings",
+        uniqueConstraints = @UniqueConstraint(name = "uk_shop_settings_tenant", columnNames = "tenant_id")
+)
+public class ShopSetting extends TenantScopedEntity {
 
     @Id
-    private Integer id = 1;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "shop_name", nullable = false, length = 160)
     private String shopName = "iPOS Shop";
@@ -57,6 +64,18 @@ public class ShopSetting {
 
     @Column(name = "logo_path", length = 255)
     private String logoPath;
+
+    @Column(name = "theme_primary", nullable = false, length = 7)
+    private String themePrimary = "#268071";
+
+    @Column(name = "theme_secondary", nullable = false, length = 7)
+    private String themeSecondary = "#4FB8A8";
+
+    @Column(name = "theme_background", nullable = false, length = 7)
+    private String themeBackground = "#FFFFFF";
+
+    @Column(name = "theme_surface", nullable = false, length = 7)
+    private String themeSurface = "#FFFFFF";
 
     @Column(nullable = false, length = 8)
     private String currency = "RWF";

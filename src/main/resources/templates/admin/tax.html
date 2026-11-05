@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html('Tax categories', ~{::content})}">
+<head><title>Tax categories</title></head>
+<body>
+<div th:fragment="content">
+    <p class="admin-muted" style="margin-top:0">These tax categories are shared by every tenant. Tenant administrators can only choose from the active categories.</p>
+
+    <div class="admin-card">
+        <table class="admin-table">
+            <thead><tr><th>Code</th><th>Settings</th><th>State</th></tr></thead>
+            <tbody>
+            <tr th:each="tax : ${taxCategories}">
+                <td><strong th:text="${tax.code}">A</strong><div class="admin-muted" th:text="${tax.label()}">A - Tax</div></td>
+                <td>
+                    <form th:action="@{/admin/tax}" method="post" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0;">
+                        <input type="hidden" name="code" th:value="${tax.code}">
+                        <input type="text" name="name" th:value="${tax.name}" required>
+                        <input type="number" name="rate" step="0.01" min="0" max="100" th:value="${tax.rate}" style="width:90px;" required>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:12px;">
+                            <input type="checkbox" name="exempt" value="true" th:checked="${tax.exempt}"> exempt
+                        </label>
+                        <label style="display:flex; align-items:center; gap:4px; font-size:12px;">
+                            <input type="checkbox" name="active" value="true" th:checked="${tax.active}"> active
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                    </form>
+                </td>
+                <td><span class="admin-badge" th:classappend="${tax.active} ? '' : 'off'"
+                          th:text="${tax.active} ? 'Active' : 'Inactive'">Active</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

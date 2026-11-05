@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html('My account', ~{::content})}">
+<head><title>My account</title></head>
+<body>
+<div th:fragment="content">
+    <div th:if="${passwordChangeRequired}" class="admin-flash error">
+        Your temporary password must be changed before you continue using the platform.
+    </div>
+
+    <div class="admin-card" style="max-width:640px;">
+        <h2>Account</h2>
+        <table class="admin-table" style="margin-bottom:20px;">
+            <tbody>
+            <tr><th>Name</th><td th:text="${principal.fullName}">Administrator</td></tr>
+            <tr><th>Username</th><td th:text="${principal.username}">superadmin</td></tr>
+            <tr><th>Email</th><td th:text="${principal.email}">superadmin@ipos.local</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Change password</h2>
+        <form th:action="@{/admin/profile}" method="post" class="admin-form" style="max-width:none;">
+            <label>Current password
+                <input type="password" name="currentPassword" autocomplete="current-password" required>
+            </label>
+            <div class="row">
+                <label>New password
+                    <input type="password" name="newPassword" autocomplete="new-password" minlength="8" required>
+                </label>
+                <label>Confirm new password
+                    <input type="password" name="confirmPassword" autocomplete="new-password" minlength="8" required>
+                </label>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Update password</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

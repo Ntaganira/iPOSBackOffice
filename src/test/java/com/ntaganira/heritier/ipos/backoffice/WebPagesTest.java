@@ -60,6 +60,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -209,6 +210,48 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"whatsappNumber\"")))
                 .andExpect(content().string(containsString("WhatsApp number")));
+    }
+
+    @Test
+    void themeSettingsPersistAndApplyAcrossPages() throws Exception {
+        mockMvc.perform(post("/settings/theme").with(asAdmin()).with(csrf())
+                        .param("themePrimary", "#123456")
+                        .param("themeSecondary", "#ABCDEF")
+                        .param("themeBackground", "#F0F0F0")
+                        .param("themeSurface", "#FAFAFA"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/settings/theme"))
+                .andExpect(flash().attribute("flashSuccess", containsString("theme saved")));
+
+        mockMvc.perform(get("/settings/theme").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Shop Theme Selection")))
+                .andExpect(content().string(containsString("Retro sunset")))
+                .andExpect(content().string(containsString("Cotton candy skies")))
+                .andExpect(content().string(containsString("value=\"#123456\"")))
+                .andExpect(content().string(containsString("value=\"#ABCDEF\"")));
+
+        mockMvc.perform(get("/dashboard").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("--primary-color: #123456")))
+                .andExpect(content().string(containsString("--secondary-color: #ABCDEF")))
+                .andExpect(content().string(containsString("--background-color: #F0F0F0")))
+                .andExpect(content().string(containsString("--surface-color: #FAFAFA")))
+                .andExpect(content().string(containsString("--primary-ink: #FFFFFF")))
+                .andExpect(content().string(containsString("--surface-ink: #0B1220")))
+                .andExpect(content().string(containsString("--accent:")));
+    }
+
+    @Test
+    void invalidThemeColorIsRejected() throws Exception {
+        mockMvc.perform(post("/settings/theme").with(asAdmin()).with(csrf())
+                        .param("themePrimary", "sunset")
+                        .param("themeSecondary", "#ABCDEF")
+                        .param("themeBackground", "#F0F0F0")
+                        .param("themeSurface", "#FAFAFA"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/settings/theme"))
+                .andExpect(flash().attribute("flashError", containsString("hex color")));
     }
 
     @Test
@@ -390,12 +433,12 @@ class WebPagesTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void taxEditorRendersStyledInputs() throws Exception {
+    void taxPageRendersReadOnlyCategories() throws Exception {
         mockMvc.perform(get("/settings/tax").with(asAdmin()))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("tax-input")))
-                .andExpect(content().string(containsString("tax-rate-field")))
-                .andExpect(content().string(containsString("switch-track")));
+                .andExpect(content().string(containsString("tax-code")))
+                .andExpect(content().string(containsString("user-status-pill")))
+                .andExpect(content().string(containsString("managed by the platform administrator")));
     }
 
     @Test
@@ -691,6 +734,7 @@ class WebPagesTest extends AbstractIntegrationTest {
                 "/users/new",
                 "/roles",
                 "/settings/shop",
+                "/settings/theme",
                 "/settings/email",
                 "/settings/tax",
                 "/profile",

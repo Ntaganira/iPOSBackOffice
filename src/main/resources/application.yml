@@ -96,6 +96,11 @@ app:
     password: ${IPOS_ADMIN_PASSWORD:admin123}
     full-name: ${IPOS_ADMIN_FULL_NAME:Administrator}
     email: ${IPOS_ADMIN_EMAIL:admin@example.com}
+  super-admin:
+    username: ${IPOS_SUPER_ADMIN_USERNAME:superadmin}
+    password: ${IPOS_SUPER_ADMIN_PASSWORD:superadmin123}
+    full-name: ${IPOS_SUPER_ADMIN_FULL_NAME:Platform Administrator}
+    email: ${IPOS_SUPER_ADMIN_EMAIL:superadmin@ipos.local}
   sync:
     token: ${IPOS_SYNC_TOKEN:ipos-dev-sync-token-change-me}
   email:

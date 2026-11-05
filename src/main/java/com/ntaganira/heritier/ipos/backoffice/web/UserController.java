@@ -51,7 +51,7 @@ public class UserController {
                 PageRequest.of(Math.max(0, page), Math.min(100, Math.max(5, size)),
                         Sort.by(Sort.Direction.ASC, "fullName")));
         model.addAttribute("users", users);
-        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("roles", tenantRoles());
         model.addAttribute("q", q);
         model.addAttribute("role", role);
         return "users/list";
@@ -153,6 +153,12 @@ public class UserController {
     }
 
     private void formOptions(Model model) {
-        model.addAttribute("roles", UserRole.values());
+        model.addAttribute("roles", tenantRoles());
+    }
+
+    private UserRole[] tenantRoles() {
+        return java.util.Arrays.stream(UserRole.values())
+                .filter(role -> role != UserRole.SUPER_ADMIN)
+                .toArray(UserRole[]::new);
     }
 }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html('Create tenant', ~{::content})}">
+<head><title>Create tenant</title></head>
+<body>
+<div th:fragment="content">
+    <p class="admin-muted" style="margin-top:0">Create the tenant workspace and its first administrator. The administrator will be asked to change the temporary password on first login.</p>
+
+    <form class="admin-card admin-form" th:action="@{/admin/tenants}" th:object="${tenantForm}" method="post">
+        <div th:if="${formError}" class="admin-flash error" th:text="${formError}"></div>
+
+        <div class="row">
+            <label>Tenant code
+                <input type="text" th:field="*{code}" placeholder="acme" autocomplete="off">
+                <span class="admin-muted" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></span>
+            </label>
+            <label>Tenant name
+                <input type="text" th:field="*{name}" placeholder="Acme Store">
+                <span class="admin-muted" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+            </label>
+        </div>
+        <div class="row">
+            <label>Tenant email
+                <input type="email" th:field="*{email}" placeholder="owner@acme.test">
+                <span class="admin-muted" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </label>
+            <label>Tenant phone
+                <input type="text" th:field="*{phone}" placeholder="+250 ...">
+                <span class="admin-muted" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span>
+            </label>
+        </div>
+
+        <h2 style="margin:8px 0 0">First administrator</h2>
+        <div class="row">
+            <label>Full name
+                <input type="text" th:field="*{adminFullName}" placeholder="Jane Doe">
+                <span class="admin-muted" th:if="${#fields.hasErrors('adminFullName')}" th:errors="*{adminFullName}"></span>
+            </label>
+            <label>Username
+                <input type="text" th:field="*{adminUsername}" placeholder="jane" autocomplete="off">
+                <span class="admin-muted" th:if="${#fields.hasErrors('adminUsername')}" th:errors="*{adminUsername}"></span>
+            </label>
+        </div>
+        <label>Email
+            <input type="email" th:field="*{adminEmail}" placeholder="jane@acme.test">
+            <span class="admin-muted" th:if="${#fields.hasErrors('adminEmail')}" th:errors="*{adminEmail}"></span>
+        </label>
+        <div class="row">
+            <label>Temporary password
+                <input type="password" th:field="*{adminPassword}" autocomplete="new-password">
+                <span class="admin-muted" th:if="${#fields.hasErrors('adminPassword')}" th:errors="*{adminPassword}"></span>
+            </label>
+            <label>Confirm password
+                <input type="password" th:field="*{confirmPassword}" autocomplete="new-password">
+                <span class="admin-muted" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></span>
+            </label>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:8px;">
+            <button type="submit" class="btn btn-primary">Create tenant</button>
+            <a href="/admin/tenants" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

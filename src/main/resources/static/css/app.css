@@ -9,17 +9,26 @@
 
 /* === iPOS Back Office Theme === */
 :root {
-  --primary: #268071;
-  --primary-dark: #1f6a5e;
-  --primary-light: #f0f8ee;
-  --primary-soft: #266a54;
-  --secondary: #4fb8a8;
+  --primary-color: #268071;
+  --secondary-color: #4fb8a8;
+  --background-color: #ffffff;
+  --surface-color: #ffffff;
+  --primary: var(--primary-color);
+  --primary-dark: color-mix(in srgb, var(--primary-color) 82%, #000000);
+  --primary-light: color-mix(in srgb, var(--primary-color) 8%, #ffffff);
+  --primary-soft: color-mix(in srgb, var(--primary-color) 82%, #000000);
+  --primary-ink: #ffffff;
+  --secondary: var(--secondary-color);
+  --secondary-ink: #ffffff;
+  --brand-ink: #ffffff;
+  --accent: var(--primary-soft);
+  --accent-on-bg: var(--primary-soft);
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #6366f1;
-  --bg: #ffffff;
-  --surface: #ffffff;
+  --bg: var(--background-color);
+  --surface: var(--surface-color);
   --header-bg: rgba(255,255,255,.95);
   --dark: #000000;
   --gray-50: #fafafa;
@@ -32,21 +41,28 @@
   --gray-700: #000000;
   --gray-800: #000000;
   --gray-900: #0f172a;
+  --background-ink: var(--dark);
+  --background-muted: var(--gray-500);
+  --surface-ink: var(--dark);
+  --surface-muted: var(--gray-500);
+  --surface-subtle: var(--gray-400);
+  --surface-alt: color-mix(in srgb, var(--surface-ink) 4%, var(--surface));
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 80px;
   --header-height: 70px;
   --radius: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
   --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -2px rgba(0,0,0,.04);
   --transition: all .2s ease;
 }
 
 [data-theme="dark"] {
-  --primary: #268071;
-  --primary-dark: #2d9a88;
-  --primary-light: #263a34;
-  --primary-soft: #8fd3b8;
-  --secondary: #4fb8a8;
+  --primary: var(--primary-color);
+  --primary-dark: color-mix(in srgb, var(--primary-color) 55%, #ffffff);
+  --primary-light: color-mix(in srgb, var(--primary-color) 20%, #121212);
+  --primary-soft: color-mix(in srgb, var(--primary-color) 60%, #ffffff);
+  --secondary: var(--secondary-color);
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
@@ -129,7 +145,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  color: white;
+  color: var(--brand-ink);
   font-weight: 700;
 }
 
@@ -317,7 +333,7 @@ html.sidebar-collapsed .sidebar-footer .sidebar-logout-btn > span:not(.icon) { d
   border-radius: 50%;
   border: 2px solid var(--bg);
   background: var(--surface);
-  color: var(--primary);
+  color: var(--accent);
   box-shadow: 0 2px 8px rgba(0,0,0,.18);
   cursor: pointer;
   display: flex;
@@ -330,7 +346,7 @@ html.sidebar-collapsed .sidebar-footer .sidebar-logout-btn > span:not(.icon) { d
 .sidebar-toggle:hover {
   background: var(--primary);
   border-color: var(--primary);
-  color: white;
+  color: var(--primary-ink);
   box-shadow: 0 3px 10px rgba(38,128,113,.35);
 }
 
@@ -381,7 +397,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
 .header-left h1 {
   font-size: 20px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .header-right {
@@ -630,7 +646,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
 .notif-panel-header button {
   border: none;
   background: none;
-  color: var(--primary);
+  color: var(--accent);
   font-size: 12px;
   font-weight: 600;
   font-family: inherit;
@@ -708,7 +724,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   text-align: center;
   font-size: 12px;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--accent);
   text-decoration: none;
   border-top: 1px solid var(--gray-200);
   background: var(--gray-50, var(--gray-100));
@@ -735,7 +751,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   height: 36px;
   border-radius: 10px;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
+  color: var(--brand-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -790,7 +806,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
 .greeting h1 {
   font-size: 24px;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--background-ink);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -802,7 +818,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
 
 .greeting p {
   font-size: 14px;
-  color: var(--gray-500);
+  color: var(--background-muted);
   margin-top: 4px;
 }
 
@@ -1121,7 +1137,7 @@ table tbody td .patient-cell .avatar {
   height: 36px;
   border-radius: 50%;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1204,7 +1220,7 @@ table tbody td .patient-cell .info .email {
   stroke-linejoin: round;
 }
 
-.btn-primary { background: var(--primary); color: white; }
+.btn-primary { background: var(--primary); color: var(--primary-ink); }
 .btn-primary:hover { background: var(--primary-dark); }
 
 .btn-success { background: var(--success); color: white; }
@@ -2072,6 +2088,24 @@ table tbody td .patient-cell .info .email {
   opacity: .72;
 }
 
+.login-alert {
+  margin: 0 0 12px;
+  padding: 9px 12px;
+  border: 1px solid rgba(161, 58, 58, .25);
+  border-radius: 8px;
+  background: rgba(161, 58, 58, .08);
+  color: #a13a3a;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.login-alert.ok {
+  border-color: rgba(30, 112, 95, .25);
+  background: rgba(30, 112, 95, .08);
+  color: #1e705f;
+}
+
 @media (max-width: 1080px) {
   .login-brand { display: none; }
   .login-form-side {
@@ -2314,7 +2348,7 @@ table tbody td .patient-cell .info .email {
 .error-page h1 {
   font-size: 72px;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--accent);
   margin-bottom: 8px;
 }
 
@@ -2367,7 +2401,7 @@ table tbody td .patient-cell .info .email {
 .error-access-title {
   font-size: 22px;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--accent);
   margin: 0 0 4px;
 }
 
@@ -2452,7 +2486,7 @@ table tbody td .patient-cell .info .email {
 }
 
 .action-icon.edit { background: var(--primary-light); color: var(--primary-soft); }
-.action-icon.edit:hover { background: var(--primary); color: white; }
+.action-icon.edit:hover { background: var(--primary); color: var(--primary-ink); }
 .action-icon.delete { background: #fee2e2; color: var(--danger); }
 .action-icon.delete:hover { background: var(--danger); color: white; }
 .action-icon.pay { background: #d1fae5; color: #065f46; }
@@ -2470,12 +2504,12 @@ table tbody td .patient-cell .info .email {
 .page-header h1 {
   font-size: 24px;
   font-weight: 700;
-  color: var(--dark);
+  color: var(--background-ink);
 }
 
 .page-header .subtitle {
   font-size: 14px;
-  color: var(--gray-500);
+  color: var(--background-muted);
   margin-top: 4px;
 }
 
@@ -2563,7 +2597,7 @@ table tbody td .patient-cell .info .email {
 .tab:hover { color: var(--primary); }
 
 .tab.active {
-  color: var(--primary);
+  color: var(--accent);
   border-bottom-color: var(--primary);
 }
 
@@ -2609,7 +2643,7 @@ table tbody td .patient-cell .info .email {
 .pagination a.active {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--primary-ink);
 }
 
 .pagination a.disabled { opacity: .4; pointer-events: none; }
@@ -2985,7 +3019,7 @@ table tbody td .patient-cell .info .email {
 
 .view-toggle a.active {
   background: var(--primary);
-  color: #fff;
+  color: var(--primary-ink);
   box-shadow: 0 1px 2px rgba(0, 0, 0, .15);
 }
 
@@ -3066,7 +3100,7 @@ table tbody td .patient-cell .info .email {
 .calendar-wrap .fc .fc-button-primary:not(:disabled).fc-button-active {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--primary-ink);
 }
 
 .calendar-wrap .fc .fc-button-primary:focus {
@@ -3093,7 +3127,7 @@ table tbody td .patient-cell .info .email {
 }
 
 .calendar-wrap .fc .fc-daygrid-more-link {
-  color: var(--primary);
+  color: var(--accent);
   font-weight: 600;
 }
 
@@ -3139,7 +3173,7 @@ table tbody td .patient-cell .info .email {
 [data-theme="dark"] .calendar-wrap .fc .fc-button-primary:not(:disabled).fc-button-active {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--primary-ink);
 }
 
 [data-theme="dark"] .cal-event-status-scheduled { background: #1e3a5f; border-color: #1e3a5f; color: #93c5fd; }
@@ -3345,7 +3379,7 @@ html.sidebar-collapsed .page-skeleton { left: var(--sidebar-collapsed-width); }
   height: 96px;
   border-radius: 24px;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: white;
+  color: var(--brand-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3420,7 +3454,7 @@ html.sidebar-collapsed .page-skeleton { left: var(--sidebar-collapsed-width); }
 
 .profile-photo .photo-actions input[type="file"]::file-selector-button:hover {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--accent);
 }
 
 .profile-photo .photo-hint {
@@ -3453,7 +3487,7 @@ html.sidebar-collapsed .page-skeleton { left: var(--sidebar-collapsed-width); }
 }
 
 .summary-card {
-  background: var(--card-bg, var(--white));
+  background: var(--card-bg, var(--surface));
   border: 1px solid var(--gray-200);
   border-radius: 12px;
   padding: 18px 20px;
@@ -3528,7 +3562,7 @@ html.sidebar-collapsed .page-skeleton { left: var(--sidebar-collapsed-width); }
 
 .multiselect-choices .choices__list--multiple .choices__item {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--primary-ink);
   border: none;
   border-radius: 6px;
   font-size: 13px;

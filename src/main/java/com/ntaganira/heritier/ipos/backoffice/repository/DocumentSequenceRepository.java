@@ -20,7 +20,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface DocumentSequenceRepository extends JpaRepository<DocumentSequence, String> {
+public interface DocumentSequenceRepository extends JpaRepository<DocumentSequence, Long> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select d from DocumentSequence d where d.name = :name")

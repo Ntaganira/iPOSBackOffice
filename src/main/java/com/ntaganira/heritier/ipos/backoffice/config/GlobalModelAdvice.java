@@ -13,7 +13,9 @@ package com.ntaganira.heritier.ipos.backoffice.config;
 
 import com.ntaganira.heritier.ipos.backoffice.dto.NotificationItem;
 import com.ntaganira.heritier.ipos.backoffice.entity.AppUser;
+import com.ntaganira.heritier.ipos.backoffice.entity.ShopSetting;
 import com.ntaganira.heritier.ipos.backoffice.repository.AppUserRepository;
+import com.ntaganira.heritier.ipos.backoffice.security.IposUserPrincipal;
 import com.ntaganira.heritier.ipos.backoffice.service.NotificationService;
 import com.ntaganira.heritier.ipos.backoffice.service.SettingsService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,8 +73,9 @@ public class GlobalModelAdvice {
     }
 
     @ModelAttribute("shop")
-    public Object shop() {
-        return settingsService.get();
+    public Object shop(HttpServletRequest request) {
+        Object cached = request.getAttribute(ThemeInterceptor.SHOP_SETTINGS_ATTRIBUTE);
+        return cached instanceof ShopSetting settings ? settings : settingsService.get();
     }
 
     @ModelAttribute("profileInitials")
@@ -107,6 +110,9 @@ public class GlobalModelAdvice {
                 || !authentication.isAuthenticated()
                 || authentication instanceof AnonymousAuthenticationToken) {
             return null;
+        }
+        if (authentication.getPrincipal() instanceof IposUserPrincipal principal) {
+            return userRepository.findById(principal.id()).orElse(null);
         }
         return userRepository.findByUsername(authentication.getName()).orElse(null);
     }

@@ -28,6 +28,15 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByEmailIgnoreCase(String email);
 
+    @Query(value = "select * from app_users where lower(email) = lower(:email)", nativeQuery = true)
+    Optional<AppUser> findGlobalByEmail(@Param("email") String email);
+
+    @Query(value = "select count(*) from app_users where lower(email) = lower(:email)", nativeQuery = true)
+    long countGlobalByEmail(@Param("email") String email);
+
+    @Query(value = "select count(*) from app_users where lower(email) = lower(:email) and id <> :id", nativeQuery = true)
+    long countGlobalByEmailExceptId(@Param("email") String email, @Param("id") Long id);
+
     List<AppUser> findByEnabledTrueOrderByFullNameAsc();
 
     long countByRole(UserRole role);

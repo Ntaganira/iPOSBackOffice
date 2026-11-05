@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html('Overview', ~{::content})}">
+<head><title>Platform overview</title></head>
+<body>
+<div th:fragment="content">
+    <div class="admin-grid">
+        <div class="admin-card">
+            <div class="label">Tenants</div>
+            <div class="metric" th:text="${tenantCount}">0</div>
+            <div class="admin-muted"><span th:text="${activeTenantCount}">0</span> active</div>
+        </div>
+        <div class="admin-card">
+            <div class="label">Tenant users</div>
+            <div class="metric" th:text="${userCount}">0</div>
+            <div class="admin-muted">Across all tenants</div>
+        </div>
+        <div class="admin-card">
+            <div class="label">Sales recorded</div>
+            <div class="metric" th:text="${saleCount}">0</div>
+            <div class="admin-muted">All time</div>
+        </div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom: 20px;">
+        <h2>Tenants</h2>
+        <table class="admin-table">
+            <thead><tr><th>Name</th><th>Code</th><th>Contact</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="tenant : ${tenants}">
+                <td th:text="${tenant.name}">Shop</td>
+                <td class="admin-muted" th:text="${tenant.code}">shop</td>
+                <td class="admin-muted" th:text="${tenant.email ?: '—'}">—</td>
+                <td>
+                    <span class="admin-badge" th:classappend="${tenant.enabled} ? '' : 'off'"
+                          th:text="${tenant.enabled} ? 'Active' : 'Disabled'">Active</span>
+                </td>
+                <td><a th:href="@{'/admin/tenants/' + ${tenant.id}}">Open</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(tenants)}">
+                <td colspan="5" class="admin-muted">No tenants yet. <a href="/admin/tenants/new">Create the first tenant</a>.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-card">
+        <h2>Recent platform activity</h2>
+        <table class="admin-table">
+            <thead><tr><th>When</th><th>Tenant</th><th>Actor</th><th>Action</th><th>Entity</th></tr></thead>
+            <tbody>
+            <tr th:each="log : ${recentAudit}">
+                <td class="admin-muted" th:text="${#temporals.format(log.occurredAt, 'dd MMM HH:mm')}">—</td>
+                <td th:text="${log.tenantName ?: 'System'}">System</td>
+                <td th:text="${log.username ?: '—'}">—</td>
+                <td><span class="admin-badge" th:text="${log.action}">UPDATE</span></td>
+                <td th:text="${log.entityLabel ?: log.entityType}">Tenant</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(recentAudit)}">
+                <td colspan="5" class="admin-muted">No platform activity in the last 30 days.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

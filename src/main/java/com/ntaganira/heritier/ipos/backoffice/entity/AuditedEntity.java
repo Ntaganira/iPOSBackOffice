@@ -23,7 +23,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @MappedSuperclass
-public abstract class AuditedEntity {
+public abstract class AuditedEntity extends TenantScopedEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

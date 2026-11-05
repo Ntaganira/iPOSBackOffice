@@ -31,7 +31,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Entity
 @Table(name = "held_sales")
-public class HeldSale {
+public class HeldSale extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

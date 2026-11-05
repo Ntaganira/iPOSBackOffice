@@ -23,7 +23,6 @@ import com.ntaganira.heritier.ipos.backoffice.repository.ExpenseRepository;
 import com.ntaganira.heritier.ipos.backoffice.util.Money;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -225,8 +224,7 @@ public class ExpenseService {
     }
 
     @Transactional
-    @Scheduled(cron = "0 10 0 * * *")
-    public void materializeRecurring() {
+    public void materializeRecurringForCurrentTenant() {
         LocalDate today = LocalDate.now();
         List<Expense> due = expenseRepository.findByRecurringTrueAndNextOccurrenceLessThanEqualAndStatusIn(
                 today, List.of(ExpenseStatus.PAID, ExpenseStatus.APPROVED));

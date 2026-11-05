@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html(${tenant.name}, ~{::content})}">
+<head><title>Tenant</title></head>
+<body>
+<div th:fragment="content">
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:18px;">
+        <div>
+            <h2 style="margin:0" th:text="${tenant.name}">Tenant</h2>
+            <div class="admin-muted">
+                <span th:text="${tenant.code}">code</span> ·
+                <span th:text="${tenant.email ?: 'No email'}">email</span> ·
+                <span th:text="${tenant.phone ?: 'No phone'}">phone</span>
+            </div>
+        </div>
+        <form th:action="@{'/admin/tenants/' + ${tenant.id} + '/toggle'}" method="post" style="margin:0">
+            <button type="submit" class="btn btn-outline btn-sm"
+                    th:text="${tenant.enabled} ? 'Disable tenant' : 'Enable tenant'">Disable tenant</button>
+        </form>
+    </div>
+
+    <div class="admin-grid">
+        <div class="admin-card"><div class="label">Status</div><div class="metric"
+             th:text="${tenant.enabled} ? 'Active' : 'Disabled'">Active</div></div>
+        <div class="admin-card"><div class="label">Users</div><div class="metric" th:text="${usage['app_users']}">0</div></div>
+        <div class="admin-card"><div class="label">Products</div><div class="metric" th:text="${usage['shop_products']}">0</div></div>
+        <div class="admin-card"><div class="label">Sales</div><div class="metric" th:text="${usage['sales']}">0</div></div>
+        <div class="admin-card"><div class="label">Purchases</div><div class="metric" th:text="${usage['purchases']}">0</div></div>
+        <div class="admin-card"><div class="label">Customers</div><div class="metric" th:text="${usage['shop_customers']}">0</div></div>
+    </div>
+
+    <div class="admin-card" style="margin-bottom:18px;">
+        <h2>Administrators and users</h2>
+        <table class="admin-table">
+            <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th></tr></thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.fullName}">User</td>
+                <td class="admin-muted" th:text="${user.username}">user</td>
+                <td th:text="${user.email}">email</td>
+                <td><span class="admin-badge" th:text="${user.role}">ADMIN</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(users)}">
+                <td colspan="4" class="admin-muted">No active users in this tenant.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="admin-card">
+        <h2>Tenant details</h2>
+        <table class="admin-table">
+            <tbody>
+            <tr><th>Created</th><td th:text="${#temporals.format(tenant.createdAt, 'dd MMM yyyy HH:mm')}">—</td></tr>
+            <tr><th>Updated</th><td th:text="${tenant.updatedAt != null ? #temporals.format(tenant.updatedAt, 'dd MMM yyyy HH:mm') : '—'}">—</td></tr>
+            <tr><th>Tenant ID</th><td th:text="${tenant.id}">1</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

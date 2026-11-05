@@ -29,6 +29,7 @@ public class UserForm {
     @Size(max = 120, message = "Full name must be 120 characters or fewer.")
     private String fullName;
 
+    @NotBlank(message = "Email is required.")
     @Email(message = "Enter a valid email address.")
     @Size(max = 160, message = "Email must be 160 characters or fewer.")
     private String email;

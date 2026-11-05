@@ -27,10 +27,17 @@ public class AuditLogView {
     private final String entityType;
     private final String entityLabel;
     private final String ipAddress;
+    private final String tenantName;
     private final List<AuditChangeView> changes;
 
     public AuditLogView(Long id, Instant occurredAt, String username, String role, String action,
                         String entityType, String entityLabel, String ipAddress,
+                        List<AuditChangeView> changes) {
+        this(id, occurredAt, username, role, action, entityType, entityLabel, ipAddress, null, changes);
+    }
+
+    public AuditLogView(Long id, Instant occurredAt, String username, String role, String action,
+                        String entityType, String entityLabel, String ipAddress, String tenantName,
                         List<AuditChangeView> changes) {
         this.id = id;
         this.occurredAt = occurredAt;
@@ -40,6 +47,7 @@ public class AuditLogView {
         this.entityType = entityType;
         this.entityLabel = entityLabel;
         this.ipAddress = ipAddress;
+        this.tenantName = tenantName;
         this.changes = changes;
     }
 }

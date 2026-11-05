@@ -29,8 +29,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
-
 @Controller
 @PreAuthorize("hasAuthority('SETTINGS_MANAGE')")
 public class SettingsController {
@@ -69,6 +67,27 @@ public class SettingsController {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
         return "redirect:/settings/shop";
+    }
+
+    @GetMapping("/settings/theme")
+    public String theme(Model model) {
+        model.addAttribute("settings", settingsService.get());
+        return "settings/theme";
+    }
+
+    @PostMapping("/settings/theme")
+    public String updateTheme(@RequestParam(name = "themePrimary") String themePrimary,
+                              @RequestParam(name = "themeSecondary") String themeSecondary,
+                              @RequestParam(name = "themeBackground") String themeBackground,
+                              @RequestParam(name = "themeSurface") String themeSurface,
+                              RedirectAttributes redirect) {
+        try {
+            settingsService.updateTheme(themePrimary, themeSecondary, themeBackground, themeSurface);
+            redirect.addFlashAttribute("flashSuccess", "Shop theme saved and applied across the back office.");
+        } catch (IllegalArgumentException ex) {
+            redirect.addFlashAttribute("flashError", ex.getMessage());
+        }
+        return "redirect:/settings/theme";
     }
 
     @GetMapping("/settings/email")
@@ -112,21 +131,5 @@ public class SettingsController {
     public String tax(Model model) {
         model.addAttribute("taxCategories", settingsService.taxCategories());
         return "settings/tax";
-    }
-
-    @PostMapping("/settings/tax")
-    public String updateTax(@RequestParam String code,
-                            @RequestParam String name,
-                            @RequestParam BigDecimal rate,
-                            @RequestParam(defaultValue = "false") boolean exempt,
-                            @RequestParam(defaultValue = "false") boolean active,
-                            RedirectAttributes redirect) {
-        try {
-            settingsService.updateTaxCategory(code, name, rate, exempt, active);
-            redirect.addFlashAttribute("success", "Tax category updated.");
-        } catch (IllegalArgumentException ex) {
-            redirect.addFlashAttribute("error", ex.getMessage());
-        }
-        return "redirect:/settings/tax";
     }
 }

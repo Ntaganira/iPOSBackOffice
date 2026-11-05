@@ -28,7 +28,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Entity
 @Table(name = "audit_logs")
-public class AuditLog {
+public class AuditLog extends TenantScopedEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

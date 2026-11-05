@@ -6,7 +6,7 @@
   - File      : tax.html
   - Date      : 2026. 10. 26.
   - User      : Heritier NTAGANIRA
-  - Desc      : Thymeleaf settings page for tax.
+  - Desc      : Read-only tenant view of platform tax categories.
 -->
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/sidebar :: html(#{nav.settings}, ~{::content})}">
@@ -17,12 +17,9 @@
         <div>
             <div class="eyebrow">Settings</div>
             <h1>Tax categories</h1>
-            <div class="subtitle">VAT rates applied to product prices.</div>
+            <div class="subtitle">VAT rates available for this shop.</div>
         </div>
     </div>
-
-    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
     <div th:replace="~{settings/tabs :: tabs('tax')}"></div>
 
@@ -33,50 +30,24 @@
             </span>
             <div>
                 <h2>VAT rates</h2>
-                <p>Edit a row and save it on its own. Existing documents keep the rate used when they were created.</p>
+                <p>Tax categories are managed by the platform administrator. Active rates can be selected on products.</p>
             </div>
             <span class="section-count" th:text="${#lists.size(taxCategories)}">0</span>
         </div>
         <div class="table-container tax-table-wrap">
             <table class="tax-table">
                 <thead>
-                <tr><th>Code</th><th>Name</th><th class="text-right">Rate</th><th class="text-center">Exempt</th><th class="text-center">Active</th><th class="text-right">Action</th></tr>
+                <tr><th>Code</th><th>Name</th><th class="text-right">Rate</th><th class="text-center">Exempt</th><th class="text-center">Status</th></tr>
                 </thead>
                 <tbody>
                 <tr th:each="category : ${taxCategories}">
-                    <td>
-                        <form th:action="@{/settings/tax}" method="post" class="tax-code-form" th:id="'tax-' + ${category.code}">
-                            <input type="hidden" name="code" th:value="${category.code}">
-                            <span class="tax-code" th:text="${category.code}">A</span>
-                        </form>
-                    </td>
-                    <td>
-                        <input class="tax-input" name="name" th:value="${category.name}" required maxlength="80"
-                               th:form="'tax-' + ${category.code}" th:aria-label="'Name for tax category ' + ${category.code}">
-                    </td>
-                    <td class="text-right">
-                        <span class="tax-rate-field">
-                            <input name="rate" type="number" step="0.01" min="0" max="100" th:value="${category.rate}"
-                                   th:form="'tax-' + ${category.code}" th:aria-label="'Rate for tax category ' + ${category.code}">
-                            <span>%</span>
-                        </span>
-                    </td>
+                    <td><span class="tax-code" th:text="${category.code}">A</span></td>
+                    <td th:text="${category.name}">Tax</td>
+                    <td class="text-right" th:text="${category.rate} + '%'">0%</td>
+                    <td class="text-center" th:text="${category.exempt} ? 'Yes' : 'No'">No</td>
                     <td class="text-center">
-                        <span class="switch">
-                            <input type="checkbox" name="exempt" value="true" th:checked="${category.exempt}"
-                                   th:form="'tax-' + ${category.code}" th:aria-label="'Exempt ' + ${category.code}">
-                            <span class="switch-track" aria-hidden="true"></span>
-                        </span>
-                    </td>
-                    <td class="text-center">
-                        <span class="switch">
-                            <input type="checkbox" name="active" value="true" th:checked="${category.active}"
-                                   th:form="'tax-' + ${category.code}" th:aria-label="'Active ' + ${category.code}">
-                            <span class="switch-track" aria-hidden="true"></span>
-                        </span>
-                    </td>
-                    <td class="text-right">
-                        <button type="submit" class="btn btn-outline btn-sm" th:form="'tax-' + ${category.code}">Save</button>
+                        <span class="user-status-pill" th:classappend="${category.active} ? 'is-enabled' : 'is-disabled'"
+                              th:text="${category.active} ? 'Active' : 'Inactive'">Active</span>
                     </td>
                 </tr>
                 </tbody>

@@ -17,6 +17,7 @@ import com.ntaganira.heritier.ipos.backoffice.enums.PrintFormat;
 import com.ntaganira.heritier.ipos.backoffice.enums.SmtpSecurity;
 import com.ntaganira.heritier.ipos.backoffice.repository.ShopSettingRepository;
 import com.ntaganira.heritier.ipos.backoffice.repository.TaxCategoryRepository;
+import com.ntaganira.heritier.ipos.backoffice.tenant.TenantContext;
 import com.ntaganira.heritier.ipos.backoffice.util.Money;
 import com.ntaganira.heritier.ipos.backoffice.util.WhatsApp;
 import org.springframework.stereotype.Service;
@@ -27,10 +28,18 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Service
 public class SettingsService {
+
+    private static final Pattern HEX_COLOR = Pattern.compile("^#[0-9A-Fa-f]{6}$");
+    private static final String DEFAULT_THEME_PRIMARY = "#268071";
+    private static final String DEFAULT_THEME_SECONDARY = "#4FB8A8";
+    private static final String DEFAULT_THEME_BACKGROUND = "#FFFFFF";
+    private static final String DEFAULT_THEME_SURFACE = "#FFFFFF";
 
     private final ShopSettingRepository settingsRepository;
     private final TaxCategoryRepository taxCategoryRepository;
@@ -55,12 +64,19 @@ public class SettingsService {
 
     @Transactional(readOnly = true)
     public ShopSetting get() {
-        return settingsRepository.findById(1).orElseGet(this::defaults);
+        if (TenantContext.isSystem() || TenantContext.get() == null) {
+            return defaults();
+        }
+        return settingsRepository.findFirstByOrderByIdAsc().orElseGet(this::defaults);
     }
 
     @Transactional
     public ShopSetting getOrCreate() {
-        return settingsRepository.findById(1).orElseGet(() -> settingsRepository.save(defaults()));
+        if (TenantContext.isSystem() || TenantContext.get() == null) {
+            return defaults();
+        }
+        return settingsRepository.findFirstByOrderByIdAsc()
+                .orElseGet(() -> settingsRepository.save(defaults()));
     }
 
     public List<TaxCategory> taxCategories() {
@@ -98,6 +114,22 @@ public class SettingsService {
         current.setUpdatedBy(currentUser.username());
         ShopSetting saved = settingsRepository.save(current);
         auditService.updated("SystemSetting", saved.getId(), "Shop settings", before, snapshot(saved));
+        return saved;
+    }
+
+    @Transactional
+    public ShopSetting updateTheme(String themePrimary, String themeSecondary,
+                                   String themeBackground, String themeSurface) {
+        ShopSetting current = getOrCreate();
+        Map<String, Object> before = snapshot(current);
+        current.setThemePrimary(hexColor(themePrimary, "Primary color"));
+        current.setThemeSecondary(hexColor(themeSecondary, "Secondary color"));
+        current.setThemeBackground(hexColor(themeBackground, "Background color"));
+        current.setThemeSurface(hexColor(themeSurface, "Surface color"));
+        current.setUpdatedAt(Instant.now());
+        current.setUpdatedBy(currentUser.username());
+        ShopSetting saved = settingsRepository.save(current);
+        auditService.updated("SystemSetting", saved.getId(), "Shop theme", before, snapshot(saved));
         return saved;
     }
 
@@ -229,6 +261,10 @@ public class SettingsService {
         map.put("phone", settings.getPhone());
         map.put("whatsappNumber", settings.getWhatsappNumber());
         map.put("email", settings.getEmail());
+        map.put("themePrimary", settings.getThemePrimary());
+        map.put("themeSecondary", settings.getThemeSecondary());
+        map.put("themeBackground", settings.getThemeBackground());
+        map.put("themeSurface", settings.getThemeSurface());
         map.put("currency", settings.getCurrency());
         map.put("receiptFooter", settings.getReceiptFooter());
         map.put("defaultPrintFormat", settings.getDefaultPrintFormat());
@@ -255,8 +291,11 @@ public class SettingsService {
 
     private ShopSetting defaults() {
         ShopSetting settings = new ShopSetting();
-        settings.setId(1);
         settings.setShopName("iPOS Shop");
+        settings.setThemePrimary(DEFAULT_THEME_PRIMARY);
+        settings.setThemeSecondary(DEFAULT_THEME_SECONDARY);
+        settings.setThemeBackground(DEFAULT_THEME_BACKGROUND);
+        settings.setThemeSurface(DEFAULT_THEME_SURFACE);
         settings.setCurrency("RWF");
         settings.setReceiptFooter("Thank you for your business!");
         settings.setDefaultPrintFormat(PrintFormat.RECEIPT);
@@ -267,6 +306,13 @@ public class SettingsService {
         settings.setSmtpSecurity(SmtpSecurity.NONE);
         settings.setEmailSubjectTemplate("Invoice {invoiceNumber} from {shopName}");
         return settings;
+    }
+
+    private String hexColor(String value, String label) {
+        if (!StringUtils.hasText(value) || !HEX_COLOR.matcher(value.trim()).matches()) {
+            throw new IllegalArgumentException(label + " must be a 6-digit hex color, for example #268071.");
+        }
+        return value.trim().toUpperCase(Locale.ROOT);
     }
 
     private String trim(String value, String fallback) {

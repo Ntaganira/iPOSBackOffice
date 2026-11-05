@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{admin/layout :: html('Tenants', ~{::content})}">
+<head><title>Tenants</title></head>
+<body>
+<div th:fragment="content">
+    <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px;">
+        <form method="get" action="/admin/tenants" style="display:flex; gap:8px;">
+            <input type="search" name="q" th:value="${q}" placeholder="Search name, code or email">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </form>
+        <a href="/admin/tenants/new" class="btn btn-primary btn-sm">Create tenant</a>
+    </div>
+
+    <div class="admin-card">
+        <table class="admin-table">
+            <thead><tr><th>Name</th><th>Code</th><th>Contact</th><th>Status</th><th>Created</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="tenant : ${tenants.content}">
+                <td><strong th:text="${tenant.name}">Shop</strong></td>
+                <td class="admin-muted" th:text="${tenant.code}">shop</td>
+                <td class="admin-muted" th:text="${tenant.email ?: '—'}">—</td>
+                <td><span class="admin-badge" th:classappend="${tenant.enabled} ? '' : 'off'"
+                          th:text="${tenant.enabled} ? 'Active' : 'Disabled'">Active</span></td>
+                <td class="admin-muted" th:text="${#temporals.format(tenant.createdAt, 'dd MMM yyyy')}">—</td>
+                <td><a th:href="@{'/admin/tenants/' + ${tenant.id}}">Open</a></td>
+            </tr>
+            <tr th:if="${tenants.totalElements == 0}">
+                <td colspan="6" class="admin-muted">No tenants found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
