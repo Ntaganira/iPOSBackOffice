@@ -70,6 +70,13 @@ spring:
         core-size: 2
         max-size: 6
         queue-capacity: 100
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:not-configured}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: 0.1
 
 management:
   health:
@@ -105,6 +112,10 @@ app:
     token: ${IPOS_SYNC_TOKEN:ipos-dev-sync-token-change-me}
   email:
     from-default: ${IPOS_EMAIL_FROM:iPOS Shop <no-reply@ipos.local>}
+  product-extraction:
+    max-image-bytes: ${PRODUCT_EXTRACTION_MAX_IMAGE_BYTES:5242880}
+    tesseract-data-path: ${TESSERACT_DATA_PATH:}
+    tesseract-languages: ${TESSERACT_LANGUAGES:eng}
 
 logging:
   level:

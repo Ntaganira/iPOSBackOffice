@@ -128,6 +128,15 @@ class WebPagesTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void productFormIncludesImageExtractionControls() throws Exception {
+        mockMvc.perform(get("/products/new").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"scanImage\"")))
+                .andExpect(content().string(containsString("/products/extract")))
+                .andExpect(content().string(containsString("id=\"scanStatus\"")));
+    }
+
+    @Test
     void dashboardContainsChartData() throws Exception {
         mockMvc.perform(get("/dashboard").with(asAdmin()))
                 .andExpect(status().isOk())

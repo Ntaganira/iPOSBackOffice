@@ -40,6 +40,10 @@ app:
     remember-me-key: test-remember-me-key
   sync:
     token: test-sync-token
+  product-extraction:
+    max-image-bytes: 5242880
+    tesseract-data-path: ""
+    tesseract-languages: eng
 
 logging:
   level:

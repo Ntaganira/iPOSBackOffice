@@ -27,6 +27,24 @@
     <form th:action="${editing} ? @{/products/{id}(id=${productForm.id})} : @{/products}" th:object="${productForm}" method="post"
           enctype="multipart/form-data" class="form-layout">
         <div class="section">
+            <div class="section-header">
+                <h2>Scan product image</h2>
+                <span class="hint">Optional: fill the form from a product label or package photo.</span>
+            </div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="scanImage">Product image</label>
+                    <div class="scan-control">
+                        <input id="scanImage" type="file" accept="image/jpeg,image/png">
+                        <span id="scanSpinner" class="scan-spinner" hidden>Reading image...</span>
+                    </div>
+                    <div class="hint">JPG or PNG up to 5 MB. Review the extracted values before saving.</div>
+                    <div id="scanStatus" class="scan-status" role="status" aria-live="polite"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
             <div class="section-header"><h2>Identity</h2></div>
             <div class="form-grid">
                 <div class="form-group">
@@ -135,6 +153,121 @@
             </div>
         </div>
     </form>
+
+    <script>
+        (function () {
+            const imageInput = document.getElementById('scanImage');
+            const status = document.getElementById('scanStatus');
+            const spinner = document.getElementById('scanSpinner');
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+            if (!imageInput || !status || !spinner || !csrfToken || !csrfHeader) {
+                return;
+            }
+
+            const setStatus = (message, kind) => {
+                status.textContent = message;
+                status.className = 'scan-status' + (kind ? ' ' + kind : '');
+            };
+
+            const setLoading = (loading) => {
+                spinner.hidden = !loading;
+                imageInput.disabled = loading;
+            };
+
+            const setField = (id, value) => {
+                const field = document.getElementById(id);
+                if (!field || value === null || value === undefined || value === '') {
+                    return false;
+                }
+                field.value = value;
+                return true;
+            };
+
+            const setCategory = (category) => {
+                if (!category) {
+                    return false;
+                }
+                const select = document.getElementById('categoryId');
+                const wanted = category.trim().toLowerCase();
+                const options = Array.from(select.options).filter(option => option.value);
+                const match = options.find(option => option.textContent.trim().toLowerCase() === wanted)
+                    || options.find(option => option.textContent.trim().toLowerCase().includes(wanted));
+                if (!match) {
+                    return false;
+                }
+                select.value = match.value;
+                return true;
+            };
+
+            const applyResult = (data) => {
+                let filled = 0;
+                const notes = [];
+
+                if (setField('name', data.productName)) filled++;
+                if (setField('code', data.sku)) filled++;
+
+                if (data.estimatedPrice !== null && data.estimatedPrice !== undefined) {
+                    const price = Number(data.estimatedPrice);
+                    if (Number.isFinite(price) && price >= 0 && setField('sellingPrice', price.toFixed(2))) {
+                        filled++;
+                    }
+                }
+
+                if (setCategory(data.category)) {
+                    filled++;
+                } else if (data.category) {
+                    notes.push('Category "' + data.category + '" was not found; choose one manually.');
+                }
+
+                const prefix = filled === 0
+                    ? 'No fields could be filled automatically.'
+                    : 'Filled ' + filled + ' field' + (filled === 1 ? '' : 's') + ' from the image.';
+                setStatus([prefix].concat(notes).join(' '), notes.length ? 'is-warning' : 'is-success');
+            };
+
+            imageInput.addEventListener('change', async () => {
+                const file = imageInput.files && imageInput.files[0];
+                if (!file) {
+                    return;
+                }
+
+                setLoading(true);
+                setStatus('Extracting product details...', '');
+
+                const body = new FormData();
+                body.append('image', file);
+
+                try {
+                    const response = await fetch('/products/extract', {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            [csrfHeader]: csrfToken
+                        },
+                        body
+                    });
+                    const contentType = response.headers.get('content-type') || '';
+                    const data = contentType.includes('application/json')
+                        ? await response.json().catch(() => null)
+                        : null;
+                    if (response.redirected || !data) {
+                        throw new Error('Your session may have expired. Refresh the page and try again.');
+                    }
+                    if (!response.ok) {
+                        throw new Error(data.message || 'The image could not be processed.');
+                    }
+                    applyResult(data);
+                } catch (error) {
+                    setStatus(error.message || 'The image could not be processed.', 'is-error');
+                } finally {
+                    setLoading(false);
+                    imageInput.value = '';
+                }
+            });
+        })();
+    </script>
 </div>
 </body>
 </html>
