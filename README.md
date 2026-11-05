@@ -37,6 +37,8 @@ Prerequisites: Java 21, Docker Desktop (recommended), or a PostgreSQL 16 install
    .\mvnw.cmd spring-boot:run
    ```
 
+   For product image extraction, run `.\run-dev.ps1` instead. It prompts for `OPENAI_API_KEY` without saving it to disk, then starts the app.
+
 4. Open <http://localhost:8081>. Mailpit is at <http://localhost:8025>.
 
 Default development login: `admin` / `admin123`. Change it immediately outside local development. The administrator is created only when the `app_users` table is empty.
