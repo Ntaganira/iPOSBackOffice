@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+
+<!--
+  - Project   : iPOS - Point of Sale, Stock and Back-Office
+  - Package   : templates
+  - File      : search.html
+  - Date      : 2026. 11. 07.
+  - User      : Heritier NTAGANIRA
+  - Desc      : Unified inventory search by part number, barcode or QR code.
+-->
+
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/sidebar :: html('Inventory search', ~{::content})}">
+<head><title>Inventory search - iPOS</title></head>
+<body>
+<div th:fragment="content">
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">Inventory</div>
+            <h1>Inventory search</h1>
+            <div class="subtitle">Scan a part number, barcode or QR code, or type an identifier and press Enter.</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <form id="search-form" th:action="@{/search}" method="get" class="filter-bar" autocomplete="off">
+            <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input id="search-input"
+                       name="q"
+                       type="text"
+                       th:value="${query}"
+                       placeholder="Part number, barcode or QR code"
+                       aria-label="Part number, barcode or QR code"
+                       autocapitalize="off"
+                       spellcheck="false"
+                       enterkeyhint="search"
+                       autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <button type="button"
+                    id="camera-toggle"
+                    class="btn btn-outline btn-sm"
+                    aria-controls="camera-panel"
+                    aria-expanded="false">
+                Scan with camera
+            </button>
+        </form>
+        <p class="hint" style="padding:10px 14px 0">
+            Hardware scanners work as keyboard input: the trailing Enter submits automatically.
+            Camera access requires HTTPS or localhost.
+        </p>
+
+        <div id="camera-panel" class="camera-panel" style="padding:0 14px 14px" hidden>
+            <div id="qr-reader"></div>
+            <div class="scan-actions" style="margin-top:12px">
+                <button type="button" id="camera-stop" class="btn btn-outline btn-sm">Stop camera</button>
+                <span id="camera-status" class="scan-status" role="status" aria-live="polite"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" th:if="${query != null and !query.isEmpty()}">
+        <div class="section-header">
+            <div>
+                <h2>Results</h2>
+                <span class="hint">
+                    <span th:text="${#lists.size(results)}">0</span> match(es) for
+                    <strong th:text="${query}">query</strong>
+                </span>
+            </div>
+        </div>
+
+        <div class="table-container" th:unless="${#lists.isEmpty(results)}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Part number</th>
+                    <th>Barcode</th>
+                    <th>QR code ID</th>
+                    <th class="text-right">Stock</th>
+                    <th class="text-right">Selling price</th>
+                    <th>Status</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="product : ${results}">
+                    <td>
+                        <div class="table-primary" th:text="${product.name}">Product</div>
+                        <div class="hint mono" th:text="${product.code}">CODE</div>
+                    </td>
+                    <td class="mono" th:text="${product.partNumber == null ? '—' : product.partNumber}">—</td>
+                    <td class="mono" th:text="${product.barcode == null ? '—' : product.barcode}">—</td>
+                    <td class="mono" th:text="${product.qrCodeId == null ? '—' : product.qrCodeId}">—</td>
+                    <td class="text-right" th:text="${@fmt.qty(product.stockQuantity)}">0</td>
+                    <td class="text-right" th:text="${@fmt.money(product.sellingPrice)}">RWF 0</td>
+                    <td>
+                        <span class="badge" th:classappend="${product.active} ? 'badge-success' : 'badge-secondary'"
+                              th:text="${product.active ? 'Active' : 'Inactive'}">Active</span>
+                    </td>
+                    <td class="text-right">
+                        <a sec:authorize="hasAuthority('PRODUCT_EDIT')" class="btn btn-outline btn-sm"
+                           th:href="@{/products/{id}/edit(id=${product.id})}">Open</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state slim" th:if="${#lists.isEmpty(results)}">
+            No product matched <strong th:text="${query}">query</strong>.
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            const form = document.getElementById('search-form');
+            const input = document.getElementById('search-input');
+            const cameraToggle = document.getElementById('camera-toggle');
+            const cameraPanel = document.getElementById('camera-panel');
+            const cameraStop = document.getElementById('camera-stop');
+            const cameraStatus = document.getElementById('camera-status');
+
+            let scanner = null;
+            let scanning = false;
+            let scanHandled = false;
+
+            function extractIdentifier(rawValue) {
+                const value = String(rawValue ?? '').trim();
+                if (!value) {
+                    return '';
+                }
+
+                try {
+                    const url = new URL(value);
+                    if (url.protocol === 'http:' || url.protocol === 'https:') {
+                        const segments = url.pathname.split('/').filter(Boolean);
+                        if (segments.length === 0) {
+                            return '';
+                        }
+
+                        const last = segments[segments.length - 1];
+                        try {
+                            return decodeURIComponent(last).trim();
+                        } catch (error) {
+                            return last.trim();
+                        }
+                    }
+                } catch (error) {
+                    return value;
+                }
+
+                return value;
+            }
+
+            function submitSearch() {
+                if (typeof form.requestSubmit === 'function') {
+                    form.requestSubmit();
+                } else {
+                    form.submit();
+                }
+            }
+
+            function setCameraStatus(message, isError) {
+                cameraStatus.textContent = message;
+                cameraStatus.className = 'scan-status' + (isError ? ' is-error' : '');
+            }
+
+            function setCameraOpen(open) {
+                cameraPanel.hidden = !open;
+                cameraToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                cameraToggle.textContent = open ? 'Stop camera' : 'Scan with camera';
+            }
+
+            function cameraErrorMessage(error) {
+                if (error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
+                    return 'Camera permission was denied. Allow access or use a hardware scanner.';
+                }
+                if (error && error.name === 'NotFoundError') {
+                    return 'No camera was found on this device.';
+                }
+                return 'The camera could not be started. Use HTTPS or localhost and try again.';
+            }
+
+            async function startCamera() {
+                if (scanning) {
+                    return;
+                }
+                if (!window.Html5Qrcode) {
+                    setCameraStatus('The camera scanner library could not be loaded.', true);
+                    return;
+                }
+
+                setCameraOpen(true);
+                cameraToggle.disabled = true;
+                cameraStop.disabled = true;
+                scanHandled = false;
+                setCameraStatus('Starting camera...');
+
+                try {
+                    scanner = scanner || new Html5Qrcode('qr-reader', {verbose: false});
+                    await scanner.start(
+                        {facingMode: 'environment'},
+                        {fps: 10, qrbox: {width: 250, height: 250}},
+                        onScanSuccess,
+                        function () {
+                        }
+                    );
+                    scanning = true;
+                    setCameraStatus('Point the camera at a barcode or QR code.');
+                } catch (error) {
+                    scanning = false;
+                    if (scanner) {
+                        try {
+                            scanner.clear();
+                        } catch (ignored) {
+                        }
+                        scanner = null;
+                    }
+                    setCameraOpen(false);
+                    setCameraStatus(cameraErrorMessage(error), true);
+                } finally {
+                    cameraToggle.disabled = false;
+                    cameraStop.disabled = false;
+                }
+            }
+
+            async function stopCamera(message) {
+                if (!scanner) {
+                    setCameraOpen(false);
+                    return;
+                }
+
+                try {
+                    if (scanning) {
+                        await scanner.stop();
+                    }
+                } catch (error) {
+                }
+
+                try {
+                    scanner.clear();
+                } catch (error) {
+                }
+
+                scanner = null;
+                scanning = false;
+                setCameraOpen(false);
+                setCameraStatus(message || 'Camera stopped.');
+            }
+
+            function onScanSuccess(decodedText) {
+                if (scanHandled) {
+                    return;
+                }
+
+                const identifier = extractIdentifier(decodedText);
+                if (!identifier) {
+                    setCameraStatus('The QR code did not contain a path identifier.', true);
+                    return;
+                }
+
+                scanHandled = true;
+                input.value = identifier;
+                stopCamera('Scanned ' + identifier + '. Searching...').finally(submitSearch);
+            }
+
+            form.addEventListener('submit', function (event) {
+                const identifier = extractIdentifier(input.value);
+                if (!identifier) {
+                    event.preventDefault();
+                    input.focus();
+                    return;
+                }
+                input.value = identifier;
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    submitSearch();
+                }
+            });
+
+            cameraToggle.addEventListener('click', function () {
+                if (scanning) {
+                    stopCamera();
+                } else {
+                    startCamera();
+                }
+            });
+
+            cameraStop.addEventListener('click', function () {
+                stopCamera();
+            });
+
+            window.addEventListener('pagehide', function () {
+                if (scanner && scanning) {
+                    scanner.stop().catch(function () {
+                    });
+                }
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

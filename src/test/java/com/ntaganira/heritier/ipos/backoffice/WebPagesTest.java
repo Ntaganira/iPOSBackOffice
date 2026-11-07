@@ -147,6 +147,32 @@ class WebPagesTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void unifiedSearchMatchesPartNumberBarcodeAndQrCodeId() throws Exception {
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        Product product = new Product();
+        product.setCode("SRCH-" + suffix);
+        product.setName("Unified search " + suffix);
+        product.setPartNumber("PN-" + suffix);
+        product.setBarcode("BC-" + suffix);
+        product.setQrCodeId("QR-" + suffix);
+        product.setBuyingPrice(new BigDecimal("100.00"));
+        product.setSellingPrice(new BigDecimal("150.00"));
+        product.setActive(true);
+        productRepository.saveAndFlush(product);
+
+        for (String term : List.of(product.getPartNumber(), product.getBarcode(), product.getQrCodeId())) {
+            mockMvc.perform(get("/search").param("q", "  " + term + "  ").with(asAdmin()))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("search"))
+                    .andExpect(content().string(containsString(product.getName())))
+                    .andExpect(content().string(containsString("id=\"search-input\"")))
+                    .andExpect(content().string(containsString("id=\"camera-toggle\"")))
+                    .andExpect(content().string(containsString("id=\"qr-reader\"")))
+                    .andExpect(content().string(containsString("html5-qrcode")));
+        }
+    }
+
+    @Test
     void productCanBeRegisteredByPartNumberWithoutNameOrCode() throws Exception {
         Category category = categoryRepository.findAll().get(0);
         Unit unit = unitRepository.findAll().get(0);
@@ -751,6 +777,7 @@ class WebPagesTest extends AbstractIntegrationTest {
                 "/dashboard",
                 "/pos",
                 "/sales",
+                "/search",
                 "/products",
                 "/products/new",
                 "/products/categories",

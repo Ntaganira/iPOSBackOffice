@@ -2946,6 +2946,17 @@ table tbody td .patient-cell .info .email {
   border-radius: 12px;
 }
 
+#qr-reader {
+  width: 100%;
+  max-width: 520px;
+  margin-top: 12px;
+}
+
+#qr-reader video {
+  aspect-ratio: auto;
+  object-fit: contain;
+}
+
 .scan-tabs {
   display: flex;
   flex-wrap: wrap;

@@ -56,6 +56,9 @@ public class Product extends AuditedEntity {
     @Column(name = "part_number", length = 80)
     private String partNumber;
 
+    @Column(name = "qr_code_id", length = 80)
+    private String qrCodeId;
+
     @Column(nullable = false, length = 200)
     private String name;
 
