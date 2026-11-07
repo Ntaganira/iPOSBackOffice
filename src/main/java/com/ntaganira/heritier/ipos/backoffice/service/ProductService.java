@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -99,6 +100,14 @@ public class ProductService {
     @Transactional(readOnly = true)
     public List<Product> forPos(String q, int limit) {
         return productRepository.searchForPos(like(q), PageRequest.of(0, Math.max(1, Math.min(limit, 50))));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Product> findForScan(String code) {
+        if (!StringUtils.hasText(code)) {
+            return Optional.empty();
+        }
+        return productRepository.findForPosScan(code.trim()).stream().findFirst();
     }
 
     @Transactional(readOnly = true)

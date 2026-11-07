@@ -88,6 +88,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             """)
     List<Product> findForUnifiedSearch(@Param("term") String term);
 
+    @Query("""
+            select p from Product p
+            where lower(p.code) = lower(:term)
+               or lower(p.partNumber) = lower(:term)
+               or p.barcode = :term
+               or p.qrCodeId = :term
+            order by p.name asc
+            """)
+    List<Product> findForPosScan(@Param("term") String term);
+
     @Query("select p from Product p where p.active = true and p.stockQuantity <= p.reorderLevel order by p.stockQuantity asc")
     List<Product> findLowStock();
 

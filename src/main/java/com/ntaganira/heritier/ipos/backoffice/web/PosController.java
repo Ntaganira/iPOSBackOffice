@@ -86,6 +86,18 @@ public class PosController {
         return productService.forPos(q, 40).stream().map(this::productJson).toList();
     }
 
+    @GetMapping("/pos/products/lookup")
+    @ResponseBody
+    public Map<String, Object> lookupProduct(@RequestParam(required = false) String code) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("found", false);
+        productService.findForScan(code).ifPresent(product -> {
+            result.put("found", true);
+            result.put("product", productJson(product));
+        });
+        return result;
+    }
+
     @GetMapping("/pos/customers")
     @ResponseBody
     public List<Map<String, Object>> customers(@RequestParam(required = false) String q) {
@@ -194,6 +206,7 @@ public class PosController {
         map.put("code", product.getCode());
         map.put("partNumber", product.getPartNumber());
         map.put("barcode", product.getBarcode());
+        map.put("qrCodeId", product.getQrCodeId());
         map.put("price", product.getSellingPrice());
         map.put("stock", product.getStockQuantity());
         map.put("unit", product.getUnit() == null ? "" : product.getUnit().getCode());

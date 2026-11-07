@@ -34,8 +34,25 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="search" id="product-search" placeholder="Search by name, code, part number or barcode…" autocomplete="off" autofocus>
+                <input type="search" id="product-search" placeholder="Search by name, code, part number, barcode or QR…" autocomplete="off" autofocus>
                 <kbd>F2</kbd>
+            </div>
+            <div class="pos-scan-bar">
+                <button type="button" id="camera-toggle" class="btn btn-outline btn-sm"
+                        aria-controls="camera-panel" aria-expanded="false">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    Scan with camera
+                </button>
+                <span id="camera-status" class="scan-status" role="status" aria-live="polite"></span>
+            </div>
+            <div id="camera-panel" class="camera-panel pos-camera-panel" hidden>
+                <div id="qr-reader"></div>
+                <div class="scan-actions" style="margin-top:10px">
+                    <button type="button" id="camera-stop" class="btn btn-outline btn-sm">Stop camera</button>
+                </div>
             </div>
             <div class="pos-category-bar" id="category-bar">
                 <button type="button" class="category-chip active" data-category="all">All products</button>
@@ -324,6 +341,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script th:inline="javascript">
         (function () {
             const initialProducts = /*[[${products}]]*/ [];
@@ -455,7 +473,7 @@
                 const q = el('product-search').value.trim().toLowerCase();
                 const filtered = state.products.filter(product => {
                     const categoryMatch = state.category === 'all' || product.category === state.category;
-                    const queryMatch = !q || [product.name, product.code, product.partNumber, product.barcode].some(value => (value || '').toLowerCase().includes(q));
+                    const queryMatch = !q || [product.name, product.code, product.partNumber, product.barcode, product.qrCodeId].some(value => (value || '').toLowerCase().includes(q));
                     return categoryMatch && queryMatch;
                 });
                 filtered.forEach(product => grid.appendChild(productCard(product)));
@@ -466,13 +484,13 @@
             function addProduct(product) {
                 if (Number(product.stock) <= 0) {
                     window.showToast(product.name + ' is out of stock.', 'warning');
-                    return;
+                    return false;
                 }
                 const line = state.items.find(item => item.id === product.id);
                 if (line) {
                     if (line.quantity >= Number(product.stock)) {
                         window.showToast('Only ' + Number(product.stock) + ' ' + (product.unit || '') + ' available.', 'warning');
-                        return;
+                        return false;
                     }
                     line.quantity += 1;
                 } else {
@@ -485,7 +503,181 @@
                 }
                 renderCart();
                 el('product-search').focus();
+                return true;
             }
+
+            const cameraToggle = el('camera-toggle');
+            const cameraPanel = el('camera-panel');
+            const cameraStop = el('camera-stop');
+            const cameraStatus = el('camera-status');
+            let scanner = null;
+            let scanning = false;
+            let scanHandled = false;
+
+            function extractIdentifier(rawValue) {
+                const value = String(rawValue || '').trim();
+                if (!value) return '';
+                try {
+                    const url = new URL(value);
+                    if (url.protocol === 'http:' || url.protocol === 'https:') {
+                        const segments = url.pathname.split('/').filter(Boolean);
+                        if (segments.length === 0) return '';
+                        const last = segments[segments.length - 1];
+                        try {
+                            return decodeURIComponent(last).trim();
+                        } catch (error) {
+                            return last.trim();
+                        }
+                    }
+                } catch (error) {
+                    return value;
+                }
+                return value;
+            }
+
+            function setCameraStatus(message, type) {
+                cameraStatus.textContent = message || '';
+                cameraStatus.className = 'scan-status' + (type ? ' is-' + type : '');
+            }
+
+            function setCameraOpen(open) {
+                cameraPanel.hidden = !open;
+                cameraToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            }
+
+            function cameraErrorMessage(error) {
+                if (error && (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError')) {
+                    return 'Camera permission was denied. Allow access or use a hardware scanner.';
+                }
+                if (error && error.name === 'NotFoundError') {
+                    return 'No camera was found on this device.';
+                }
+                return 'The camera could not be started. Use HTTPS or localhost and try again.';
+            }
+
+            async function startCamera() {
+                if (scanning) return;
+                if (!window.Html5Qrcode) {
+                    setCameraStatus('The camera scanner library could not be loaded.', 'error');
+                    return;
+                }
+                setCameraOpen(true);
+                cameraToggle.disabled = true;
+                cameraStop.disabled = true;
+                scanHandled = false;
+                setCameraStatus('Starting camera...');
+                try {
+                    scanner = scanner || new Html5Qrcode('qr-reader', {verbose: false});
+                    await scanner.start(
+                        {facingMode: 'environment'},
+                        {fps: 10, qrbox: {width: 250, height: 250}},
+                        onScanSuccess,
+                        function () {
+                        }
+                    );
+                    scanning = true;
+                    setCameraStatus('Point the camera at a barcode or QR code.');
+                } catch (error) {
+                    scanning = false;
+                    if (scanner) {
+                        try {
+                            scanner.clear();
+                        } catch (ignored) {
+                        }
+                        scanner = null;
+                    }
+                    setCameraOpen(false);
+                    setCameraStatus(cameraErrorMessage(error), 'error');
+                } finally {
+                    cameraToggle.disabled = false;
+                    cameraStop.disabled = false;
+                }
+            }
+
+            async function stopCamera(message, type) {
+                if (scanner) {
+                    try {
+                        if (scanning) await scanner.stop();
+                    } catch (error) {
+                    }
+                    try {
+                        scanner.clear();
+                    } catch (error) {
+                    }
+                    scanner = null;
+                    scanning = false;
+                }
+                setCameraOpen(false);
+                if (message) setCameraStatus(message, type);
+            }
+
+            async function lookupScannedProduct(identifier, fromCamera) {
+                const input = el('product-search');
+                input.value = identifier;
+                try {
+                    const result = await api('/pos/products/lookup?code=' + encodeURIComponent(identifier));
+                    if (!result || !result.found || !result.product) {
+                        renderProducts();
+                        if (!grid.children.length) {
+                            window.showToast('No product matches ' + identifier + '.', 'warning');
+                        }
+                        if (fromCamera) setCameraStatus('No product matches ' + identifier + '.', 'warning');
+                        input.focus();
+                        return;
+                    }
+                    const product = result.product;
+                    const existing = state.products.find(candidate => candidate.id === product.id);
+                    if (existing) {
+                        Object.assign(existing, product);
+                    } else {
+                        state.products.unshift(product);
+                    }
+                    input.value = '';
+                    renderProducts();
+                    if (addProduct(product)) {
+                        window.showToast('Added ' + product.name + ' to the cart.', 'success');
+                        if (fromCamera) setCameraStatus('Added ' + product.name + ' to the cart.', 'success');
+                    } else if (fromCamera) {
+                        setCameraStatus(product.name + ' was not added to the cart.', 'warning');
+                    }
+                } catch (error) {
+                    renderProducts();
+                    window.showToast(error.message || 'Could not look up the scanned code.', 'warning');
+                    if (fromCamera) setCameraStatus(error.message || 'Could not look up the scanned code.', 'error');
+                    input.focus();
+                }
+            }
+
+            async function onScanSuccess(decodedText) {
+                if (scanHandled) return;
+                const identifier = extractIdentifier(decodedText);
+                if (!identifier) {
+                    setCameraStatus('The QR code did not contain a path identifier.', 'error');
+                    return;
+                }
+                scanHandled = true;
+                await stopCamera('Scanned ' + identifier + '. Looking up...', 'success');
+                await lookupScannedProduct(identifier, true);
+            }
+
+            cameraToggle.addEventListener('click', function () {
+                if (scanning) {
+                    stopCamera('Camera stopped.');
+                } else {
+                    startCamera();
+                }
+            });
+
+            cameraStop.addEventListener('click', function () {
+                stopCamera('Camera stopped.');
+            });
+
+            window.addEventListener('pagehide', function () {
+                if (scanner && scanning) {
+                    scanner.stop().catch(function () {
+                    });
+                }
+            });
 
             function renderCart() {
                 cartLines.querySelectorAll('.cart-line').forEach(node => node.remove());
@@ -581,6 +773,12 @@
             });
 
             el('product-search').addEventListener('input', renderProducts);
+            el('product-search').addEventListener('keydown', event => {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                const identifier = extractIdentifier(el('product-search').value);
+                if (identifier) lookupScannedProduct(identifier);
+            });
             document.querySelectorAll('.category-chip').forEach(chip => {
                 chip.addEventListener('click', () => {
                     document.querySelectorAll('.category-chip').forEach(node => node.classList.remove('active'));

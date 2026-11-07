@@ -413,6 +413,41 @@ class WebPagesTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void posCameraScanLooksUpProductsByCodePartNumberBarcodeAndQrCode() throws Exception {
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        Product product = new Product();
+        product.setCode("POSSCAN-" + suffix);
+        product.setName("POS scan " + suffix);
+        product.setPartNumber("POSPN-" + suffix);
+        product.setBarcode("POSBC-" + suffix);
+        product.setQrCodeId("POSQR-" + suffix);
+        product.setBuyingPrice(new BigDecimal("100.00"));
+        product.setSellingPrice(new BigDecimal("150.00"));
+        product.setActive(true);
+        productRepository.saveAndFlush(product);
+
+        mockMvc.perform(get("/pos").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"camera-toggle\"")))
+                .andExpect(content().string(containsString("id=\"camera-panel\"")))
+                .andExpect(content().string(containsString("id=\"qr-reader\"")))
+                .andExpect(content().string(containsString("html5-qrcode")));
+
+        for (String identifier : List.of(product.getCode(), product.getPartNumber(),
+                product.getBarcode(), product.getQrCodeId())) {
+            mockMvc.perform(get("/pos/products/lookup").param("code", "  " + identifier + "  ").with(asAdmin()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.found").value(true))
+                    .andExpect(jsonPath("$.product.id").value(product.getId()))
+                    .andExpect(jsonPath("$.product.qrCodeId").value(product.getQrCodeId()));
+        }
+
+        mockMvc.perform(get("/pos/products/lookup").param("code", "UNKNOWN-" + suffix).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.found").value(false));
+    }
+
+    @Test
     void heldSaleUsesModalInsteadOfBrowserPrompt() throws Exception {
         mockMvc.perform(get("/pos").with(asAdmin()))
                 .andExpect(status().isOk())
