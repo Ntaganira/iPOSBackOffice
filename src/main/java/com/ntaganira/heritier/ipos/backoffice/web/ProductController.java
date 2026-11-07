@@ -11,11 +11,8 @@ package com.ntaganira.heritier.ipos.backoffice.web;
  * </pre>
  */
 
-import com.ntaganira.heritier.ipos.backoffice.dto.ProductExtractionResult;
 import com.ntaganira.heritier.ipos.backoffice.dto.ProductForm;
 import com.ntaganira.heritier.ipos.backoffice.entity.Product;
-import com.ntaganira.heritier.ipos.backoffice.service.ProductExtractionException;
-import com.ntaganira.heritier.ipos.backoffice.service.ProductExtractionService;
 import com.ntaganira.heritier.ipos.backoffice.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -28,29 +25,23 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Map;
 
 @Controller
 @PreAuthorize("hasAuthority('PRODUCT_VIEW')")
 public class ProductController {
 
     private final ProductService productService;
-    private final ProductExtractionService extractionService;
 
-    public ProductController(ProductService productService,
-                             ProductExtractionService extractionService) {
+    public ProductController(ProductService productService) {
         this.productService = productService;
-        this.extractionService = extractionService;
     }
 
     @GetMapping("/products")
@@ -127,20 +118,6 @@ public class ProductController {
         Product product = productService.update(id, form, image);
         redirect.addFlashAttribute("success", "Product " + product.getName() + " updated.");
         return "redirect:/products";
-    }
-
-    @PostMapping("/products/extract")
-    @ResponseBody
-    @PreAuthorize("hasAuthority('PRODUCT_CREATE')")
-    public ProductExtractionResult extract(@RequestParam("image") MultipartFile image) {
-        return extractionService.extract(image);
-    }
-
-    @ExceptionHandler(ProductExtractionException.class)
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> extractionError(ProductExtractionException exception) {
-        return ResponseEntity.status(exception.status())
-                .body(Map.of("message", exception.getMessage()));
     }
 
     @PostMapping("/products/{id}/toggle")

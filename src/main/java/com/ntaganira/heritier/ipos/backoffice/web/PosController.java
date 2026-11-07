@@ -192,6 +192,7 @@ public class PosController {
         map.put("id", product.getId());
         map.put("name", product.getName());
         map.put("code", product.getCode());
+        map.put("partNumber", product.getPartNumber());
         map.put("barcode", product.getBarcode());
         map.put("price", product.getSellingPrice());
         map.put("stock", product.getStockQuantity());

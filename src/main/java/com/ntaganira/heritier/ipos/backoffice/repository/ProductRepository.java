@@ -28,6 +28,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByBarcode(String barcode);
 
+    Optional<Product> findFirstByPartNumberIgnoreCaseOrderByIdAsc(String partNumber);
+
     boolean existsByCodeIgnoreCase(String code);
 
     boolean existsByBarcode(String barcode);
@@ -41,7 +43,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             left join p.category c
             left join p.location loc
             where (:q = '' or lower(p.name) like :q or lower(p.code) like :q
-                   or lower(coalesce(p.barcode, '')) like :q)
+                   or lower(coalesce(p.partNumber, '')) like :q
+                   or lower(coalesce(p.barcode, '')) like :q
+                   or exists (select a.id from ProductAlias a
+                              where a.product = p and lower(a.alias) like :q))
               and (:categoryId is null or c.id = :categoryId)
               and (:active is null or p.active = :active)
               and (:locationId is null or loc.id = :locationId)
@@ -55,10 +60,24 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             select p from Product p
             where p.active = true
               and (:q = '' or lower(p.name) like :q or lower(p.code) like :q
-                   or lower(coalesce(p.barcode, '')) like :q)
+                   or lower(coalesce(p.partNumber, '')) like :q
+                   or lower(coalesce(p.barcode, '')) like :q
+                   or exists (select a.id from ProductAlias a
+                              where a.product = p and lower(a.alias) like :q))
             order by p.name asc
             """)
     List<Product> searchForPos(@Param("q") String q, Pageable pageable);
+
+    @Query("""
+            select p from Product p
+            where lower(p.name) like :q or lower(p.code) like :q
+               or lower(coalesce(p.partNumber, '')) like :q
+               or lower(coalesce(p.barcode, '')) like :q
+               or exists (select a.id from ProductAlias a
+                          where a.product = p and lower(a.alias) like :q)
+            order by p.name asc
+            """)
+    List<Product> searchByKeyword(@Param("q") String q, Pageable pageable);
 
     @Query("select p from Product p where p.active = true and p.stockQuantity <= p.reorderLevel order by p.stockQuantity asc")
     List<Product> findLowStock();

@@ -34,7 +34,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="search" id="product-search" placeholder="Search by name, code or scan barcode…" autocomplete="off" autofocus>
+                <input type="search" id="product-search" placeholder="Search by name, code, part number or barcode…" autocomplete="off" autofocus>
                 <kbd>F2</kbd>
             </div>
             <div class="pos-category-bar" id="category-bar">
@@ -166,16 +166,20 @@
                 <div class="modal-body">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="qp-code">Code <span class="required">*</span></label>
-                            <input id="qp-code" name="code" required maxlength="40">
+                            <label for="qp-code">Code</label>
+                            <input id="qp-code" name="code" maxlength="40" placeholder="Auto-generated when empty">
+                        </div>
+                        <div class="form-group">
+                            <label for="qp-part-number">Part number</label>
+                            <input id="qp-part-number" name="partNumber" maxlength="80">
                         </div>
                         <div class="form-group">
                             <label for="qp-barcode">Barcode</label>
                             <input id="qp-barcode" name="barcode" maxlength="60">
                         </div>
                         <div class="form-group full-width">
-                            <label for="qp-name">Name <span class="required">*</span></label>
-                            <input id="qp-name" name="name" required maxlength="160">
+                            <label for="qp-name">Name</label>
+                            <input id="qp-name" name="name" maxlength="160" placeholder="Optional; defaults to the part number or code">
                         </div>
                         <div class="form-group">
                             <label for="qp-category">Category <span class="required">*</span></label>
@@ -451,7 +455,7 @@
                 const q = el('product-search').value.trim().toLowerCase();
                 const filtered = state.products.filter(product => {
                     const categoryMatch = state.category === 'all' || product.category === state.category;
-                    const queryMatch = !q || [product.name, product.code, product.barcode].some(value => (value || '').toLowerCase().includes(q));
+                    const queryMatch = !q || [product.name, product.code, product.partNumber, product.barcode].some(value => (value || '').toLowerCase().includes(q));
                     return categoryMatch && queryMatch;
                 });
                 filtered.forEach(product => grid.appendChild(productCard(product)));

@@ -133,7 +133,41 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"scanImage\"")))
                 .andExpect(content().string(containsString("/products/extract")))
-                .andExpect(content().string(containsString("id=\"scanStatus\"")));
+                .andExpect(content().string(containsString("id=\"scanStatus\"")))
+                .andExpect(content().string(containsString("id=\"cameraPreview\"")))
+                .andExpect(content().string(containsString("id=\"cameraCanvas\"")))
+                .andExpect(content().string(containsString("id=\"barcodeImage\"")))
+                .andExpect(content().string(containsString("id=\"keywordInput\"")))
+                .andExpect(content().string(containsString("id=\"partNumber\"")))
+                .andExpect(content().string(containsString("id=\"aliases\"")))
+                .andExpect(content().string(containsString("/products/lookup/scan")))
+                .andExpect(content().string(containsString("/products/lookup/search")))
+                .andExpect(content().string(containsString("getUserMedia")))
+                .andExpect(content().string(containsString("capture=\"environment\"")));
+    }
+
+    @Test
+    void productCanBeRegisteredByPartNumberWithoutNameOrCode() throws Exception {
+        Category category = categoryRepository.findAll().get(0);
+        Unit unit = unitRepository.findAll().get(0);
+        String partNumber = "PART-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        mockMvc.perform(post("/products").with(asAdmin()).with(csrf())
+                        .param("partNumber", partNumber)
+                        .param("categoryId", category.getId().toString())
+                        .param("unitId", unit.getId().toString())
+                        .param("taxCategoryCode", "A")
+                        .param("buyingPrice", "100")
+                        .param("sellingPrice", "150")
+                        .param("reorderLevel", "5")
+                        .param("active", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/products"));
+
+        Product product = productRepository.findFirstByPartNumberIgnoreCaseOrderByIdAsc(partNumber).orElseThrow();
+        assertEquals(partNumber, product.getPartNumber());
+        assertEquals(partNumber, product.getName());
+        assertTrue(product.getCode() != null && !product.getCode().isBlank());
     }
 
     @Test
@@ -510,6 +544,7 @@ class WebPagesTest extends AbstractIntegrationTest {
         mockMvc.perform(post("/products").with(asAdmin()).with(csrf())
                         .param("code", productCode)
                         .param("name", "Mapped product " + suffix)
+                        .param("aliases", "Mapped alias " + suffix + ", Alternate " + suffix)
                         .param("categoryId", category.getId().toString())
                         .param("unitId", unit.getId().toString())
                         .param("taxCategoryCode", "A")
@@ -528,6 +563,10 @@ class WebPagesTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString(product.getName())))
                 .andExpect(content().string(containsString(locationCode)));
+
+        mockMvc.perform(get("/products").param("q", "Mapped alias " + suffix).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(product.getName())));
 
         mockMvc.perform(get("/stock").param("locationId", location.getId().toString()).with(asAdmin()))
                 .andExpect(status().isOk())

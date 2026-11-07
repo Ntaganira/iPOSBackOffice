@@ -28,38 +28,106 @@
           enctype="multipart/form-data" class="form-layout">
         <div class="section">
             <div class="section-header">
-                <h2>Scan product image</h2>
-                <span class="hint">Optional: fill the form from a product label or package photo.</span>
+                <h2>Product tools</h2>
+                <span class="hint">Register from a label, look up an existing product, or search by name, code, part number or alias.</span>
             </div>
             <div class="form-grid">
                 <div class="form-group full-width">
-                    <label for="scanImage">Product image</label>
-                    <div class="scan-control">
-                        <input id="scanImage" type="file" accept="image/jpeg,image/png">
-                        <span id="scanSpinner" class="scan-spinner" hidden>Reading image...</span>
+                    <div class="scan-tabs" role="tablist" aria-label="Product tools">
+                        <button type="button" class="scan-tab is-active" role="tab" aria-selected="true"
+                                data-scan-tab="ai">Scan label for registration</button>
+                        <button type="button" class="scan-tab" role="tab" aria-selected="false"
+                                data-scan-tab="barcode">Scan barcode / QR to look up</button>
+                        <button type="button" class="scan-tab" role="tab" aria-selected="false"
+                                data-scan-tab="keywords">Search by keywords</button>
                     </div>
-                    <div class="hint">JPG or PNG up to 5 MB. Review the extracted values before saving.</div>
-                    <div id="scanStatus" class="scan-status" role="status" aria-live="polite"></div>
+
+                    <div data-scan-panel="ai">
+                        <div class="scan-actions">
+                            <label class="btn btn-outline scan-file-button" for="scanImage">Choose image</label>
+                            <input id="scanImage" class="scan-file-input" type="file"
+                                   accept="image/jpeg,image/png" capture="environment">
+                            <button type="button" class="btn btn-outline" id="cameraStart">Use camera</button>
+                            <button type="button" class="btn btn-primary" id="cameraCapture" hidden>Capture photo</button>
+                            <button type="button" class="btn btn-outline" id="cameraStop" hidden>Stop camera</button>
+                            <span id="scanSpinner" class="scan-spinner" hidden>Extracting details...</span>
+                        </div>
+                        <div class="hint">JPG or PNG up to 5 MB. On a phone, "Choose image" opens the camera; on a laptop, use the webcam button.</div>
+                        <div id="cameraPanel" class="camera-panel" hidden>
+                            <video id="cameraPreview" autoplay playsinline muted aria-label="Live camera preview"></video>
+                            <canvas id="cameraCanvas" hidden></canvas>
+                            <div class="hint">Frame the product label, then capture the photo.</div>
+                        </div>
+                        <div id="scanStatus" class="scan-status" role="status" aria-live="polite"></div>
+                    </div>
+
+                    <div data-scan-panel="barcode" hidden>
+                        <div class="scan-actions">
+                            <label class="btn btn-outline scan-file-button" for="barcodeImage">Choose barcode image</label>
+                            <input id="barcodeImage" class="scan-file-input" type="file"
+                                   accept="image/jpeg,image/png" capture="environment">
+                            <button type="button" class="btn btn-outline" id="barcodeCameraStart">Use camera</button>
+                            <button type="button" class="btn btn-primary" id="barcodeCameraCapture" hidden>Capture code</button>
+                            <button type="button" class="btn btn-outline" id="barcodeCameraStop" hidden>Stop camera</button>
+                            <span id="barcodeSpinner" class="scan-spinner" hidden>Reading code...</span>
+                        </div>
+                        <div class="hint">Supports QR, EAN, UPC, Code 128, Code 39, Data Matrix, PDF417 and Aztec codes up to 5 MB.</div>
+                        <div id="barcodeCameraPanel" class="camera-panel" hidden>
+                            <video id="barcodePreview" autoplay playsinline muted aria-label="Barcode camera preview"></video>
+                            <canvas id="barcodeCanvas" hidden></canvas>
+                            <div class="hint">Hold the barcode or QR code steady inside the frame, then capture it.</div>
+                        </div>
+                        <div class="scan-actions scan-actions-spaced">
+                            <input id="barcodeCodeInput" type="text" maxlength="80"
+                                   placeholder="Or enter a barcode, SKU or part number">
+                            <button type="button" class="btn btn-outline" id="barcodeCodeLookup">Look up code</button>
+                        </div>
+                        <div id="barcodeStatus" class="scan-status" role="status" aria-live="polite"></div>
+                        <div id="barcodeResult" class="lookup-results"></div>
+                    </div>
+
+                    <div data-scan-panel="keywords" hidden>
+                        <div class="scan-actions">
+                            <input id="keywordInput" class="scan-keyword-input" type="search" maxlength="120"
+                                   placeholder="Search by name, code, part number, barcode or alias">
+                            <button type="button" class="btn btn-primary" id="keywordSearch">Search</button>
+                            <span id="keywordSpinner" class="scan-spinner" hidden>Searching...</span>
+                        </div>
+                        <div class="hint">Matches partial names, codes, part numbers, barcodes and aliases using a case-insensitive wildcard search.</div>
+                        <div id="keywordStatus" class="scan-status" role="status" aria-live="polite"></div>
+                        <div id="keywordResults" class="lookup-results"></div>
+                    </div>
                 </div>
             </div>
         </div>
-
         <div class="section">
             <div class="section-header"><h2>Identity</h2></div>
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="code">Product code *</label>
-                    <input id="code" th:field="*{code}" required maxlength="40" placeholder="SKU-001">
+                    <label for="code">Product code</label>
+                    <input id="code" th:field="*{code}" maxlength="40" placeholder="Auto-generated when empty">
                     <div class="field-error" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></div>
+                </div>
+                <div class="form-group">
+                    <label for="partNumber">Part number</label>
+                    <input id="partNumber" th:field="*{partNumber}" maxlength="80" placeholder="Manufacturer or supplier part number">
+                    <div class="field-error" th:if="${#fields.hasErrors('partNumber')}" th:errors="*{partNumber}"></div>
                 </div>
                 <div class="form-group">
                     <label for="barcode">Barcode</label>
                     <input id="barcode" th:field="*{barcode}" maxlength="60" placeholder="Optional">
                 </div>
                 <div class="form-group full-width">
-                    <label for="name">Name *</label>
-                    <input id="name" th:field="*{name}" required maxlength="160" placeholder="Product name">
+                    <label for="name">Name</label>
+                    <input id="name" th:field="*{name}" maxlength="160" placeholder="Optional; defaults to the part number or code">
                     <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="aliases">Alternative names (aliases)</label>
+                    <textarea id="aliases" th:field="*{aliases}" rows="2" maxlength="2000"
+                              placeholder="Milk, UHT milk, Fresh milk"></textarea>
+                    <div class="field-error" th:if="${#fields.hasErrors('aliases')}" th:errors="*{aliases}"></div>
+                    <div class="hint">Separate aliases with commas or new lines. They are searchable by keyword.</div>
                 </div>
                 <div class="form-group">
                     <label for="categoryId">Category *</label>
@@ -156,24 +224,37 @@
 
     <script>
         (function () {
-            const imageInput = document.getElementById('scanImage');
-            const status = document.getElementById('scanStatus');
-            const spinner = document.getElementById('scanSpinner');
+            const aiImageInput = document.getElementById('scanImage');
+            const aiStatus = document.getElementById('scanStatus');
+            const aiSpinner = document.getElementById('scanSpinner');
+            const barcodeImageInput = document.getElementById('barcodeImage');
+            const barcodeStatus = document.getElementById('barcodeStatus');
+            const barcodeSpinner = document.getElementById('barcodeSpinner');
+            const barcodeResult = document.getElementById('barcodeResult');
+            const barcodeCodeInput = document.getElementById('barcodeCodeInput');
+            const barcodeCodeLookup = document.getElementById('barcodeCodeLookup');
+            const keywordInput = document.getElementById('keywordInput');
+            const keywordSearch = document.getElementById('keywordSearch');
+            const keywordSpinner = document.getElementById('keywordSpinner');
+            const keywordStatus = document.getElementById('keywordStatus');
+            const keywordResults = document.getElementById('keywordResults');
             const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
             const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
 
-            if (!imageInput || !status || !spinner || !csrfToken || !csrfHeader) {
+            if (!aiImageInput || !aiStatus || !aiSpinner || !barcodeImageInput || !barcodeStatus
+                    || !barcodeSpinner || !barcodeResult || !barcodeCodeInput || !barcodeCodeLookup
+                    || !keywordInput || !keywordSearch || !keywordSpinner || !keywordStatus || !keywordResults) {
                 return;
             }
 
-            const setStatus = (message, kind) => {
-                status.textContent = message;
-                status.className = 'scan-status' + (kind ? ' ' + kind : '');
-            };
+            const csrfHeaders = csrfToken && csrfHeader ? {[csrfHeader]: csrfToken} : {};
+            let aiBusy = false;
+            let barcodeBusy = false;
+            let keywordBusy = false;
 
-            const setLoading = (loading) => {
-                spinner.hidden = !loading;
-                imageInput.disabled = loading;
+            const setStatus = (element, message, kind) => {
+                element.textContent = message;
+                element.className = 'scan-status' + (kind ? ' ' + kind : '');
             };
 
             const setField = (id, value) => {
@@ -182,6 +263,8 @@
                     return false;
                 }
                 field.value = value;
+                field.dispatchEvent(new Event('input', {bubbles: true}));
+                field.dispatchEvent(new Event('change', {bubbles: true}));
                 return true;
             };
 
@@ -190,6 +273,9 @@
                     return false;
                 }
                 const select = document.getElementById('categoryId');
+                if (!select) {
+                    return false;
+                }
                 const wanted = category.trim().toLowerCase();
                 const options = Array.from(select.options).filter(option => option.value);
                 const match = options.find(option => option.textContent.trim().toLowerCase() === wanted)
@@ -198,15 +284,24 @@
                     return false;
                 }
                 select.value = match.value;
+                select.dispatchEvent(new Event('change', {bubbles: true}));
                 return true;
             };
 
-            const applyResult = (data) => {
+            const applyExtraction = (data) => {
                 let filled = 0;
                 const notes = [];
 
                 if (setField('name', data.productName)) filled++;
                 if (setField('code', data.sku)) filled++;
+                if (setField('partNumber', data.partNumber)) filled++;
+                if (setField('barcode', data.barcode)) filled++;
+                if (Array.isArray(data.aliases) && data.aliases.length) {
+                    const aliases = data.aliases
+                        .filter(alias => typeof alias === 'string' && alias.trim())
+                        .join(', ');
+                    if (aliases && setField('aliases', aliases)) filled++;
+                }
 
                 if (data.estimatedPrice !== null && data.estimatedPrice !== undefined) {
                     const price = Number(data.estimatedPrice);
@@ -224,47 +319,427 @@
                 const prefix = filled === 0
                     ? 'No fields could be filled automatically.'
                     : 'Filled ' + filled + ' field' + (filled === 1 ? '' : 's') + ' from the image.';
-                setStatus([prefix].concat(notes).join(' '), notes.length ? 'is-warning' : 'is-success');
+                setStatus(aiStatus, [prefix].concat(notes).join(' '), notes.length ? 'is-warning' : 'is-success');
             };
 
-            imageInput.addEventListener('change', async () => {
-                const file = imageInput.files && imageInput.files[0];
-                if (!file) {
+            const cameraError = (error) => {
+                if (error && error.name === 'NotAllowedError') {
+                    return 'Camera permission was denied. Allow camera access or choose an image instead.';
+                }
+                if (error && error.name === 'NotFoundError') {
+                    return 'No camera was found on this device. Choose an image instead.';
+                }
+                return 'The camera could not be started. Check permissions or choose an image instead.';
+            };
+
+            const cameraController = (options) => {
+                const {start, capture, stop, panel, preview, canvas, onCapture, onStatus, onError} = options;
+                let stream = null;
+                let busy = false;
+
+                const sync = () => {
+                    const active = stream !== null;
+                    start.hidden = active;
+                    start.disabled = busy;
+                    capture.hidden = !active;
+                    capture.disabled = busy;
+                    stop.hidden = !active;
+                    stop.disabled = busy;
+                    panel.hidden = !active;
+                };
+
+                const stopCamera = (message) => {
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                        stream = null;
+                    }
+                    preview.srcObject = null;
+                    sync();
+                    if (message) {
+                        onStatus(message, '');
+                    }
+                };
+
+                start.addEventListener('click', async () => {
+                    if (busy || stream) {
+                        return;
+                    }
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        onStatus('Camera access is unavailable. Use HTTPS or localhost, or choose an image instead.', 'is-error');
+                        return;
+                    }
+
+                    onStatus('Requesting camera access...', '');
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({
+                            audio: false,
+                            video: {facingMode: {ideal: 'environment'}}
+                        });
+                        preview.srcObject = stream;
+                        sync();
+                        await preview.play().catch(() => {});
+                        onStatus('Camera ready. Frame the code or label and capture it.', '');
+                    } catch (error) {
+                        stopCamera();
+                        onStatus(cameraError(error), 'is-error');
+                    }
+                });
+
+                capture.addEventListener('click', () => {
+                    if (!stream || !preview.videoWidth || !preview.videoHeight) {
+                        onStatus('The camera is not ready yet. Try again in a moment.', 'is-error');
+                        return;
+                    }
+                    const context = canvas.getContext('2d');
+                    if (!context) {
+                        onStatus('The photo could not be captured. Try again.', 'is-error');
+                        return;
+                    }
+
+                    canvas.width = preview.videoWidth;
+                    canvas.height = preview.videoHeight;
+                    context.drawImage(preview, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((blob) => {
+                        if (!blob) {
+                            onStatus('The photo could not be captured. Try again.', 'is-error');
+                            return;
+                        }
+                        stopCamera();
+                        onCapture(new File([blob], 'camera-capture.jpg', {type: 'image/jpeg'}));
+                    }, 'image/jpeg', 0.92);
+                });
+
+                stop.addEventListener('click', () => stopCamera('Camera stopped.'));
+
+                return {
+                    stop: () => stopCamera(),
+                    setBusy: (value) => {
+                        busy = value;
+                        sync();
+                    },
+                    isActive: () => stream !== null
+                };
+            };
+
+            const aiCamera = cameraController({
+                start: document.getElementById('cameraStart'),
+                capture: document.getElementById('cameraCapture'),
+                stop: document.getElementById('cameraStop'),
+                panel: document.getElementById('cameraPanel'),
+                preview: document.getElementById('cameraPreview'),
+                canvas: document.getElementById('cameraCanvas'),
+                onCapture: (file) => uploadAiImage(file),
+                onStatus: (message, kind) => setStatus(aiStatus, message, kind),
+                onError: (error) => setStatus(aiStatus, cameraError(error), 'is-error')
+            });
+
+            const barcodeCamera = cameraController({
+                start: document.getElementById('barcodeCameraStart'),
+                capture: document.getElementById('barcodeCameraCapture'),
+                stop: document.getElementById('barcodeCameraStop'),
+                panel: document.getElementById('barcodeCameraPanel'),
+                preview: document.getElementById('barcodePreview'),
+                canvas: document.getElementById('barcodeCanvas'),
+                onCapture: (file) => uploadBarcodeImage(file),
+                onStatus: (message, kind) => setStatus(barcodeStatus, message, kind),
+                onError: (error) => setStatus(barcodeStatus, cameraError(error), 'is-error')
+            });
+
+            const setAiBusy = (value) => {
+                aiBusy = value;
+                aiSpinner.hidden = !value;
+                aiImageInput.disabled = value;
+                aiCamera.setBusy(value);
+            };
+
+            const setBarcodeBusy = (value) => {
+                barcodeBusy = value;
+                barcodeSpinner.hidden = !value;
+                barcodeImageInput.disabled = value;
+                barcodeCodeLookup.disabled = value;
+                barcodeCamera.setBusy(value);
+            };
+
+            const setKeywordBusy = (value) => {
+                keywordBusy = value;
+                keywordSpinner.hidden = !value;
+                keywordSearch.disabled = value;
+                keywordInput.disabled = value;
+            };
+
+            const parseJsonResponse = async (response) => {
+                const contentType = response.headers.get('content-type') || '';
+                const data = contentType.includes('application/json')
+                    ? await response.json().catch(() => null)
+                    : null;
+                if (response.redirected || !data) {
+                    throw new Error('Your session may have expired. Refresh the page and try again.');
+                }
+                if (!response.ok) {
+                    throw new Error(data.message || 'The request could not be completed.');
+                }
+                return data;
+            };
+
+            const uploadAiImage = async (file) => {
+                if (!file || aiBusy) {
+                    return;
+                }
+                if (!file.type.startsWith('image/')) {
+                    setStatus(aiStatus, 'Choose a JPG or PNG image.', 'is-error');
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    setStatus(aiStatus, 'The image must be 5 MB or smaller.', 'is-error');
                     return;
                 }
 
-                setLoading(true);
-                setStatus('Extracting product details...', '');
-
+                setAiBusy(true);
+                setStatus(aiStatus, 'Extracting product details...', '');
                 const body = new FormData();
                 body.append('image', file);
-
                 try {
                     const response = await fetch('/products/extract', {
                         method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            [csrfHeader]: csrfToken
-                        },
+                        headers: Object.assign({'Accept': 'application/json'}, csrfHeaders),
                         body
                     });
-                    const contentType = response.headers.get('content-type') || '';
-                    const data = contentType.includes('application/json')
-                        ? await response.json().catch(() => null)
-                        : null;
-                    if (response.redirected || !data) {
-                        throw new Error('Your session may have expired. Refresh the page and try again.');
-                    }
-                    if (!response.ok) {
-                        throw new Error(data.message || 'The image could not be processed.');
-                    }
-                    applyResult(data);
+                    applyExtraction(await parseJsonResponse(response));
                 } catch (error) {
-                    setStatus(error.message || 'The image could not be processed.', 'is-error');
+                    setStatus(aiStatus, error.message || 'The image could not be processed.', 'is-error');
                 } finally {
-                    setLoading(false);
-                    imageInput.value = '';
+                    setAiBusy(false);
+                    aiImageInput.value = '';
                 }
+            };
+
+            const formatMoney = (value) => {
+                if (value === null || value === undefined) {
+                    return '-';
+                }
+                const number = Number(value);
+                return Number.isFinite(number)
+                    ? new Intl.NumberFormat(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}).format(number)
+                    : String(value);
+            };
+
+            const addMeta = (container, label, value) => {
+                if (value === null || value === undefined || value === '') {
+                    return;
+                }
+                const item = document.createElement('div');
+                const name = document.createElement('span');
+                name.className = 'lookup-label';
+                name.textContent = label;
+                const content = document.createElement('strong');
+                content.textContent = String(value);
+                item.append(name, content);
+                container.append(item);
+            };
+
+            const productCard = (product, code) => {
+                const card = document.createElement('div');
+                card.className = 'lookup-card';
+
+                const header = document.createElement('div');
+                header.className = 'lookup-card-header';
+                const title = document.createElement('div');
+                title.className = 'lookup-title';
+                title.textContent = product.productName || product.partNumber || product.sku || 'Product';
+                header.append(title);
+                const badge = document.createElement('span');
+                badge.className = 'badge ' + (product.active ? 'badge-success' : 'badge-secondary');
+                badge.textContent = product.active ? 'Active' : 'Inactive';
+                header.append(badge);
+                card.append(header);
+
+                const meta = document.createElement('div');
+                meta.className = 'lookup-meta';
+                addMeta(meta, 'SKU', product.sku);
+                addMeta(meta, 'Part number', product.partNumber);
+                addMeta(meta, 'Barcode', product.barcode || code);
+                addMeta(meta, 'Category', product.category);
+                addMeta(meta, 'Selling price', formatMoney(product.estimatedPrice));
+                addMeta(meta, 'Stock', product.stockQuantity);
+                addMeta(meta, 'Unit', product.unit);
+                addMeta(meta, 'Location', product.location);
+                card.append(meta);
+
+                if (Array.isArray(product.aliases) && product.aliases.length) {
+                    const aliases = document.createElement('div');
+                    aliases.className = 'lookup-aliases';
+                    const label = document.createElement('span');
+                    label.className = 'lookup-label';
+                    label.textContent = 'Aliases';
+                    const values = document.createElement('span');
+                    values.textContent = product.aliases.join(', ');
+                    aliases.append(label, values);
+                    card.append(aliases);
+                }
+
+                const actions = document.createElement('div');
+                actions.className = 'lookup-actions';
+                const edit = document.createElement('a');
+                edit.className = 'btn btn-outline btn-sm';
+                edit.href = '/products/' + encodeURIComponent(product.id) + '/edit';
+                edit.textContent = 'Open product';
+                actions.append(edit);
+                card.append(actions);
+                return card;
+            };
+
+            const showBarcodeResult = (data) => {
+                barcodeResult.replaceChildren();
+                if (!data.found || !data.product) {
+                    const empty = document.createElement('div');
+                    empty.className = 'lookup-card lookup-empty';
+                    const title = document.createElement('div');
+                    title.className = 'lookup-title';
+                    title.textContent = 'No product found';
+                    const text = document.createElement('div');
+                    text.className = 'hint';
+                    text.textContent = (data.message || 'No product matches the scanned code.')
+                        + (data.code ? ' Scanned: ' + data.code : '');
+                    empty.append(title, text);
+                    barcodeResult.append(empty);
+                    setStatus(barcodeStatus, data.message || 'No product matches the scanned code.', 'is-warning');
+                    return;
+                }
+                barcodeResult.append(productCard(data.product, data.code));
+                setStatus(barcodeStatus, 'Found ' + (data.product.productName || data.code) + ' (' + data.code + ').', 'is-success');
+            };
+
+            const uploadBarcodeImage = async (file) => {
+                if (!file || barcodeBusy) {
+                    return;
+                }
+                if (!file.type.startsWith('image/')) {
+                    setStatus(barcodeStatus, 'Choose a barcode or QR image.', 'is-error');
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    setStatus(barcodeStatus, 'The image must be 5 MB or smaller.', 'is-error');
+                    return;
+                }
+
+                setBarcodeBusy(true);
+                setStatus(barcodeStatus, 'Decoding barcode / QR code...', '');
+                const body = new FormData();
+                body.append('image', file);
+                try {
+                    const response = await fetch('/products/lookup/scan', {
+                        method: 'POST',
+                        headers: Object.assign({'Accept': 'application/json'}, csrfHeaders),
+                        body
+                    });
+                    showBarcodeResult(await parseJsonResponse(response));
+                } catch (error) {
+                    setStatus(barcodeStatus, error.message || 'The code could not be read.', 'is-error');
+                } finally {
+                    setBarcodeBusy(false);
+                    barcodeImageInput.value = '';
+                }
+            };
+
+            const lookupBarcodeCode = async () => {
+                const code = barcodeCodeInput.value.trim();
+                if (!code) {
+                    setStatus(barcodeStatus, 'Enter a barcode, SKU or part number.', 'is-warning');
+                    return;
+                }
+                setBarcodeBusy(true);
+                setStatus(barcodeStatus, 'Looking up ' + code + '...', '');
+                try {
+                    const response = await fetch('/products/lookup/barcode?code=' + encodeURIComponent(code), {
+                        headers: {'Accept': 'application/json'}
+                    });
+                    showBarcodeResult(await parseJsonResponse(response));
+                } catch (error) {
+                    setStatus(barcodeStatus, error.message || 'The product could not be loaded.', 'is-error');
+                } finally {
+                    setBarcodeBusy(false);
+                }
+            };
+
+            const searchByKeywords = async () => {
+                const query = keywordInput.value.trim();
+                if (!query || keywordBusy) {
+                    if (!query) {
+                        setStatus(keywordStatus, 'Enter a name or alias to search.', 'is-warning');
+                    }
+                    return;
+                }
+
+                setKeywordBusy(true);
+                setStatus(keywordStatus, 'Searching products...', '');
+                keywordResults.replaceChildren();
+                try {
+                    const response = await fetch('/products/lookup/search?limit=10&q=' + encodeURIComponent(query), {
+                        headers: {'Accept': 'application/json'}
+                    });
+                    const results = await parseJsonResponse(response);
+                    if (!Array.isArray(results) || results.length === 0) {
+                        setStatus(keywordStatus, 'No products matched "' + query + '".', 'is-warning');
+                        return;
+                    }
+                    results.forEach(product => keywordResults.append(productCard(product)));
+                    setStatus(keywordStatus, results.length + ' product' + (results.length === 1 ? '' : 's') + ' found.', 'is-success');
+                } catch (error) {
+                    setStatus(keywordStatus, error.message || 'The search could not be completed.', 'is-error');
+                } finally {
+                    setKeywordBusy(false);
+                }
+            };
+
+            const tabs = Array.from(document.querySelectorAll('[data-scan-tab]'));
+            const panels = Array.from(document.querySelectorAll('[data-scan-panel]'));
+            const activateTab = (name) => {
+                tabs.forEach(tab => {
+                    const active = tab.dataset.scanTab === name;
+                    tab.classList.toggle('is-active', active);
+                    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+                });
+                panels.forEach(panel => {
+                    panel.hidden = panel.dataset.scanPanel !== name;
+                });
+                if (name !== 'ai') {
+                    aiCamera.stop();
+                }
+                if (name !== 'barcode') {
+                    barcodeCamera.stop();
+                }
+            };
+
+            tabs.forEach(tab => tab.addEventListener('click', () => activateTab(tab.dataset.scanTab)));
+            aiImageInput.addEventListener('change', () => {
+                const file = aiImageInput.files && aiImageInput.files[0];
+                if (file) {
+                    uploadAiImage(file);
+                }
+            });
+            barcodeImageInput.addEventListener('change', () => {
+                const file = barcodeImageInput.files && barcodeImageInput.files[0];
+                if (file) {
+                    uploadBarcodeImage(file);
+                }
+            });
+            barcodeCodeLookup.addEventListener('click', lookupBarcodeCode);
+            barcodeCodeInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    lookupBarcodeCode();
+                }
+            });
+            keywordSearch.addEventListener('click', searchByKeywords);
+            keywordInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    searchByKeywords();
+                }
+            });
+            window.addEventListener('pagehide', () => {
+                aiCamera.stop();
+                barcodeCamera.stop();
             });
         })();
     </script>

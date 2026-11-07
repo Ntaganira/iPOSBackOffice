@@ -14,12 +14,16 @@ package com.ntaganira.heritier.ipos.backoffice.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ProductExtractionResult(
         String productName,
         String sku,
+        String partNumber,
+        String barcode,
         String category,
-        BigDecimal estimatedPrice
+        BigDecimal estimatedPrice,
+        List<String> aliases
 ) {
 }

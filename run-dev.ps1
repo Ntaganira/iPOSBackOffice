@@ -4,7 +4,7 @@
 # - File      : run-dev.ps1
 # - Date      : 2026. 11. 05.
 # - User      : Heritier NTAGANIRA
-# - Desc      : Start local development with a prompted OpenAI API key.
+# - Desc      : Start local development with Ollama product extraction.
 #
 
 param(
@@ -14,22 +14,11 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location -LiteralPath $PSScriptRoot
 
-if ([string]::IsNullOrWhiteSpace($env:OPENAI_API_KEY) -or $env:OPENAI_API_KEY -eq "not-configured") {
-    $secureKey = Read-Host -Prompt "OpenAI API key" -AsSecureString
-    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
-    try {
-        $env:OPENAI_API_KEY = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
-    }
-    finally {
-        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
-    }
-}
-
-if ([string]::IsNullOrWhiteSpace($env:OPENAI_API_KEY)) {
-    throw "An OpenAI API key is required."
-}
-
 $env:IPOS_PROFILE = $Profile
+
+if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {
+    Write-Warning "Ollama was not found on PATH. Product image extraction will be unavailable."
+}
 
 & "$PSScriptRoot\mvnw.cmd" spring-boot:run
 exit $LASTEXITCODE

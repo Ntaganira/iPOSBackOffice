@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class ProductService {
@@ -113,7 +114,7 @@ public class ProductService {
 
     @Transactional
     public Product create(ProductForm form, MultipartFile image) {
-        String code = form.getCode().trim().toUpperCase(Locale.ROOT);
+        String code = resolveCode(form, null);
         if (productRepository.existsByCodeIgnoreCase(code)) {
             throw new BusinessException("A product with code " + code + " already exists.");
         }
@@ -143,7 +144,7 @@ public class ProductService {
     public Product update(Long id, ProductForm form, MultipartFile image) {
         Product product = get(id);
         Map<String, Object> before = snapshot(product);
-        String code = form.getCode().trim().toUpperCase(Locale.ROOT);
+        String code = resolveCode(form, product.getCode());
         if (productRepository.existsByCodeIgnoreCaseAndIdNot(code, id)) {
             throw new BusinessException("A product with code " + code + " already exists.");
         }
@@ -265,13 +266,16 @@ public class ProductService {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             out.write('\uFEFF');
-            out.write(("code,barcode,name,category,unit,location,buying_price,selling_price,tax_category,"
+            out.write(("code,barcode,part_number,name,aliases,category,unit,location,buying_price,selling_price,tax_category,"
                     + "reorder_level,stock,active\r\n").getBytes(StandardCharsets.UTF_8));
             for (Product product : productRepository.findAll()) {
                 out.write(CsvUtils.line(
                         product.getCode(),
                         product.getBarcode(),
+                        product.getPartNumber(),
                         product.getName(),
+                        product.getAliases().stream().map(alias -> alias.getAlias())
+                                .collect(java.util.stream.Collectors.joining(", ")),
                         product.getCategory() == null ? "" : product.getCategory().getName(),
                         product.getUnit() == null ? "" : product.getUnit().getName(),
                         product.getLocation() == null ? "" : product.getLocation().label(),
@@ -312,8 +316,8 @@ public class ProductService {
             for (int i = 0; i < headers.size(); i++) {
                 columns.put(headers.get(i).toLowerCase(Locale.ROOT).replace(" ", "_"), i);
             }
-            if (!columns.containsKey("name") || !columns.containsKey("code")) {
-                throw new BusinessException("The CSV must include at least the code and name columns.");
+            if (!columns.containsKey("code")) {
+                throw new BusinessException("The CSV must include a code column.");
             }
             String line;
             int row = 1;
@@ -324,10 +328,11 @@ public class ProductService {
                 }
                 try {
                     List<String> values = CsvUtils.parse(line);
-                    String code = value(values, columns, "code").toUpperCase(Locale.ROOT);
+                    String code = value(values, columns, "code").trim().toUpperCase(Locale.ROOT);
+                    String partNumber = value(values, columns, "part_number");
                     String name = value(values, columns, "name");
-                    if (!StringUtils.hasText(code) || !StringUtils.hasText(name)) {
-                        errors.add("Row " + row + ": code and name are required.");
+                    if (!StringUtils.hasText(code)) {
+                        errors.add("Row " + row + ": code is required.");
                         continue;
                     }
                     String categoryName = value(values, columns, "category");
@@ -350,7 +355,11 @@ public class ProductService {
                         product.setStockQuantity(BigDecimal.ZERO);
                         product.setCreatedBy(currentUser.username());
                     }
-                    product.setName(name);
+                    String cleanPartNumber = StringUtils.hasText(partNumber) ? partNumber.trim() : null;
+                    product.setPartNumber(cleanPartNumber);
+                    product.setName(StringUtils.hasText(name) ? name.trim()
+                            : (cleanPartNumber == null ? code : cleanPartNumber));
+                    product.replaceAliases(parseAliases(value(values, columns, "aliases")));
                     String barcode = value(values, columns, "barcode");
                     product.setBarcode(StringUtils.hasText(barcode) ? barcode : null);
                     product.setCategory(category);
@@ -397,7 +406,11 @@ public class ProductService {
                 .orElseThrow(() -> new BusinessException("Choose a valid unit."));
         TaxCategory tax = taxCategoryRepository.findById(form.getTaxCategoryCode())
                 .orElseThrow(() -> new BusinessException("Choose a valid tax category."));
-        product.setName(form.getName().trim());
+        String partNumber = StringUtils.hasText(form.getPartNumber()) ? form.getPartNumber().trim() : null;
+        product.setPartNumber(partNumber);
+        String name = StringUtils.hasText(form.getName()) ? form.getName().trim() : null;
+        product.setName(name == null ? (partNumber == null ? product.getCode() : partNumber) : name);
+        product.replaceAliases(parseAliases(form.getAliases()));
         product.setBarcode(StringUtils.hasText(form.getBarcode()) ? form.getBarcode().trim() : null);
         product.setCategory(category);
         product.setUnit(unit);
@@ -419,7 +432,9 @@ public class ProductService {
         Map<String, Object> map = new java.util.LinkedHashMap<>();
         map.put("code", product.getCode());
         map.put("barcode", product.getBarcode());
+        map.put("partNumber", product.getPartNumber());
         map.put("name", product.getName());
+        map.put("aliases", product.getAliases().stream().map(alias -> alias.getAlias()).toList());
         map.put("category", product.getCategory() == null ? null : product.getCategory().getName());
         map.put("unit", product.getUnit() == null ? null : product.getUnit().getName());
         map.put("location", product.getLocation() == null ? null : product.getLocation().label());
@@ -441,6 +456,13 @@ public class ProductService {
         return values.get(index);
     }
 
+    private List<String> parseAliases(String aliases) {
+        if (!StringUtils.hasText(aliases)) {
+            return List.of();
+        }
+        return List.of(aliases.split("[,;\\n\\r]+"));
+    }
+
     private BigDecimal parseDecimal(String value, BigDecimal fallback) {
         if (!StringUtils.hasText(value)) {
             return Money.of(fallback);
@@ -450,6 +472,41 @@ public class ProductService {
         } catch (NumberFormatException ex) {
             throw new BusinessException("'" + value + "' is not a valid number.");
         }
+    }
+
+    private String resolveCode(ProductForm form, String currentCode) {
+        String code = normalizeCode(form.getCode());
+        if (code == null) {
+            String partNumber = normalizeCode(form.getPartNumber());
+            if (partNumber != null && partNumber.length() <= 40) {
+                code = partNumber;
+            }
+        }
+        if (code != null) {
+            return code;
+        }
+        return StringUtils.hasText(currentCode) ? currentCode : nextProductCode();
+    }
+
+    private String normalizeCode(String value) {
+        return StringUtils.hasText(value) ? value.trim().toUpperCase(Locale.ROOT) : null;
+    }
+
+    private String nextProductCode() {
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String candidate = sequenceService.next("P-");
+            if (!productRepository.existsByCodeIgnoreCase(candidate)) {
+                return candidate;
+            }
+        }
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String candidate = "P-" + UUID.randomUUID().toString().replace("-", "")
+                    .substring(0, 10).toUpperCase(Locale.ROOT);
+            if (!productRepository.existsByCodeIgnoreCase(candidate)) {
+                return candidate;
+            }
+        }
+        throw new BusinessException("Could not allocate a product code. Enter a code manually.");
     }
 
     private String like(String q) {

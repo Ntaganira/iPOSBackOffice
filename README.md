@@ -17,6 +17,7 @@ iPOS is a point-of-sale and stock management web application for a small shop in
 - Thymeleaf templates, vanilla JavaScript and Chart.js
 - PostgreSQL 16 with Flyway migrations
 - OpenPDF for PDF receipts and invoices, ZXing for barcodes
+- Spring AI with Ollama for product image extraction
 - JUnit 5, MockMvc and Testcontainers
 
 ## Getting started
@@ -37,7 +38,14 @@ Prerequisites: Java 21, Docker Desktop (recommended), or a PostgreSQL 16 install
    .\mvnw.cmd spring-boot:run
    ```
 
-   For product image extraction, run `.\run-dev.ps1` instead. It prompts for `OPENAI_API_KEY` without saving it to disk, then starts the app.
+   For product image extraction, install Ollama and pull the model first:
+
+   ```powershell
+   ollama pull llama3.2
+   .\run-dev.ps1
+   ```
+
+   Ollama must be running. Override its address or model with `OLLAMA_BASE_URL` and `OLLAMA_MODEL`.
 
 4. Open <http://localhost:8081>. Mailpit is at <http://localhost:8025>.
 

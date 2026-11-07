@@ -24,16 +24,20 @@ public class ProductForm {
 
     private Long id;
 
-    @NotBlank(message = "Product code is required.")
     @Size(max = 40, message = "Product code must be 40 characters or fewer.")
     private String code;
 
     @Size(max = 60, message = "Barcode must be 60 characters or fewer.")
     private String barcode;
 
-    @NotBlank(message = "Product name is required.")
+    @Size(max = 80, message = "Part number must be 80 characters or fewer.")
+    private String partNumber;
+
     @Size(max = 160, message = "Product name must be 160 characters or fewer.")
     private String name;
+
+    @Size(max = 2000, message = "Aliases must be 2000 characters or fewer.")
+    private String aliases;
 
     @NotNull(message = "Choose a category.")
     private Long categoryId;
@@ -73,7 +77,11 @@ public class ProductForm {
         form.id = product.getId();
         form.code = product.getCode();
         form.barcode = product.getBarcode();
+        form.partNumber = product.getPartNumber();
         form.name = product.getName();
+        form.aliases = product.getAliases().stream()
+                .map(alias -> alias.getAlias())
+                .collect(java.util.stream.Collectors.joining(", "));
         form.categoryId = product.getCategory() == null ? null : product.getCategory().getId();
         form.unitId = product.getUnit() == null ? null : product.getUnit().getId();
         form.locationId = product.getLocation() == null ? null : product.getLocation().getId();
@@ -112,12 +120,28 @@ public class ProductForm {
         this.barcode = barcode;
     }
 
+    public String getPartNumber() {
+        return partNumber;
+    }
+
+    public void setPartNumber(String partNumber) {
+        this.partNumber = partNumber;
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAliases() {
+        return aliases;
+    }
+
+    public void setAliases(String aliases) {
+        this.aliases = aliases;
     }
 
     public Long getCategoryId() {

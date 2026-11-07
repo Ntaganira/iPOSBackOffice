@@ -11,6 +11,7 @@ package com.ntaganira.heritier.ipos.backoffice.entity;
  * </pre>
  */
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,6 +20,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.Getter;
@@ -26,6 +29,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -43,6 +52,9 @@ public class Product extends AuditedEntity {
 
     @Column(unique = true, length = 80)
     private String barcode;
+
+    @Column(name = "part_number", length = 80)
+    private String partNumber;
 
     @Column(nullable = false, length = 200)
     private String name;
@@ -84,9 +96,36 @@ public class Product extends AuditedEntity {
     @Column(name = "image_content_type", length = 100)
     private String imageContentType;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("alias ASC")
+    private List<ProductAlias> aliases = new ArrayList<>();
+
     @Version
     @Column(nullable = false)
     private long version;
+
+    public void replaceAliases(Collection<String> values) {
+        aliases.clear();
+        if (values == null) {
+            return;
+        }
+        Map<String, String> unique = new LinkedHashMap<>();
+        for (String value : values) {
+            if (value == null) {
+                continue;
+            }
+            String cleaned = value.replaceAll("\\s+", " ").trim();
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+            if (cleaned.length() > 160) {
+                cleaned = cleaned.substring(0, 160);
+            }
+            unique.putIfAbsent(cleaned.toLowerCase(Locale.ROOT), cleaned);
+        }
+        unique.values().stream().limit(30)
+                .forEach(value -> aliases.add(new ProductAlias(this, value)));
+    }
 
     public boolean isLowStock() {
         return active && stockQuantity.compareTo(reorderLevel) <= 0;

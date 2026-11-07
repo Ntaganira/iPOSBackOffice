@@ -37,7 +37,7 @@
         <form method="get" action="/products" class="filter-bar">
             <div class="search-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="search" name="q" th:value="${q}" placeholder="Name, code or barcode…">
+                <input type="search" name="q" th:value="${q}" placeholder="Name, code, part number, barcode or alias.">
             </div>
             <select name="categoryId">
                 <option value="">All categories</option>
@@ -87,7 +87,7 @@
                             <span th:unless="${product.imagePath != null}" class="product-placeholder" th:text="${#strings.substring(product.name,0,1)}">P</span>
                             <div>
                                 <div class="table-primary" th:text="${product.name}">Product</div>
-                                <div class="hint mono" th:text="${product.code}">CODE</div>
+                                <div class="hint mono" th:text="${product.partNumber == null ? product.code : product.code + ' / ' + product.partNumber}">CODE</div>
                             </div>
                         </div>
                     </td>

@@ -46,7 +46,8 @@ class ProductExtractionWebTest extends AbstractIntegrationTest {
     @Test
     void extractReturnsStructuredProduct() throws Exception {
         when(extractionService.extract(any())).thenReturn(new ProductExtractionResult(
-                "Milk", "SKU-001", "Beverages", new BigDecimal("2500.00")));
+                "Milk", "SKU-001", "MPN-7788", "5901234123457", "Beverages", new BigDecimal("2500.00"),
+                java.util.List.of("Fresh milk", "UHT milk")));
 
         mockMvc.perform(multipart("/products/extract")
                         .file(image())
@@ -55,8 +56,11 @@ class ProductExtractionWebTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.productName").value("Milk"))
                 .andExpect(jsonPath("$.sku").value("SKU-001"))
+                .andExpect(jsonPath("$.partNumber").value("MPN-7788"))
+                .andExpect(jsonPath("$.barcode").value("5901234123457"))
                 .andExpect(jsonPath("$.category").value("Beverages"))
-                .andExpect(jsonPath("$.estimatedPrice").value(2500.00));
+                .andExpect(jsonPath("$.estimatedPrice").value(2500.00))
+                .andExpect(jsonPath("$.aliases[0]").value("Fresh milk"));
     }
 
     @Test

@@ -2908,11 +2908,145 @@ table tbody td .patient-cell .info .email {
 .text-muted { color: var(--gray-500); font-size: 13px; }
 .hint { color: var(--gray-400); font-size: 12px; }
 
-.scan-control {
+.scan-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  gap: 10px;
+}
+
+.scan-file-button {
+  cursor: pointer;
+}
+
+.scan-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.camera-panel {
+  max-width: 480px;
+  margin-top: 14px;
+}
+
+.camera-panel video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: #000000;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+}
+
+.scan-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.scan-tab {
+  padding: 9px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--gray-500);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scan-tab:hover {
+  color: var(--gray-700);
+}
+
+.scan-tab.is-active {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.scan-actions-spaced {
+  margin-top: 12px;
+}
+
+.scan-keyword-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.lookup-results {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.lookup-card {
+  padding: 14px;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.lookup-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
+}
+
+.lookup-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+.lookup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.lookup-meta div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lookup-label {
+  color: var(--gray-500);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lookup-aliases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.lookup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.lookup-empty .hint {
+  margin-top: 6px;
 }
 
 .scan-spinner {
