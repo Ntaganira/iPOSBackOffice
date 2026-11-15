@@ -13,6 +13,7 @@ package com.ntaganira.heritier.ipos.backoffice.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class CsvUtils {
 
@@ -42,6 +43,10 @@ public final class CsvUtils {
     }
 
     public static List<String> parse(String line) {
+        return parse(line, ',');
+    }
+
+    public static List<String> parse(String line, char delimiter) {
         List<String> values = new ArrayList<>();
         if (line == null) {
             return values;
@@ -63,7 +68,7 @@ public final class CsvUtils {
                 }
             } else if (c == '"') {
                 quoted = true;
-            } else if (c == ',') {
+            } else if (c == delimiter) {
                 values.add(current.toString().trim());
                 current.setLength(0);
             } else {
@@ -72,6 +77,51 @@ public final class CsvUtils {
         }
         values.add(current.toString().trim());
         return values;
+    }
+
+    public static char detectDelimiter(String line) {
+        if (line == null) {
+            return ',';
+        }
+        int commas = 0;
+        int semicolons = 0;
+        int tabs = 0;
+        boolean quoted = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == '"') {
+                if (quoted && i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                    i++;
+                } else {
+                    quoted = !quoted;
+                }
+            } else if (!quoted) {
+                if (c == ',') {
+                    commas++;
+                } else if (c == ';') {
+                    semicolons++;
+                } else if (c == '\t') {
+                    tabs++;
+                }
+            }
+        }
+        if (tabs > commas && tabs > semicolons) {
+            return '\t';
+        }
+        if (semicolons > commas) {
+            return ';';
+        }
+        return ',';
+    }
+
+    public static String normalizeHeader(String value) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = value.strip().toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        return normalized;
     }
 
     public static String sanitizeFormula(String value) {

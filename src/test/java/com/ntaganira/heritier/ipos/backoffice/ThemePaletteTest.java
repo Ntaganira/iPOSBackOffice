@@ -23,7 +23,7 @@ class ThemePaletteTest {
     private static final List<String[]> PRESETS = List.of(
             new String[]{"#BE5103", "#FFCE1B", "#069494", "#B7410E"},
             new String[]{"#D4AF37", "#BDB76B", "#FDFBD4", "#CE8946"},
-            new String[]{"#FDFBD4", "#D47E30", "#8D5A2B", "#825E34"},
+            new String[]{"#D47E30", "#8D5A2B", "#FDFBD4", "#FFFEF7"},
             new String[]{"#FFFF66", "#FFE566", "#D6D58B", "#B3B347"},
             new String[]{"#BE5103", "#8C4C1F", "#544823", "#332216"},
             new String[]{"#89F336", "#FFFC30", "#4FE0CB", "#00BF33"},
@@ -51,19 +51,19 @@ class ThemePaletteTest {
     }
 
     @Test
-    void darkPresetUsesLightTextAndLightPrimaryUsesDarkButtonText() {
+    void darkPresetUsesLightTextAndLightPaletteUsesDarkInk() {
         ThemePalette winter = ThemePalette.from("#B8E3E9", "#93B1B5", "#4F7C82", "#0B2E33");
         assertThat(winter.surfaceInk()).isEqualTo("#FFFFFF");
         assertThat(winter.primaryInk()).isEqualTo("#0B1220");
 
-        ThemePalette spiced = ThemePalette.from("#FDFBD4", "#D47E30", "#8D5A2B", "#825E34");
-        assertThat(spiced.surfaceInk()).isEqualTo("#FFFFFF");
+        ThemePalette spiced = ThemePalette.from("#D47E30", "#8D5A2B", "#FDFBD4", "#FFFEF7");
+        assertThat(spiced.surfaceInk()).isEqualTo("#0B1220");
         assertThat(spiced.primaryInk()).isEqualTo("#0B1220");
     }
 
     @Test
     void brightPrimaryKeepsItsHueWhenAccentIsDarkened() {
-        ThemePalette palette = ThemePalette.from("#FF0000", "#4FB8A8", "#FFFFFF", "#FFFFFF");
+        ThemePalette palette = ThemePalette.from("#FF0000", "#8D5A2B", "#FDFBD4", "#FFFEF7");
 
         assertContrast(palette.surfaceAccent(), palette.surface(), 4.8);
         assertThat(red(palette.surfaceAccent())).isGreaterThan(red(palette.surfaceInk()) + 100);
@@ -75,9 +75,9 @@ class ThemePaletteTest {
     void invalidValuesFallBackToTheDefaultPalette() {
         ThemePalette palette = ThemePalette.from("teal", null, "#12345", "#FAFAFA");
 
-        assertThat(palette.primary()).isEqualTo("#268071");
-        assertThat(palette.secondary()).isEqualTo("#4FB8A8");
-        assertThat(palette.background()).isEqualTo("#FFFFFF");
+        assertThat(palette.primary()).isEqualTo("#D47E30");
+        assertThat(palette.secondary()).isEqualTo("#8D5A2B");
+        assertThat(palette.background()).isEqualTo("#FDFBD4");
         assertThat(palette.surface()).isEqualTo("#FAFAFA");
     }
 

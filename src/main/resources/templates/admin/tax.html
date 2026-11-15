@@ -13,14 +13,14 @@
             <tr th:each="tax : ${taxCategories}">
                 <td><strong th:text="${tax.code}">A</strong><div class="admin-muted" th:text="${tax.label()}">A - Tax</div></td>
                 <td>
-                    <form th:action="@{/admin/tax}" method="post" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0;">
+                    <form th:action="@{/admin/tax}" method="post" class="admin-inline-form">
                         <input type="hidden" name="code" th:value="${tax.code}">
                         <input type="text" name="name" th:value="${tax.name}" required>
-                        <input type="number" name="rate" step="0.01" min="0" max="100" th:value="${tax.rate}" style="width:90px;" required>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:12px;">
+                        <input type="number" name="rate" step="0.01" min="0" max="100" th:value="${tax.rate}" required>
+                        <label class="admin-check">
                             <input type="checkbox" name="exempt" value="true" th:checked="${tax.exempt}"> exempt
                         </label>
-                        <label style="display:flex; align-items:center; gap:4px; font-size:12px;">
+                        <label class="admin-check">
                             <input type="checkbox" name="active" value="true" th:checked="${tax.active}"> active
                         </label>
                         <button type="submit" class="btn btn-primary btn-sm">Save</button>

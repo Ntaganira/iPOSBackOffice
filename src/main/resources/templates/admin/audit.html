@@ -4,25 +4,27 @@
 <head><title>Global audit</title></head>
 <body>
 <div th:fragment="content">
-    <form method="get" action="/admin/audit" class="admin-card" style="display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-bottom:18px;">
-        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">From
+    <form method="get" action="/admin/audit" class="admin-card admin-filter">
+        <label class="admin-field">From
             <input type="date" name="from" th:value="${from}">
         </label>
-        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">To
+        <label class="admin-field">To
             <input type="date" name="to" th:value="${to}">
         </label>
-        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">Tenant
+        <label class="admin-field">Tenant
             <select name="tenant">
                 <option value="">All tenants</option>
                 <option th:each="t : ${tenants}" th:value="${t.code}" th:text="${t.name}"
                         th:selected="${tenant == t.code}"></option>
             </select>
         </label>
-        <label style="display:grid; gap:4px; font-size:13px; color:#52645f;">Search
+        <label class="admin-field">Search
             <input type="search" name="q" th:value="${q}" placeholder="actor, action, entity">
         </label>
-        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-        <a href="/admin/audit" class="btn btn-outline btn-sm">Reset</a>
+        <div class="admin-filter-actions">
+            <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            <a href="/admin/audit" class="btn btn-outline btn-sm">Reset</a>
+        </div>
     </form>
 
     <div class="admin-card">
@@ -51,7 +53,7 @@
             </tbody>
         </table>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+        <div class="admin-pagination">
             <a class="btn btn-outline btn-sm" th:if="${logs.hasPrevious()}"
                th:href="@{/admin/audit(from=${from},to=${to},q=${q},tenant=${tenant},page=${logs.number - 1})}">Previous</a>
             <span class="admin-muted" th:text="|Page ${logs.number + 1} of ${logs.totalPages}|">Page 1 of 1</span>

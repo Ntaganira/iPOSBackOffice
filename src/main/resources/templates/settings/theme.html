@@ -61,11 +61,11 @@
                                 <span class="theme-preset-name">Golden taupe</span>
                             </button>
                             <button type="button" class="theme-preset" data-theme-preset
-                                    data-primary="#FDFBD4" data-secondary="#D47E30" data-background="#8D5A2B" data-surface="#825E34"
+                                    data-primary="#D47E30" data-secondary="#8D5A2B" data-background="#FDFBD4" data-surface="#FFFEF7"
                                     aria-pressed="false" aria-label="Use the Spiced chai palette">
                                 <span class="theme-preset-swatches" aria-hidden="true">
-                                    <span style="background:#FDFBD4"></span><span style="background:#D47E30"></span>
-                                    <span style="background:#8D5A2B"></span><span style="background:#825E34"></span>
+                                    <span style="background:#D47E30"></span><span style="background:#8D5A2B"></span>
+                                    <span style="background:#FDFBD4"></span><span style="background:#FFFEF7"></span>
                                 </span>
                                 <span class="theme-preset-name">Spiced chai</span>
                             </button>
@@ -151,42 +151,42 @@
                         <div class="theme-color-grid">
                             <label class="theme-color-field" for="theme-primary-picker">
                                 <span class="theme-color-bubble">
-                                    <input type="color" id="theme-primary-picker" value="#268071" data-theme-color="primary" aria-label="Choose the primary color">
+                                    <input type="color" id="theme-primary-picker" value="#D47E30" data-theme-color="primary" aria-label="Choose the primary color">
                                 </span>
                                 <span class="theme-color-copy">
                                     <strong>Primary</strong>
                                     <span>Actions, links and highlights</span>
-                                    <small data-theme-value="primary" th:text="${settings.themePrimary}">#268071</small>
+                                    <small data-theme-value="primary" th:text="${settings.themePrimary}">#D47E30</small>
                                 </span>
                             </label>
                             <label class="theme-color-field" for="theme-secondary-picker">
                                 <span class="theme-color-bubble">
-                                    <input type="color" id="theme-secondary-picker" value="#4FB8A8" data-theme-color="secondary" aria-label="Choose the secondary color">
+                                    <input type="color" id="theme-secondary-picker" value="#8D5A2B" data-theme-color="secondary" aria-label="Choose the secondary color">
                                 </span>
                                 <span class="theme-color-copy">
                                     <strong>Secondary</strong>
                                     <span>Supporting badges and details</span>
-                                    <small data-theme-value="secondary" th:text="${settings.themeSecondary}">#4FB8A8</small>
+                                    <small data-theme-value="secondary" th:text="${settings.themeSecondary}">#8D5A2B</small>
                                 </span>
                             </label>
                             <label class="theme-color-field" for="theme-background-picker">
                                 <span class="theme-color-bubble">
-                                    <input type="color" id="theme-background-picker" value="#FFFFFF" data-theme-color="background" aria-label="Choose the page background color">
+                                    <input type="color" id="theme-background-picker" value="#FDFBD4" data-theme-color="background" aria-label="Choose the page background color">
                                 </span>
                                 <span class="theme-color-copy">
                                     <strong>Background</strong>
                                     <span>The canvas behind every page</span>
-                                    <small data-theme-value="background" th:text="${settings.themeBackground}">#FFFFFF</small>
+                                    <small data-theme-value="background" th:text="${settings.themeBackground}">#FDFBD4</small>
                                 </span>
                             </label>
                             <label class="theme-color-field" for="theme-surface-picker">
                                 <span class="theme-color-bubble">
-                                    <input type="color" id="theme-surface-picker" value="#FFFFFF" data-theme-color="surface" aria-label="Choose the card surface color">
+                                    <input type="color" id="theme-surface-picker" value="#FFFEF7" data-theme-color="surface" aria-label="Choose the card surface color">
                                 </span>
                                 <span class="theme-color-copy">
                                     <strong>Surface</strong>
                                     <span>Cards, panels and tables</span>
-                                    <small data-theme-value="surface" th:text="${settings.themeSurface}">#FFFFFF</small>
+                                    <small data-theme-value="surface" th:text="${settings.themeSurface}">#FFFEF7</small>
                                 </span>
                             </label>
                         </div>
@@ -199,44 +199,74 @@
                 <input type="hidden" name="themeSurface" id="themeSurface" th:value="${settings.themeSurface}" data-theme-input="surface">
             </div>
 
-            <aside class="theme-preview-panel" aria-label="Live POS preview">
+            <aside class="theme-preview-panel" aria-label="Live theme preview">
                 <div class="settings-card">
                     <div class="theme-preview-head">
                         <div>
-                            <strong>POS live preview</strong>
+                            <strong>Live preview</strong>
                             <span>Hover or select a palette to try it on.</span>
                         </div>
                         <span class="theme-preview-live"><i></i>Live</span>
                     </div>
                     <div class="theme-preview-body">
-                        <div id="theme-preview" class="pos-mock"
+                        <div class="theme-preview-tabs" role="tablist" aria-label="Preview screen">
+                            <button type="button" class="is-active" data-preview-tab="backoffice" role="tab" aria-selected="true" aria-controls="preview-backoffice">Back office</button>
+                            <button type="button" data-preview-tab="pos" role="tab" aria-selected="false" aria-controls="preview-pos">POS</button>
+                        </div>
+                        <div id="theme-preview" class="theme-preview-stage"
                              th:style="|--preview-primary: ${settings.themePrimary}; --preview-secondary: ${settings.themeSecondary}; --preview-background: ${settings.themeBackground}; --preview-surface: ${settings.themeSurface};|">
-                            <div class="pos-mock-top">
-                                <span class="pos-mock-brand"><i>iP</i> POS</span>
-                                <span class="pos-mock-search">Search products</span>
-                                <span class="pos-mock-avatar">AN</span>
-                            </div>
-                            <div class="pos-mock-cats">
-                                <span class="is-active">All</span><span>Coffee</span><span>Bakery</span>
-                            </div>
-                            <div class="pos-mock-products">
-                                <div class="pos-mock-product">
-                                    <span class="pos-mock-thumb">E</span>
-                                    <strong>Espresso</strong>
-                                    <small>RWF 2,000</small>
+                            <div id="preview-backoffice" class="backoffice-mock" data-preview-pane="backoffice" role="tabpanel">
+                                <div class="bo-mock-sidebar">
+                                    <div class="bo-mock-brand"><i>iP</i><span>iPOS</span></div>
+                                    <div class="bo-mock-menu">
+                                        <span class="bo-mock-label">Main menu</span>
+                                        <span class="bo-mock-item"><i></i>Point of sale</span>
+                                        <span class="bo-mock-item is-active"><i></i>Sales &amp; receipts</span>
+                                        <span class="bo-mock-label">Catalogue</span>
+                                        <span class="bo-mock-item is-hover"><i></i>Products</span>
+                                        <span class="bo-mock-item"><i></i>Customers</span>
+                                    </div>
+                                    <div class="bo-mock-footer"><i></i>Log out</div>
                                 </div>
-                                <div class="pos-mock-product">
-                                    <span class="pos-mock-thumb">C</span>
-                                    <strong>Croissant</strong>
-                                    <small>RWF 2,500</small>
+                                <div class="bo-mock-main">
+                                    <div class="bo-mock-topbar"><span>Dashboard</span><i></i></div>
+                                    <div class="bo-mock-stats">
+                                        <div class="bo-mock-stat"><small>Today's sales</small><strong>RWF 184,000</strong></div>
+                                        <div class="bo-mock-stat"><small>Orders</small><strong>42</strong></div>
+                                    </div>
+                                    <div class="bo-mock-chart" aria-hidden="true">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="pos-mock-cart">
-                                <div class="pos-mock-cart-head"><span>Current order</span><span>3 items</span></div>
-                                <div class="pos-mock-line"><span>Espresso x2</span><strong>4,000</strong></div>
-                                <div class="pos-mock-line"><span>Croissant</span><strong>2,500</strong></div>
-                                <div class="pos-mock-total"><span>Total</span><strong>RWF 6,500</strong></div>
-                                <button type="button" class="pos-mock-pay">Charge RWF 6,500</button>
+                            <div id="preview-pos" class="pos-mock" data-preview-pane="pos" role="tabpanel" hidden>
+                                <div class="pos-mock-top">
+                                    <span class="pos-mock-brand"><i>iP</i> POS</span>
+                                    <span class="pos-mock-search">Search products</span>
+                                    <span class="pos-mock-avatar">AN</span>
+                                </div>
+                                <div class="pos-mock-cats">
+                                    <span class="is-active">All</span><span>Coffee</span><span>Bakery</span>
+                                </div>
+                                <div class="pos-mock-products">
+                                    <div class="pos-mock-product">
+                                        <span class="pos-mock-thumb">E</span>
+                                        <strong>Espresso</strong>
+                                        <small>RWF 2,000</small>
+                                    </div>
+                                    <div class="pos-mock-product">
+                                        <span class="pos-mock-thumb">C</span>
+                                        <strong>Croissant</strong>
+                                        <small>RWF 2,500</small>
+                                    </div>
+                                </div>
+                                <div class="pos-mock-cart">
+                                    <div class="pos-mock-cart-head"><span>Current order</span><span>3 items</span></div>
+                                    <div class="pos-mock-line"><span>Espresso x2</span><strong>4,000</strong></div>
+                                    <div class="pos-mock-line"><span>Croissant</span><strong>2,500</strong></div>
+                                    <div class="pos-mock-total"><span>Total</span><strong>RWF 6,500</strong></div>
+                                    <button type="button" class="pos-mock-pay">Charge RWF 6,500</button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -37,12 +37,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -567,6 +570,25 @@ class WebPagesTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/products/export").with(asAdmin()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/csv"));
+    }
+
+    @Test
+    void productCsvImportAcceptsSemicolonAndHeaderAliases() throws Exception {
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        String code = "IMP-" + suffix;
+        String csv = "Product Code;Product Name;Category;Unit;Selling Price;Stock\r\n"
+                + code + ";Imported product " + suffix + ";General;Piece;1500;4\r\n";
+        MockMultipartFile file = new MockMultipartFile("file", "products.csv", "text/csv",
+                csv.getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/products/import").file(file).with(asAdmin()).with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/products"))
+                .andExpect(flash().attribute("success", containsString("1 product(s) created")));
+
+        Product product = productRepository.findByCodeIgnoreCase(code).orElseThrow();
+        assertEquals("Imported product " + suffix, product.getName());
+        assertEquals(0, product.getStockQuantity().compareTo(new BigDecimal("4")));
     }
 
     @Test

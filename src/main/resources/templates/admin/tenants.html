@@ -4,8 +4,8 @@
 <head><title>Tenants</title></head>
 <body>
 <div th:fragment="content">
-    <div style="display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px;">
-        <form method="get" action="/admin/tenants" style="display:flex; gap:8px;">
+    <div class="admin-page-actions">
+        <form method="get" action="/admin/tenants" class="admin-search">
             <input type="search" name="q" th:value="${q}" placeholder="Search name, code or email">
             <button type="submit" class="btn btn-primary btn-sm">Search</button>
         </form>

@@ -8,17 +8,17 @@
  */
 
 :root {
-  --ink: #111827;
-  --muted: #6b7280;
-  --line: #e5e7eb;
-  --brand: #268071;
+  --ink: #3B2818;
+  --muted: #80684F;
+  --line: #E9DCC5;
+  --brand: #D47E30;
   --paper: #ffffff;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #eef2f4;
+  background: #F8F0DF;
   color: var(--ink);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -169,7 +169,7 @@ body.embedded .preview-stage { padding: 8px; }
 .invoice-meta > div { display: flex; justify-content: space-between; gap: 18px; border-bottom: 1px solid #f1f5f9; padding: 3px 0; font-size: 11px; }
 .invoice-meta span { color: var(--muted); }
 .invoice-lines { width: 100%; border-collapse: collapse; }
-.invoice-lines thead th { background: #f0f7f5; color: #235f55; border-bottom: 2px solid var(--brand); padding: 9px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.invoice-lines thead th { background: #FBE8CC; color: #825E34; border-bottom: 2px solid var(--brand); padding: 9px 8px; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
 .invoice-lines td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .invoice-lines td strong { display: block; font-size: 12px; }
 .invoice-lines td small { color: var(--muted); font-size: 9px; }

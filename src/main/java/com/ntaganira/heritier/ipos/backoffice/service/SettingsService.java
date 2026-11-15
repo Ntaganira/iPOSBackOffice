@@ -36,10 +36,10 @@ import java.util.regex.Pattern;
 public class SettingsService {
 
     private static final Pattern HEX_COLOR = Pattern.compile("^#[0-9A-Fa-f]{6}$");
-    private static final String DEFAULT_THEME_PRIMARY = "#268071";
-    private static final String DEFAULT_THEME_SECONDARY = "#4FB8A8";
-    private static final String DEFAULT_THEME_BACKGROUND = "#FFFFFF";
-    private static final String DEFAULT_THEME_SURFACE = "#FFFFFF";
+    private static final String DEFAULT_THEME_PRIMARY = "#D47E30";
+    private static final String DEFAULT_THEME_SECONDARY = "#8D5A2B";
+    private static final String DEFAULT_THEME_BACKGROUND = "#FDFBD4";
+    private static final String DEFAULT_THEME_SURFACE = "#FFFEF7";
 
     private final ShopSettingRepository settingsRepository;
     private final TaxCategoryRepository taxCategoryRepository;
@@ -310,7 +310,7 @@ public class SettingsService {
 
     private String hexColor(String value, String label) {
         if (!StringUtils.hasText(value) || !HEX_COLOR.matcher(value.trim()).matches()) {
-            throw new IllegalArgumentException(label + " must be a 6-digit hex color, for example #268071.");
+            throw new IllegalArgumentException(label + " must be a 6-digit hex color, for example #D47E30.");
         }
         return value.trim().toUpperCase(Locale.ROOT);
     }

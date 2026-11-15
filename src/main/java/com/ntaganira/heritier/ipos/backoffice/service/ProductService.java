@@ -34,11 +34,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -315,18 +317,26 @@ public class ProductService {
             unitCache.put(unit.getName().toLowerCase(Locale.ROOT), unit);
         }
         Map<String, Integer> columns = new HashMap<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
+        try (BufferedReader reader = openCsv(input)) {
             String header = reader.readLine();
+            if (header != null && header.regionMatches(true, 0, "sep=", 0, 4)) {
+                header = reader.readLine();
+            }
             if (header == null) {
                 throw new BusinessException("The CSV file is empty.");
             }
             header = header.replace("\uFEFF", "");
-            List<String> headers = CsvUtils.parse(header);
+            char delimiter = CsvUtils.detectDelimiter(header);
+            List<String> headers = CsvUtils.parse(header, delimiter);
             for (int i = 0; i < headers.size(); i++) {
-                columns.put(headers.get(i).toLowerCase(Locale.ROOT).replace(" ", "_"), i);
+                String key = canonicalColumn(CsvUtils.normalizeHeader(headers.get(i)));
+                if (StringUtils.hasText(key)) {
+                    columns.putIfAbsent(key, i);
+                }
             }
             if (!columns.containsKey("code")) {
-                throw new BusinessException("The CSV must include a code column.");
+                throw new BusinessException("The CSV must include a code column. Found: "
+                        + String.join(", ", headers));
             }
             String line;
             int row = 1;
@@ -336,7 +346,7 @@ public class ProductService {
                     continue;
                 }
                 try {
-                    List<String> values = CsvUtils.parse(line);
+                    List<String> values = CsvUtils.parse(line, delimiter);
                     String code = value(values, columns, "code").trim().toUpperCase(Locale.ROOT);
                     String partNumber = value(values, columns, "part_number");
                     String name = value(values, columns, "name");
@@ -384,7 +394,9 @@ public class ProductService {
                     product.setReorderLevel(parseDecimal(value(values, columns, "reorder_level"),
                             product.getReorderLevel() == null ? BigDecimal.ZERO : product.getReorderLevel()));
                     String active = value(values, columns, "active");
-                    product.setActive(!StringUtils.hasText(active) || !active.equalsIgnoreCase("false"));
+                    product.setActive(!StringUtils.hasText(active)
+                            || !(active.equalsIgnoreCase("false") || active.equalsIgnoreCase("no")
+                            || active.equalsIgnoreCase("0") || active.equalsIgnoreCase("inactive")));
                     Product saved = productRepository.save(product);
                     if (isNew) {
                         BigDecimal stock = parseDecimal(value(values, columns, "stock"), BigDecimal.ZERO);
@@ -455,6 +467,45 @@ public class ProductService {
         map.put("active", product.isActive());
         map.put("imagePath", product.getImagePath());
         return map;
+    }
+
+    private BufferedReader openCsv(InputStream input) throws IOException {
+        byte[] bytes = input.readAllBytes();
+        int offset = 0;
+        Charset charset = StandardCharsets.UTF_8;
+        if (bytes.length >= 3 && (bytes[0] & 0xFF) == 0xEF && (bytes[1] & 0xFF) == 0xBB
+                && (bytes[2] & 0xFF) == 0xBF) {
+            offset = 3;
+        } else if (bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xFE) {
+            charset = StandardCharsets.UTF_16LE;
+            offset = 2;
+        } else if (bytes.length >= 2 && (bytes[0] & 0xFF) == 0xFE && (bytes[1] & 0xFF) == 0xFF) {
+            charset = StandardCharsets.UTF_16BE;
+            offset = 2;
+        }
+        return new BufferedReader(new InputStreamReader(
+                new ByteArrayInputStream(bytes, offset, bytes.length - offset), charset));
+    }
+
+    private String canonicalColumn(String header) {
+        return switch (header) {
+            case "code", "product_code", "productcode", "item_code", "itemcode", "sku", "product_sku",
+                 "item_number", "product_number", "product_id", "code_required" -> "code";
+            case "barcode", "bar_code", "barcode_number", "ean", "ean13", "upc" -> "barcode";
+            case "part_number", "partnumber", "part_no", "part", "model", "model_number" -> "part_number";
+            case "name", "product_name", "productname", "item_name", "itemname", "description", "title" -> "name";
+            case "aliases", "alias", "alternate_names", "other_names" -> "aliases";
+            case "category", "category_name", "product_category" -> "category";
+            case "unit", "unit_name", "uom", "measure" -> "unit";
+            case "location", "storage_location", "shelf", "warehouse" -> "location";
+            case "buying_price", "buy_price", "cost", "cost_price", "purchase_price", "buying" -> "buying_price";
+            case "selling_price", "sell_price", "price", "retail_price", "unit_price", "selling" -> "selling_price";
+            case "tax_category", "tax_category_code", "tax", "tax_code", "vat", "vat_category" -> "tax_category";
+            case "reorder_level", "reorder", "reorder_point", "min_stock", "minimum_stock" -> "reorder_level";
+            case "stock", "quantity", "qty", "stock_quantity", "stock_on_hand", "opening_stock" -> "stock";
+            case "active", "enabled", "is_active", "status" -> "active";
+            default -> header;
+        };
     }
 
     private String value(List<String> values, Map<String, Integer> columns, String key) {

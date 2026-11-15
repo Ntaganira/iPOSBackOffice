@@ -19,6 +19,27 @@ document.addEventListener('DOMContentLoaded', function () {
     const pickers = {};
     const labels = {};
     const presets = Array.from(form.querySelectorAll('[data-theme-preset]'));
+    const previewTabs = Array.from(document.querySelectorAll('[data-preview-tab]'));
+    const previewPanes = Array.from(preview.querySelectorAll('[data-preview-pane]'));
+
+    const showPreview = function (name) {
+        previewTabs.forEach(function (tab) {
+            const active = tab.getAttribute('data-preview-tab') === name;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        previewPanes.forEach(function (pane) {
+            pane.hidden = pane.getAttribute('data-preview-pane') !== name;
+        });
+    };
+
+    previewTabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            showPreview(tab.getAttribute('data-preview-tab'));
+        });
+    });
+
+    showPreview('backoffice');
 
     keys.forEach(function (key) {
         inputs[key] = form.querySelector('[data-theme-input="' + key + '"]');
@@ -45,7 +66,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
         };
         const luminance = (0.2126 * channel(0)) + (0.7152 * channel(2)) + (0.0722 * channel(4));
-        return luminance > 0.46 ? '#10231F' : '#FFFFFF';
+        const dark = 0.0056;
+        const light = 1;
+        const darkContrast = (Math.max(luminance, dark) + 0.05) / (Math.min(luminance, dark) + 0.05);
+        const lightContrast = (Math.max(luminance, light) + 0.05) / (Math.min(luminance, light) + 0.05);
+        return darkContrast >= lightContrast ? '#0B1220' : '#FFFFFF';
     };
 
     const applyPreview = function (colors) {

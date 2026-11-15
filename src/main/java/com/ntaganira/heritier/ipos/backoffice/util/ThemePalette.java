@@ -36,10 +36,10 @@ public record ThemePalette(
     private static final Pattern HEX = Pattern.compile("^#[0-9A-F]{6}$");
 
     public static ThemePalette from(String primary, String secondary, String background, String surface) {
-        String primaryColor = normalize(primary, "#268071");
-        String secondaryColor = normalize(secondary, "#4FB8A8");
-        String backgroundColor = normalize(background, "#FFFFFF");
-        String surfaceColor = normalize(surface, "#FFFFFF");
+        String primaryColor = normalize(primary, "#D47E30");
+        String secondaryColor = normalize(secondary, "#8D5A2B");
+        String backgroundColor = normalize(background, "#FDFBD4");
+        String surfaceColor = normalize(surface, "#FFFEF7");
 
         String backgroundInk = bestInk(backgroundColor);
         String surfaceInk = bestInk(surfaceColor);

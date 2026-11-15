@@ -66,16 +66,16 @@ public class ShopSetting extends TenantScopedEntity {
     private String logoPath;
 
     @Column(name = "theme_primary", nullable = false, length = 7)
-    private String themePrimary = "#268071";
+    private String themePrimary = "#D47E30";
 
     @Column(name = "theme_secondary", nullable = false, length = 7)
-    private String themeSecondary = "#4FB8A8";
+    private String themeSecondary = "#8D5A2B";
 
     @Column(name = "theme_background", nullable = false, length = 7)
-    private String themeBackground = "#FFFFFF";
+    private String themeBackground = "#FDFBD4";
 
     @Column(name = "theme_surface", nullable = false, length = 7)
-    private String themeSurface = "#FFFFFF";
+    private String themeSurface = "#FFFEF7";
 
     @Column(nullable = false, length = 8)
     private String currency = "RWF";

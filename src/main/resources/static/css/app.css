@@ -7,40 +7,40 @@
  * - Desc      : Application shell, navigation and responsive layout styles.
  */
 
-/* === iPOS Back Office Theme === */
+/* === iPOS Back Office Theme: Spiced Chai === */
 :root {
-  --primary-color: #268071;
-  --secondary-color: #4fb8a8;
-  --background-color: #ffffff;
-  --surface-color: #ffffff;
+  --primary-color: #D47E30;
+  --secondary-color: #8D5A2B;
+  --background-color: #FDFBD4;
+  --surface-color: #FFFEF7;
   --primary: var(--primary-color);
-  --primary-dark: color-mix(in srgb, var(--primary-color) 82%, #000000);
-  --primary-light: color-mix(in srgb, var(--primary-color) 8%, #ffffff);
-  --primary-soft: color-mix(in srgb, var(--primary-color) 82%, #000000);
+  --primary-dark: #A85D1C;
+  --primary-light: #FBE8CC;
+  --primary-soft: #8D5A2B;
   --primary-ink: #ffffff;
   --secondary: var(--secondary-color);
   --secondary-ink: #ffffff;
   --brand-ink: #ffffff;
-  --accent: var(--primary-soft);
-  --accent-on-bg: var(--primary-soft);
+  --accent: #8D5A2B;
+  --accent-on-bg: #8D5A2B;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #6366f1;
   --bg: var(--background-color);
   --surface: var(--surface-color);
-  --header-bg: rgba(255,255,255,.95);
-  --dark: #000000;
-  --gray-50: #fafafa;
-  --gray-100: #f1f5f9;
-  --gray-200: #e2e8f0;
-  --gray-300: #cbd5e1;
-  --gray-400: #94a3b8;
-  --gray-500: #64748b;
-  --gray-600: #475569;
-  --gray-700: #000000;
-  --gray-800: #000000;
-  --gray-900: #0f172a;
+  --header-bg: rgba(255,254,247,.96);
+  --dark: #3B2818;
+  --gray-50: #FFF9E8;
+  --gray-100: #F8F0DF;
+  --gray-200: #E9DCC5;
+  --gray-300: #D9C5A7;
+  --gray-400: #A98C6B;
+  --gray-500: #80684F;
+  --gray-600: #654B32;
+  --gray-700: #4A321F;
+  --gray-800: #3B2818;
+  --gray-900: #2D1D11;
   --background-ink: var(--dark);
   --background-muted: var(--gray-500);
   --surface-ink: var(--dark);
@@ -67,20 +67,25 @@
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #6366f1;
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --header-bg: rgba(18,18,18,.9);
-  --dark: #ffffff;
-  --gray-50: #1a1a1a;
-  --gray-100: #262626;
-  --gray-200: #333333;
-  --gray-300: #444444;
-  --gray-400: #b0b0b0;
-  --gray-500: #b0b0b0;
-  --gray-600: #9a9a9a;
-  --gray-700: #d5d5d5;
-  --gray-800: #ffffff;
-  --gray-900: #ffffff;
+  --primary-dark: #F0A85F;
+  --primary-light: #49301B;
+  --primary-soft: #E8B77E;
+  --accent: #E8B77E;
+  --accent-on-bg: #E8B77E;
+  --bg: #21170F;
+  --surface: #2C2118;
+  --header-bg: rgba(33,23,15,.94);
+  --dark: #FFF4E4;
+  --gray-50: #302318;
+  --gray-100: #3A2A1D;
+  --gray-200: #51402F;
+  --gray-300: #6B543D;
+  --gray-400: #B99A75;
+  --gray-500: #C4A987;
+  --gray-600: #D7BE9F;
+  --gray-700: #E8D7C1;
+  --gray-800: #FFF4E4;
+  --gray-900: #FFF8EF;
   --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.5), 0 4px 6px -2px rgba(0,0,0,.4);
 }
@@ -121,7 +126,11 @@ body {
   top: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  background:
+    radial-gradient(120% 70% at 12% 0%, color-mix(in srgb, var(--primary) 28%, transparent), transparent 62%),
+    radial-gradient(90% 50% at 0% 100%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--secondary) 88%, #000 12%) 0%, color-mix(in srgb, var(--secondary) 68%, #000 32%) 100%);
+  box-shadow: inset -1px 0 0 rgba(255,255,255,.06);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -147,6 +156,13 @@ body {
   font-size: 20px;
   color: var(--brand-ink);
   font-weight: 700;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 45%, transparent), inset 0 1px 0 rgba(255,255,255,.35);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.sidebar-brand:hover .logo-icon {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 55%, transparent), inset 0 1px 0 rgba(255,255,255,.45);
 }
 
 .sidebar-brand .logo-image {
@@ -168,7 +184,7 @@ body {
 }
 
 .sidebar-brand span {
-  color: #4fb8a8;
+  color: color-mix(in srgb, var(--primary) 52%, #fff 48%);
 }
 
 .sidebar-menu {
@@ -177,16 +193,16 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,.18) transparent;
+  scrollbar-color: color-mix(in srgb, var(--primary) 40%, transparent) transparent;
 }
 
 .sidebar-menu::-webkit-scrollbar { width: 5px; }
 .sidebar-menu::-webkit-scrollbar-track { background: transparent; }
 .sidebar-menu::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,.18);
+  background: color-mix(in srgb, var(--primary) 40%, transparent);
   border-radius: 10px;
 }
-.sidebar-menu::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.32); }
+.sidebar-menu::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--primary) 60%, transparent); }
 
 html.sidebar-collapsed .sidebar-menu { scrollbar-width: none; }
 html.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
@@ -196,32 +212,36 @@ html.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #7c8ba1;
+  color: color-mix(in srgb, var(--primary) 38%, #fff 62%);
   font-weight: 600;
 }
 
 .sidebar-menu a {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 24px;
-  color: #a8b3c2;
+  color: color-mix(in srgb, #fff 84%, var(--primary) 16%);
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
-  transition: var(--transition);
+  transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
   border-left: 3px solid transparent;
 }
 
 .sidebar-menu a:hover {
-  background: rgba(255,255,255,.06);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 24%, transparent), color-mix(in srgb, var(--primary) 6%, transparent));
   color: white;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--primary) 65%, transparent);
 }
 
 .sidebar-menu a.active {
-  background: rgba(38,128,113,.18);
+  background: linear-gradient(90deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 78%, var(--secondary)) 100%);
   color: white;
-  border-left-color: var(--primary);
+  border-left-color: color-mix(in srgb, var(--primary) 45%, #fff 55%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.2), 0 10px 24px -16px color-mix(in srgb, var(--primary) 75%, transparent);
+  font-weight: 600;
 }
 
 .sidebar-menu a .icon {
@@ -230,6 +250,17 @@ html.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform .2s ease, color .2s ease, filter .2s ease;
+}
+
+.sidebar-menu a:hover .icon {
+  transform: translateX(2px);
+}
+
+.sidebar-menu a.active .icon {
+  color: #fff;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--primary) 65%, transparent));
+  transform: translateX(2px);
 }
 
 .sidebar-menu a .icon svg {
@@ -266,10 +297,10 @@ html.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #8a97a8;
+  color: color-mix(in srgb, #fff 78%, var(--primary) 22%);
   text-decoration: none;
   font-size: 14px;
-  transition: var(--transition);
+  transition: color .2s ease, transform .2s ease;
 }
 
 .sidebar-footer .sidebar-logout-btn {
@@ -288,6 +319,7 @@ html.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform .2s ease;
 }
 
 .sidebar-footer a .icon svg,
@@ -303,6 +335,9 @@ html.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 
 .sidebar-footer a:hover,
 .sidebar-footer .sidebar-logout-btn:hover { color: white; }
+
+.sidebar-footer a:hover .icon,
+.sidebar-footer .sidebar-logout-btn:hover .icon { transform: translateX(2px); }
 
 /* === Collapsed sidebar === */
 html.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); }
@@ -321,6 +356,11 @@ html.sidebar-collapsed .sidebar-footer a,
 html.sidebar-collapsed .sidebar-footer .sidebar-logout-btn { justify-content: center; }
 html.sidebar-collapsed .sidebar-footer a > span:not(.icon),
 html.sidebar-collapsed .sidebar-footer .sidebar-logout-btn > span:not(.icon) { display: none; }
+
+html.sidebar-collapsed .sidebar-menu a:hover .icon,
+html.sidebar-collapsed .sidebar-menu a.active .icon,
+html.sidebar-collapsed .sidebar-footer a:hover .icon,
+html.sidebar-collapsed .sidebar-footer .sidebar-logout-btn:hover .icon { transform: none; }
 
 /* === Sidebar floating toggle button === */
 .sidebar-toggle {
@@ -347,7 +387,7 @@ html.sidebar-collapsed .sidebar-footer .sidebar-logout-btn > span:not(.icon) { d
   background: var(--primary);
   border-color: var(--primary);
   color: var(--primary-ink);
-  box-shadow: 0 3px 10px rgba(38,128,113,.35);
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--primary) 45%, transparent), 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 .sidebar-toggle svg {
@@ -1010,6 +1050,7 @@ html.sidebar-collapsed .sidebar-toggle .icon-collapse { display: none; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   margin-bottom: 24px;
+  padding: 10px;
 }
 
 .section-header {
@@ -1300,7 +1341,7 @@ table tbody td .patient-cell .info .email {
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(38,128,113,.15);
+  box-shadow: 0 0 0 3px rgba(212,126,48,.16);
 }
 
 .form-group textarea {
@@ -1318,18 +1359,18 @@ table tbody td .patient-cell .info .email {
 
 /* === Login === */
 .login-page {
-  --login-primary: #0e6b5b;
-  --login-primary-dark: #0a4d42;
-  --login-primary-soft: #e7f5ef;
-  --login-mint: #c9f6e6;
-  --login-ink: #0a1f1a;
-  --login-text: #3b4b44;
-  --login-muted: #6f7f78;
-  --login-line: #e2e9e5;
-  --login-line-strong: #cfdad4;
-  --login-panel: #fbfdfb;
+  --login-primary: #D47E30;
+  --login-primary-dark: #A85D1C;
+  --login-primary-soft: #FBE8CC;
+  --login-mint: #F2C58F;
+  --login-ink: #3B2818;
+  --login-text: #654B32;
+  --login-muted: #80684F;
+  --login-line: #E9DCC5;
+  --login-line-strong: #D9C5A7;
+  --login-panel: #FDFBD4;
   --login-field: #ffffff;
-  --login-shadow: 0 18px 40px rgba(7, 46, 39, .08);
+  --login-shadow: 0 18px 40px rgba(91, 58, 29, .08);
   min-height: 100vh;
   margin: 0;
   background: var(--login-panel);
@@ -1337,17 +1378,17 @@ table tbody td .patient-cell .info .email {
 }
 
 [data-theme="dark"] .login-page {
-  --login-primary: #4fb8a8;
-  --login-primary-dark: #2d9a88;
-  --login-primary-soft: #173a32;
-  --login-mint: #a7ecd5;
-  --login-ink: #f2f8f5;
-  --login-text: #c3d2cb;
-  --login-muted: #93a59d;
-  --login-line: #25342e;
-  --login-line-strong: #35473f;
-  --login-panel: #0c1512;
-  --login-field: #131f1a;
+  --login-primary: #E8B77E;
+  --login-primary-dark: #F0A85F;
+  --login-primary-soft: #49301B;
+  --login-mint: #F2C58F;
+  --login-ink: #FFF4E4;
+  --login-text: #E8D7C1;
+  --login-muted: #C4A987;
+  --login-line: #51402F;
+  --login-line-strong: #6B543D;
+  --login-panel: #21170F;
+  --login-field: #2C2118;
   --login-shadow: 0 20px 50px rgba(0, 0, 0, .4);
 }
 
@@ -1369,9 +1410,9 @@ table tbody td .patient-cell .info .email {
   overflow: hidden;
   color: #fff;
   background:
-    radial-gradient(80% 70% at 12% 105%, rgba(126, 240, 213, .22), transparent 58%),
-    radial-gradient(60% 60% at 92% 4%, rgba(56, 192, 160, .2), transparent 62%),
-    linear-gradient(155deg, #041d1a 0%, #07332c 38%, #0a4a3f 72%, #0c5849 100%);
+    radial-gradient(80% 70% at 12% 105%, rgba(240, 168, 95, .22), transparent 58%),
+    radial-gradient(60% 60% at 92% 4%, rgba(212, 126, 48, .2), transparent 62%),
+    linear-gradient(155deg, #5B3A1D 0%, #825E34 42%, #8D5A2B 74%, #A85D1C 100%);
 }
 
 .login-brand::before {
@@ -1393,7 +1434,7 @@ table tbody td .patient-cell .info .email {
   top: -260px;
   right: -200px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(72, 209, 179, .35), transparent 65%);
+  background: radial-gradient(circle, rgba(240, 168, 95, .35), transparent 65%);
   filter: blur(8px);
   pointer-events: none;
 }
@@ -1425,7 +1466,7 @@ table tbody td .patient-cell .info .email {
   height: 52px;
   padding-right: 3px;
   border-radius: 15px;
-  background: linear-gradient(140deg, #3ecb96 0%, #1a9d7c 45%, #0b6a59 100%);
+  background: linear-gradient(140deg, #F0A85F 0%, #D47E30 48%, #8D5A2B 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .5),
     0 12px 26px rgba(0, 0, 0, .3);
@@ -1513,7 +1554,7 @@ table tbody td .patient-cell .info .email {
   height: 34px;
   margin-bottom: 14px;
   border-radius: 10px;
-  background: linear-gradient(135deg, rgba(62, 213, 173, .95), rgba(9, 103, 84, .92));
+  background: linear-gradient(135deg, rgba(240, 168, 95, .98), rgba(141, 90, 43, .94));
   box-shadow: 0 6px 16px rgba(0, 0, 0, .28);
   color: #fff;
   flex-shrink: 0;
@@ -1576,10 +1617,10 @@ table tbody td .patient-cell .info .email {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 1px solid rgba(126, 240, 213, .22);
+  border: 1px solid rgba(240, 168, 95, .28);
   border-radius: 50%;
-  background: rgba(72, 196, 170, .13);
-  color: #7ef0d5;
+  background: rgba(212, 126, 48, .16);
+  color: #F0A85F;
   flex-shrink: 0;
 }
 
@@ -1627,8 +1668,8 @@ table tbody td .patient-cell .info .email {
   padding: clamp(32px, 4.6vw, 60px);
   overflow: hidden;
   background:
-    radial-gradient(720px 480px at 100% 0%, rgba(202, 246, 230, .55), transparent 60%),
-    radial-gradient(620px 440px at 0% 100%, rgba(226, 248, 239, .7), transparent 62%),
+    radial-gradient(720px 480px at 100% 0%, rgba(251, 232, 204, .65), transparent 60%),
+    radial-gradient(620px 440px at 0% 100%, rgba(253, 251, 212, .7), transparent 62%),
     var(--login-panel);
 }
 
@@ -1639,7 +1680,7 @@ table tbody td .patient-cell .info .email {
   bottom: -190px;
   width: 420px;
   height: 420px;
-  background: linear-gradient(135deg, rgba(155, 231, 209, .45), rgba(226, 248, 239, .05));
+  background: linear-gradient(135deg, rgba(240, 168, 95, .28), rgba(253, 251, 212, .05));
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
   transform: rotate(6deg);
   pointer-events: none;
@@ -1652,23 +1693,23 @@ table tbody td .patient-cell .info .email {
   left: -140px;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(190, 241, 224, .5), transparent 68%);
+  background: radial-gradient(circle, rgba(242, 197, 143, .5), transparent 68%);
   pointer-events: none;
 }
 
 [data-theme="dark"] .login-form-side {
   background:
-    radial-gradient(720px 480px at 100% 0%, rgba(24, 88, 74, .5), transparent 60%),
-    radial-gradient(620px 440px at 0% 100%, rgba(18, 66, 56, .45), transparent 62%),
+    radial-gradient(720px 480px at 100% 0%, rgba(91, 58, 29, .5), transparent 60%),
+    radial-gradient(620px 440px at 0% 100%, rgba(74, 50, 31, .45), transparent 62%),
     var(--login-panel);
 }
 
 [data-theme="dark"] .login-form-side::before {
-  background: linear-gradient(135deg, rgba(31, 104, 86, .35), rgba(12, 21, 18, .05));
+  background: linear-gradient(135deg, rgba(168, 93, 28, .35), rgba(33, 23, 15, .05));
 }
 
 [data-theme="dark"] .login-form-side::after {
-  background: radial-gradient(circle, rgba(24, 92, 76, .35), transparent 68%);
+  background: radial-gradient(circle, rgba(141, 90, 43, .35), transparent 68%);
 }
 
 .login-controls {
@@ -1689,7 +1730,7 @@ table tbody td .patient-cell .info .email {
   border: 1px solid var(--login-line);
   border-radius: 999px;
   background: var(--login-field);
-  box-shadow: 0 2px 8px rgba(10, 40, 32, .06);
+  box-shadow: 0 2px 8px rgba(59, 40, 24, .08);
 }
 
 .login-langs a {
@@ -1720,7 +1761,7 @@ table tbody td .patient-cell .info .email {
   border: 1px solid var(--login-line);
   border-radius: 999px;
   background: var(--login-field);
-  box-shadow: 0 2px 8px rgba(10, 40, 32, .06);
+  box-shadow: 0 2px 8px rgba(59, 40, 24, .08);
   cursor: pointer;
 }
 
@@ -1749,10 +1790,10 @@ table tbody td .patient-cell .info .email {
 [data-theme="dark"] .login-theme .theme-opt-sun {
   background: var(--login-primary);
   color: #fff;
-  box-shadow: 0 3px 8px rgba(10, 80, 64, .3);
+  box-shadow: 0 3px 8px rgba(168, 93, 28, .3);
 }
 
-[data-theme="dark"] .theme-opt-sun svg { stroke: #062a23; }
+[data-theme="dark"] .theme-opt-sun svg { stroke: #2D1D11; }
 
 .login-langs a:focus-visible,
 .login-theme:focus-visible {
@@ -1854,7 +1895,7 @@ table tbody td .patient-cell .info .email {
   font-family: inherit;
   font-size: 14px;
   outline: none;
-  box-shadow: 0 1px 2px rgba(9, 50, 42, .03);
+  box-shadow: 0 1px 2px rgba(59, 40, 24, .04);
   transition: border-color .18s ease, box-shadow .18s ease;
 }
 
@@ -1867,11 +1908,11 @@ table tbody td .patient-cell .info .email {
 
 .login-field:focus-within input {
   border-color: var(--login-primary);
-  box-shadow: 0 0 0 4px rgba(14, 107, 91, .13);
+  box-shadow: 0 0 0 4px rgba(212, 126, 48, .16);
 }
 
 [data-theme="dark"] .login-field:focus-within input {
-  box-shadow: 0 0 0 4px rgba(79, 184, 168, .16);
+  box-shadow: 0 0 0 4px rgba(232, 183, 126, .18);
 }
 
 .login-field input:-webkit-autofill {
@@ -1960,7 +2001,7 @@ table tbody td .patient-cell .info .email {
   left: 5px;
   width: 5px;
   height: 9px;
-  border: solid #fff;
+  border: solid #2D1D11;
   border-width: 0 2px 2px 0;
   transform: rotate(43deg);
 }
@@ -1990,7 +2031,7 @@ table tbody td .patient-cell .info .email {
   margin-top: 6px;
   border: none;
   border-radius: 11px;
-  background: linear-gradient(135deg, #14735f 0%, #0c5247 100%);
+  background: linear-gradient(135deg, #A85D1C 0%, #8D5A2B 100%);
   color: #fff;
   font-family: inherit;
   font-size: 15px;
@@ -1998,7 +2039,7 @@ table tbody td .patient-cell .info .email {
   letter-spacing: .1px;
   cursor: pointer;
   box-shadow:
-    0 12px 26px rgba(10, 82, 66, .28),
+    0 12px 26px rgba(168, 93, 28, .3),
     inset 0 1px 0 rgba(255, 255, 255, .16);
   transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
@@ -2006,13 +2047,13 @@ table tbody td .patient-cell .info .email {
 .login-submit:hover {
   filter: brightness(1.06);
   transform: translateY(-1px);
-  box-shadow: 0 16px 32px rgba(10, 82, 66, .32);
+  box-shadow: 0 16px 32px rgba(168, 93, 28, .35);
 }
 
 .login-submit:active { transform: translateY(0); }
 
 .login-submit:focus-visible {
-  outline: 3px solid rgba(14, 107, 91, .35);
+  outline: 3px solid rgba(212, 126, 48, .35);
   outline-offset: 2px;
 }
 
@@ -2101,9 +2142,9 @@ table tbody td .patient-cell .info .email {
 }
 
 .login-alert.ok {
-  border-color: rgba(30, 112, 95, .25);
-  background: rgba(30, 112, 95, .08);
-  color: #1e705f;
+  border-color: rgba(16, 185, 129, .25);
+  background: rgba(16, 185, 129, .08);
+  color: #047857;
 }
 
 @media (max-width: 1080px) {
@@ -3260,7 +3301,7 @@ table tbody td .patient-cell .info .email {
   --fc-border-color: var(--gray-200);
   --fc-page-bg-color: var(--surface);
   --fc-neutral-bg-color: var(--gray-50);
-  --fc-today-bg-color: rgba(38, 128, 113, .08);
+  --fc-today-bg-color: rgba(212, 126, 48, .10);
   --fc-list-event-hover-bg-color: var(--gray-100);
 }
 
@@ -3292,7 +3333,7 @@ table tbody td .patient-cell .info .email {
 }
 
 .calendar-wrap .fc .fc-button-primary:focus {
-  box-shadow: 0 0 0 2px rgba(38, 128, 113, .25);
+  box-shadow: 0 0 0 2px rgba(212, 126, 48, .24);
 }
 
 .calendar-wrap .fc .fc-col-header-cell-cushion {
@@ -3343,7 +3384,7 @@ table tbody td .patient-cell .info .email {
   --fc-border-color: var(--gray-200);
   --fc-page-bg-color: var(--surface);
   --fc-neutral-bg-color: var(--gray-100);
-  --fc-today-bg-color: rgba(38, 128, 113, .18);
+  --fc-today-bg-color: rgba(212, 126, 48, .18);
   --fc-list-event-hover-bg-color: var(--gray-200);
 }
 
@@ -3739,7 +3780,7 @@ html.sidebar-collapsed .page-skeleton { left: var(--sidebar-collapsed-width); }
 
 .multiselect-choices.is-focused .choices__inner {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(38,128,113,.15);
+  box-shadow: 0 0 0 3px rgba(212,126,48,.16);
 }
 
 .multiselect-choices .choices__input {
@@ -3866,7 +3907,7 @@ html.sidebar-collapsed .page-skeleton { left: var(--sidebar-collapsed-width); }
 .form-field select:focus,
 .form-field textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(38,128,113,.15);
+  box-shadow: 0 0 0 3px rgba(212,126,48,.16);
   outline: none;
 }
 .form-field textarea {

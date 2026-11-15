@@ -4,7 +4,7 @@
 <head><title>Tenant</title></head>
 <body>
 <div th:fragment="content">
-    <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:18px;">
+    <div class="admin-page-head">
         <div>
             <h2 style="margin:0" th:text="${tenant.name}">Tenant</h2>
             <div class="admin-muted">
@@ -13,7 +13,7 @@
                 <span th:text="${tenant.phone ?: 'No phone'}">phone</span>
             </div>
         </div>
-        <form th:action="@{'/admin/tenants/' + ${tenant.id} + '/toggle'}" method="post" style="margin:0">
+        <form th:action="@{'/admin/tenants/' + ${tenant.id} + '/toggle'}" method="post">
             <button type="submit" class="btn btn-outline btn-sm"
                     th:text="${tenant.enabled} ? 'Disable tenant' : 'Enable tenant'">Disable tenant</button>
         </form>
